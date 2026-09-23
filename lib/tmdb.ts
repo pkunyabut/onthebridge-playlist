@@ -4,6 +4,22 @@ export const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 export const TMDB_API_BASE = 'https://api.themoviedb.org/3';
 export const WATCH_REGION = 'US';
 
+// Platform homepage URLs for "watch on" buttons.
+export const PLATFORM_URLS: Record<string, string> = {
+  netflix: 'https://www.netflix.com',
+  disney: 'https://www.disneyplus.com',
+  hbo: 'https://www.hbomax.com',
+  prime: 'https://www.primevideo.com',
+  youtube: 'https://www.youtube.com',
+  wetv: 'https://www.wetv.com',
+  viu: 'https://www.viu.com',
+  iqiyi: 'https://www.iq.com',
+  youku: 'https://www.youku.com',
+  spotify: 'https://open.spotify.com',
+  apple_music: 'https://music.apple.com',
+  other: '#',
+};
+
 export type TmdbMediaType = 'movie' | 'tv';
 
 // TMDb watch/providers IDs (US region) mapped to our PlatformType.
@@ -79,21 +95,38 @@ export async function fetchPopularTmdb(
   const data: { results?: TmdbListItem[]; total_pages?: number; page?: number } = await res.json();
   const rawResults = data.results || [];
 
-  const results: TmdbResult[] = rawResults.map((item) => {
-    const title = (type === 'movie' ? item.title : item.name) || 'Untitled';
-    const dateStr = type === 'movie' ? item.release_date : item.first_air_date;
-    const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) || null : null;
+  // Fetch watch providers for each item (US region)
+  const results: TmdbResult[] = await Promise.all(
+    rawResults.map(async (item) => {
+      const title = (type === 'movie' ? item.title : item.name) || 'Untitled';
+      const dateStr = type === 'movie' ? item.release_date : item.first_air_date;
+      const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) || null : null;
 
-    return {
-      id: item.id,
-      title,
-      year,
-      poster: item.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : null,
-      rating: Math.round((item.vote_average || 0) * 10) / 10,
-      type,
-      providers: [],
-    };
-  });
+      let providers: PlatformType[] = [];
+      try {
+        const provRes = await fetch(
+          `${TMDB_API_BASE}/${type}/${item.id}/watch/providers?api_key=${apiKey}`
+        );
+        if (provRes.ok) {
+          const provData = await provRes.json();
+          const usProviders = provData.results?.[WATCH_REGION]?.flatrate || [];
+          providers = mapProviderIdsToPlatforms(usProviders.map((p: { provider_id: number }) => p.provider_id));
+        }
+      } catch {
+        // Ignore provider fetch errors — show card without provider badges
+      }
+
+      return {
+        id: item.id,
+        title,
+        year,
+        poster: item.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : null,
+        rating: Math.round((item.vote_average || 0) * 10) / 10,
+        type,
+        providers,
+      };
+    })
+  );
 
   return {
     results,

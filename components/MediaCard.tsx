@@ -2,6 +2,7 @@
 
 import type { PlatformType } from '@/lib/types';
 import { PLATFORM_ICONS, PLATFORM_LABELS } from '@/lib/types';
+import { PLATFORM_URLS } from '@/lib/tmdb';
 import type { TmdbResult } from '@/lib/tmdb';
 
 interface MediaCardProps {
@@ -69,15 +70,32 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
 
         {result.providers.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {result.providers.map((platform: PlatformType) => (
-              <span
-                key={platform}
-                title={PLATFORM_LABELS[platform]}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-slate-700 text-[10px] font-medium text-gray-600 dark:text-gray-300"
-              >
-                {PLATFORM_ICONS[platform]} {PLATFORM_LABELS[platform]}
-              </span>
-            ))}
+            {result.providers.map((platform: PlatformType) => {
+              const url = PLATFORM_URLS[platform];
+              if (!url || url === '#') {
+                return (
+                  <span
+                    key={platform}
+                    title={PLATFORM_LABELS[platform]}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-slate-700 text-[10px] font-medium text-gray-600 dark:text-gray-300"
+                  >
+                    {PLATFORM_ICONS[platform]} {PLATFORM_LABELS[platform]}
+                  </span>
+                );
+              }
+              return (
+                <a
+                  key={platform}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`ดูบน ${PLATFORM_LABELS[platform]}`}
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-slate-700 text-[10px] font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                >
+                  {PLATFORM_ICONS[platform]} {PLATFORM_LABELS[platform]} ↗
+                </a>
+              );
+            })}
           </div>
         )}
       </div>
