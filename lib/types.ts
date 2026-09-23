@@ -1,5 +1,5 @@
 export type MediaType = 'movie' | 'series' | 'documentary' | 'talkshow' | 'music' | 'news';
-export type PlatformType = 'netflix' | 'disney' | 'hbo' | 'prime' | 'youtube' | 'spotify' | 'apple_music' | 'other';
+export type PlatformType = 'netflix' | 'disney' | 'hbo' | 'prime' | 'youtube' | 'spotify' | 'apple_music' | 'wetv' | 'viu' | 'iqiyi' | 'youku' | 'other';
 
 export interface Profile {
   id: string;
@@ -51,5 +51,24 @@ export const PLATFORM_LABELS: Record<PlatformType, string> = {
   youtube: 'YouTube',
   spotify: 'Spotify',
   apple_music: 'Apple Music',
+  wetv: 'WeTV',
+  viu: 'VIU',
+  iqiyi: 'iQIYI',
+  youku: 'Youku',
   other: 'อื่นๆ',
+};
+
+export const PLATFORM_ICONS: Record<PlatformType, string> = {
+  netflix: '🔴',
+  disney: '✨',
+  hbo: '🟣',
+  prime: '📦',
+  youtube: '▶️',
+  spotify: '🎧',
+  apple_music: '🍎',
+  wetv: '🟢',
+  viu: '🔵',
+  iqiyi: '🟡',
+  youku: '🟠',
+  other: '📌',
 };

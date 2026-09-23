@@ -10,7 +10,9 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth/login?provider=google');
+      const res = await fetch('/api/auth/login?provider=google', {
+        method: 'POST',
+      });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;

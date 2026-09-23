@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow — OnTheBridge Playlist (ไม่ต้องใช้ API ค่าย)</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #666;
+    --accent: #2563eb;
+    --card: #f8fafc;
+    --border: #e2e8f0;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --green: #16a34a;
+    --orange: #ea580c;
+    --purple: #7c3aed;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --fg: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #60a5fa;
+      --card: #1e293b;
+      --border: #334155;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+      --green: #4ade80;
+      --orange: #fb923c;
+      --purple: #a78bfa;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 2rem 1rem;
+    line-height: 1.6;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; text-align: center; }
+  .subtitle { text-align: center; color: var(--muted); margin-bottom: 2rem; font-size: 0.9rem; }
+  .flow { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    position: relative;
+    z-index: 1;
+  }
+  .step-number {
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .step-content { flex: 1; }
+  .step-title { font-weight: 600; font-size: 1.05rem; margin-bottom: 0.25rem; }
+  .step-desc { color: var(--muted); font-size: 0.9rem; }
+  .step-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
+  .tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .tag.green { border-color: var(--green); color: var(--green); }
+  .tag.orange { border-color: var(--orange); color: var(--orange); }
+  .tag.purple { border-color: var(--purple); color: var(--purple); }
+  .arrow { display: flex; justify-content: center; padding: 0.5rem 0; color: var(--muted); font-size: 1.25rem; line-height: 1; }
+  .arrow::after { content: "↓"; }
+  .branch { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin: 0.5rem 0; }
+  .branch-item {
+    padding: 0.9rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .branch-item strong { display: block; margin-bottom: 0.2rem; color: var(--fg); }
+  .branch-item span { color: var(--muted); }
+  .note {
+    margin-top: 2rem;
+    padding: 1rem 1.25rem;
+    background: var(--card);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .note strong { color: var(--fg); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Flow — OnTheBridge Playlist</h1>
+  <p class="subtitle">ไม่ต้องใช้ API ของค่าย — ใช้ TMDb + MusicBrainz + AI แนะนำ</p>
+
+  <div class="flow">
+
+    <div class="step">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <div class="step-title">User ค้นหารายการ</div>
+        <div class="step-desc">พิมพ์ชื่อหนัง/ซีส์/เพลง → แอปค้นจากฐานข้อมูลภายนอก (ไม่ใช่ API ค่าย)</div>
+        <div class="step-tags">
+          <span class="tag green">TMDb (หนัง/ซีส์)</span>
+          <span class="tag green">MusicBrainz (เพลง)</span>
+          <span class="tag">ค้นหาได้ทันที</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <div class="step-title">User เลือกรายการที่ต้องการ</div>
+        <div class="step-desc">แอปแสดงผลลัพธ์จาก TMDb/MusicBrainz → User คลิกเลือก → บันทึกลง DB</div>
+        <div class="step-tags">
+          <span class="tag">เลือกเอง</span>
+          <span class="tag">ไม่มี API ค่าย</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <div class="step-title">บันทึก + ระบุแพลตฟอร์ม</div>
+        <div class="step-desc">User เลือกว่ารายการนี้อยู่บนแพลตฟอร์มไหน (Netflix/Disney/YouTube...)</div>
+        <div class="branch">
+          <div class="branch-item">
+            <strong>หนัง/ซีส์</strong>
+            <span>Netflix, Disney+, HBO, Prime, WeTV, VIU, iQIYI, Youku...</span>
+          </div>
+          <div class="branch-item">
+            <strong>เพลง</strong>
+            <span>Spotify, Apple Music, YouTube...</span>
+          </div>
+          <div class="branch-item">
+            <strong>อนิเมะ/ซีรีส์จีน</strong>
+            <span>BiliBili, iQIYI, Youku...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="step-number">4</div>
+      <div class="step-content">
+        <div class="step-title">แสดง Playlist ตามหมวด</div>
+        <div class="step-desc">รายการทั้งหมดแยกตามประเภท — ดูได้ทันที</div>
+        <div class="step-tags">
+          <span class="tag">ภาพยนตร์</span>
+          <span class="tag">ซีส์</span>
+          <span class="tag">สารคดี</span>
+          <span class="tag">ทอล์คโชว์</span>
+          <span class="tag">เพลง</span>
+          <span class="tag">ข่าว</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="step-number">5</div>
+      <div class="step-content">
+        <div class="step-title">AI วิเคราะห์ + แนะนำรายการเพิ่ม</div>
+        <div class="step-desc">AI ดูรายการที่ User เคยบันทึก → แนะนำรายการคล้ายกันจาก TMDb/MusicBrainz (ไม่ต้องดึงจากค่าย)</div>
+        <div class="step-tags">
+          <span class="tag purple">DeepSeek (ฟรี)</span>
+          <span class="tag">แนะนำจากรายการเดิม</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <strong>หมายเหตุ:</strong> ไม่ต้องใช้ API ของ Netflix/Disney/HBO/Prime/WeTV/VIU/iQiYi เลย — ใช้ TMDb + MusicBrainz + AI แทน ฟรีและถูกกฎหมาย [ตรวจสอบ: พบ 1 แหล่ง]
+  </div>
+</div>
+</body>
+</html>

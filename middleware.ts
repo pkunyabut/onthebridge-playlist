@@ -9,8 +9,12 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Protect dashboard routes
-  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+  // Protect dashboard, search, and watchlist routes
+  if (
+    req.nextUrl.pathname.startsWith('/dashboard') ||
+    req.nextUrl.pathname.startsWith('/search') ||
+    req.nextUrl.pathname.startsWith('/watchlist')
+  ) {
     if (!session) {
       const redirectUrl = req.nextUrl.clone();
       redirectUrl.pathname = '/login';
@@ -30,5 +34,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/login', '/search', '/watchlist'],
 };
