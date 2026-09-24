@@ -111,9 +111,8 @@ export default function AddItemPage() {
     <div className="pb-20 md:pb-0">
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {t('add_item_title')}
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('add_item_title')}</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('add_item_info')}</p>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           {t('add_item_subtitle')}
         </p>
