@@ -446,6 +446,24 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Contact Us */}
+      <section className="max-w-3xl mx-auto px-4 pb-16">
+        <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 dark:text-white mb-4">
+          {t('contact_title')}
+        </h2>
+        <p className="text-center text-gray-600 dark:text-gray-300 mb-4">
+          {t('contact_subtitle')}
+        </p>
+        <div className="text-center">
+          <a
+            href="mailto:thonglorproduction@gmail.com"
+            className="inline-block px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
+          >
+            ✉️ thonglorproduction@gmail.com
+          </a>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-gray-100 dark:border-slate-700 py-8">
         <div className="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">

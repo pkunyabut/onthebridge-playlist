@@ -119,6 +119,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex flex-col gap-1 pt-4 border-t border-cinema-border">
+            <a
+              href="mailto:thonglorproduction@gmail.com"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-cinema-text-muted hover:bg-cinema-700 transition-colors"
+            >
+              <span className="text-base">✉️</span>
+              {t('contact_title')}
+            </a>
             <button
               onClick={toggleLang}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-cinema-text-muted hover:bg-cinema-700 transition-colors"
