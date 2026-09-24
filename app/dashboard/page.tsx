@@ -85,6 +85,13 @@ export default function DashboardPage() {
     setAiRecommendations(null);
     setShowAiSection(true);
 
+    // Show hint when no items instead of calling API
+    if (mediaItems.length === 0) {
+      setAiLoading(false);
+      setAiError(t('ai_empty_hint'));
+      return;
+    }
+
     try {
       const items = mediaItems.map((item) => ({
         title: item.title,
@@ -191,8 +198,8 @@ export default function DashboardPage() {
             </Link>
             <button
               onClick={fetchAiRecommendations}
-              disabled={aiLoading || mediaItems.length === 0}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white rounded-xl font-medium text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={aiLoading}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white rounded-xl font-medium text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-50"
             >
               {aiLoading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
