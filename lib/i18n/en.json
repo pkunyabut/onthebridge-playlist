@@ -47,7 +47,7 @@
   "terms_data_text": "(titles, ratings, types) come from TMDb (free). We don't own this data.",
   "terms_account": "User Accounts:",
   "terms_account_text": "Uses Google login only to save your own items. We don't share data with third parties and don't collect unnecessary data.",
-  "terms_ai": "AI (DeepSeek):",
+  "terms_ai": "AI (Gemini 2.5 Archive Free):",
   "terms_ai_text": "Recommends additional titles based only on what you've already saved. No personal data used commercially.",
   "terms_free": "Free Forever:",
   "terms_free_text": "No fees, no ads, no charges.",
