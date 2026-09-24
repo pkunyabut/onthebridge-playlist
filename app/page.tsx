@@ -43,7 +43,7 @@ export default function LandingPage() {
   const [error, setError] = useState('');
 
   const [savedMap, setSavedMap] = useState<Record<string, string>>({});
-  const [savingKeys, setSavingKeys] = useState<Set<number>>(new Set());
+  const [savingKeys, setSavingKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -116,7 +116,7 @@ export default function LandingPage() {
     const key = savedKey(result.title, result.year);
     const existingId = savedMap[key];
 
-    setSavingKeys((prev) => new Set(prev).add(result.id));
+    setSavingKeys((prev) => new Set(prev).add(String(result.id)));
     try {
       if (existingId) {
         const res = await fetch(`/api/media?id=${existingId}`, { method: 'DELETE' });
@@ -153,7 +153,7 @@ export default function LandingPage() {
     } finally {
       setSavingKeys((prev) => {
         const next = new Set(prev);
-        next.delete(result.id);
+        next.delete(String(result.id));
         return next;
       });
     }
@@ -202,7 +202,7 @@ export default function LandingPage() {
           จัดรายการ
           <span className="text-brand-600 dark:text-brand-400"> ภาพยนตร์ ซีส์ สารคดี</span>
           <br />
-          และเพลง ข้ามแพลตฟอร์ม
+          และเพลง
         </h1>
         <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
           เก็บรายการที่อยากดูและฟังจากทุกแพลตฟอร์มไว้ในที่เดียว
@@ -249,22 +249,24 @@ export default function LandingPage() {
           ))}
         </div>
 
-        {/* Category Sub-tabs */}
-        <div className="flex justify-center gap-2 mb-8">
-          {CATEGORY_TABS.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setCategoryTab(tab.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
-                categoryTab === tab.value
-                  ? 'bg-gray-900 dark:bg-white text-white dark:text-slate-900'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-600'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {/* Category Sub-tabs (hidden for music — MusicBrainz has no categories) */}
+        {typeTab !== 'music' && (
+          <div className="flex justify-center gap-2 mb-8">
+            {CATEGORY_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setCategoryTab(tab.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
+                  categoryTab === tab.value
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-slate-900'
+                    : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-600'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm text-center">
@@ -300,7 +302,7 @@ export default function LandingPage() {
                   <MediaCard
                     result={result}
                     saved={!!savedMap[savedKey(result.title, result.year)]}
-                    saving={savingKeys.has(result.id)}
+                    saving={savingKeys.has(String(result.id))}
                     onToggleSave={handleToggleSave}
                   />
                 </div>

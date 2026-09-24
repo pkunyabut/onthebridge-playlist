@@ -25,7 +25,7 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300 dark:text-gray-600">
-            🎬
+            {result.type === 'music' ? '🎵' : '🎬'}
           </div>
         )}
 
@@ -64,6 +64,11 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
         <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight line-clamp-2 min-h-[2.5rem]">
           {result.title}
         </h3>
+        {result.artist && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+            {result.artist}
+          </p>
+        )}
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           {result.year ?? '—'}
         </p>

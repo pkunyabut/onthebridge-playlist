@@ -32,7 +32,7 @@ export default function SearchPage() {
   const [error, setError] = useState('');
 
   const [savedMap, setSavedMap] = useState<Record<string, string>>({});
-  const [savingKeys, setSavingKeys] = useState<Set<number>>(new Set());
+  const [savingKeys, setSavingKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -121,7 +121,7 @@ export default function SearchPage() {
     const key = savedKey(result.title, result.year);
     const existingId = savedMap[key];
 
-    setSavingKeys((prev) => new Set(prev).add(result.id));
+    setSavingKeys((prev) => new Set(prev).add(String(result.id)));
     try {
       if (existingId) {
         const res = await fetch(`/api/media?id=${existingId}`, { method: 'DELETE' });
@@ -154,7 +154,7 @@ export default function SearchPage() {
     } finally {
       setSavingKeys((prev) => {
         const next = new Set(prev);
-        next.delete(result.id);
+        next.delete(String(result.id));
         return next;
       });
     }
@@ -273,7 +273,7 @@ export default function SearchPage() {
                   key={`${result.type}-${result.id}`}
                   result={result}
                   saved={!!savedMap[savedKey(result.title, result.year)]}
-                  saving={savingKeys.has(result.id)}
+                  saving={savingKeys.has(String(result.id))}
                   onToggleSave={handleToggleSave}
                 />
               ))}

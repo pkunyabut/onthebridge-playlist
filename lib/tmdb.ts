@@ -46,8 +46,9 @@ export function mapProviderIdsToPlatforms(providerIds: number[]): PlatformType[]
 }
 
 export interface TmdbResult {
-  id: number;
+  id: number | string;
   title: string;
+  artist?: string;
   year: number | null;
   poster: string | null;
   rating: number;
@@ -85,10 +86,10 @@ export async function fetchPopularTmdb(
   page: number,
   apiKey: string
 ): Promise<TmdbPopularResponse> {
-  // Documentary (genre 99) and Music (genre 10402) are movie-type on TMDb
-  const isGenreFiltered = type === 'documentary' || type === 'music';
+  // Documentary (genre 99) is movie-type on TMDb — music uses MusicBrainz instead
+  const isGenreFiltered = type === 'documentary';
   const endpointType = isGenreFiltered ? 'movie' : type;
-  const genreParam = type === 'documentary' ? '&with_genres=99' : type === 'music' ? '&with_genres=10402' : '';
+  const genreParam = type === 'documentary' ? '&with_genres=99' : '';
   const url = `${TMDB_API_BASE}/${endpointType}/${category}?api_key=${apiKey}&page=${page}&language=en-US${genreParam}`;
   const res = await fetch(url);
 
@@ -102,7 +103,7 @@ export async function fetchPopularTmdb(
   // Fetch watch providers for each item (US region)
   const results: TmdbResult[] = await Promise.all(
     rawResults.map(async (item) => {
-      const isMovieLike = type === 'movie' || type === 'documentary' || type === 'music';
+      const isMovieLike = type === 'movie' || type === 'documentary';
       const title = (isMovieLike ? item.title : item.name) || 'Untitled';
       const dateStr = isMovieLike ? item.release_date : item.first_air_date;
       const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) || null : null;
