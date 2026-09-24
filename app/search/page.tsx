@@ -251,49 +251,7 @@ export default function SearchPage() {
           ))}
         </div>
 
-        {/* Language Filter */}
-        <div className="mb-4">
-          <label className="text-xs font-medium text-cinema-text-muted mb-1.5 block">
-            {t('filter_language')}
-          </label>
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
-            {LANGUAGE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setLanguage(opt.value)}
-                className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all min-h-[44px] ${
-                  language === opt.value
-                    ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
-                    : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        {/* Region Filter */}
-        <div className="mb-4">
-          <label className="text-xs font-medium text-cinema-text-muted mb-1.5 block">
-            {t('filter_region')}
-          </label>
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
-            {WATCH_REGIONS.map((region) => (
-              <button
-                key={region}
-                onClick={() => setWatchRegion(region)}
-                className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all min-h-[44px] ${
-                  watchRegion === region
-                    ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
-                    : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
-                }`}
-              >
-                {REGION_LABELS[region]}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Provider Filter Chips */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
