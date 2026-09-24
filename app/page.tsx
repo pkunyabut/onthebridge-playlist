@@ -166,12 +166,16 @@ export default function LandingPage() {
           }),
         });
         if (res.status === 401) {
+          alert('กรุณาเข้าสู่ระบบก่อนบันทึกรายการ');
           router.push('/login');
           return;
         }
         const data = await res.json();
         if (res.ok && data.media) {
           setSavedMap((prev) => ({ ...prev, [key]: data.media.id }));
+          alert(`บันทึก "${result.title}" ลงรอดูแล้ว!`);
+        } else {
+          alert(`ไม่สามารถบันทึกได้: ${data.error || 'ข้อผิดพลาดที่ไม่รู้จัก'}`);
         }
       }
     } finally {
