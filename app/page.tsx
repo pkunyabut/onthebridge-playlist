@@ -10,7 +10,24 @@ import CardSkeleton from '@/components/CardSkeleton';
 import MediaModal from '@/components/MediaModal';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, PlatformType } from '@/lib/types';
+import { WATCH_REGIONS, DEFAULT_WATCH_REGION, DEFAULT_LANGUAGE, DEFAULT_COUNTRY, COUNTRY_OPTIONS, type WatchRegion, type CountryOption } from '@/lib/tmdb';
 import type { TmdbCategory, TmdbMediaType, TmdbResult } from '@/lib/tmdb';
+
+const REGION_LABELS: Record<WatchRegion, string> = {
+  TH: '🇹🇭 ไทย',
+  US: '🇺🇸 อเมริกา',
+  KR: '🇰🇷 เกาหลี',
+  CN: '🇨🇳 จีน',
+  JP: '🇯🇵 ญี่ปุ่น',
+};
+
+const LANGUAGE_OPTIONS = [
+  { value: 'th-TH', label: '🇹🇭 ไทย' },
+  { value: 'en-US', label: '🇺🇸 อังกฤษ' },
+  { value: 'ko-KR', label: '🇰🇷 เกาหลี' },
+  { value: 'zh-CN', label: '🇨🇳 จีน' },
+  { value: 'ja-JP', label: '🇯🇵 ญี่ปุ่น' },
+];
 
 function savedKey(title: string, year: number | null) {
   return `${title.trim().toLowerCase()}|${year ?? ''}`;
@@ -25,6 +42,9 @@ export default function LandingPage() {
 
   const [typeTab, setTypeTab] = useState<TmdbMediaType>('movie');
   const [categoryTab, setCategoryTab] = useState<TmdbCategory>('popular');
+  const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
+  const [watchRegion, setWatchRegion] = useState<WatchRegion>(DEFAULT_WATCH_REGION);
+  const [country, setCountry] = useState<string>(DEFAULT_COUNTRY);
 
   const [results, setResults] = useState<TmdbResult[]>([]);
   const [page, setPage] = useState(1);
@@ -82,7 +102,7 @@ export default function LandingPage() {
 
     try {
       const res = await fetch(
-        `/api/tmdb/popular?type=${type}&category=${category}&page=${pageNum}`
+        `/api/tmdb/popular?type=${type}&category=${category}&page=${pageNum}&language=${language}&watch_region=${watchRegion}&country=${country}`
       );
       const data = await res.json();
       if (requestId !== requestIdRef.current) return;
@@ -109,7 +129,7 @@ export default function LandingPage() {
   useEffect(() => {
     fetchResults(typeTab, categoryTab, 1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeTab, categoryTab]);
+  }, [typeTab, categoryTab, language, watchRegion, country]);
 
   const handleToggleSave = async (result: TmdbResult) => {
     if (!isLoggedIn) {
@@ -260,7 +280,7 @@ export default function LandingPage() {
         </div>
 
         {/* Category Sub-tabs */}
-        <div className="flex justify-center gap-2 mb-8">
+        <div className="flex justify-center gap-2 mb-4">
           {CATEGORY_TABS.map((tab) => (
             <button
               key={tab.value}
@@ -272,6 +292,70 @@ export default function LandingPage() {
               }`}
             >
               {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Region Filter Tabs */}
+        <div className="flex justify-center gap-2 mb-3">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 self-center mr-1">{t('filter_region')}:</span>
+          {WATCH_REGIONS.map((region) => (
+            <button
+              key={region}
+              onClick={() => setWatchRegion(region)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
+                watchRegion === region
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              {REGION_LABELS[region]}
+            </button>
+          ))}
+        </div>
+
+        {/* Country Filter Tabs */}
+        <div className="flex justify-center gap-2 mb-3">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 self-center mr-1">{t('filter_country')}:</span>
+          <button
+            onClick={() => setCountry(DEFAULT_COUNTRY)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
+              country === DEFAULT_COUNTRY
+                ? 'bg-brand-600 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+            }`}
+          >
+            {t('filter_all')}
+          </button>
+          {COUNTRY_OPTIONS.map((opt) => (
+            <button
+              key={opt.code}
+              onClick={() => setCountry(opt.code)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
+                country === opt.code
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              {opt.flag} {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Language Filter Tabs */}
+        <div className="flex justify-center gap-2 mb-8">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 self-center mr-1">{t('filter_language')}:</span>
+          {LANGUAGE_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setLanguage(opt.value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
+                language === opt.value
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              {opt.label}
             </button>
           ))}
         </div>

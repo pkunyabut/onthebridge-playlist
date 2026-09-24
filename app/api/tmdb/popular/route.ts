@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   fetchPopularTmdb,
+  DEFAULT_LANGUAGE,
+  DEFAULT_WATCH_REGION,
+  DEFAULT_COUNTRY,
+  WATCH_REGIONS,
+  type WatchRegion,
   type TmdbCategory,
   type TmdbMediaType,
   type TmdbPopularResponse,
@@ -12,7 +17,6 @@ const CACHE_TTL_MS = 10 * 60 * 1000;
 const cache = new Map<string, { data: TmdbPopularResponse; expires: number }>();
 
 // GET /api/tmdb/popular — public endpoint for the landing page browse grid.
-// All types (movie, tv, documentary, music) are served via TMDb.
 export async function GET(request: NextRequest) {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey || apiKey === 'placeholder') {
@@ -25,15 +29,20 @@ export async function GET(request: NextRequest) {
     : 'movie';
   const category: TmdbCategory = searchParams.get('category') === 'top_rated' ? 'top_rated' : 'popular';
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+  const language = searchParams.get('language') || DEFAULT_LANGUAGE;
+  const watchRegion: WatchRegion = (WATCH_REGIONS as readonly string[]).includes(searchParams.get('watch_region') || '')
+    ? (searchParams.get('watch_region') as WatchRegion)
+    : DEFAULT_WATCH_REGION;
+  const country = searchParams.get('country') || DEFAULT_COUNTRY;
 
-  const cacheKey = `${type}:${category}:${page}`;
+  const cacheKey = `${type}:${category}:${page}:${language}:${watchRegion}:${country}`;
   const cached = cache.get(cacheKey);
   if (cached && cached.expires > Date.now()) {
     return NextResponse.json(cached.data);
   }
 
   try {
-    const responseBody = await fetchPopularTmdb(type, category, page, apiKey);
+    const responseBody = await fetchPopularTmdb(type, category, page, apiKey, language, watchRegion, country);
 
     cache.set(cacheKey, { data: responseBody, expires: Date.now() + CACHE_TTL_MS });
     return NextResponse.json(responseBody);

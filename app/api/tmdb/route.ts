@@ -4,8 +4,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   TMDB_API_BASE,
   TMDB_IMAGE_BASE,
-  WATCH_REGION,
-  mapProviderIdsToPlatforms,
+  DEFAULT_LANGUAGE,
+  DEFAULT_WATCH_REGION,
+  DEFAULT_COUNTRY,
+  WATCH_REGIONS,
+  collectProvidersFromRegions,
+  type WatchRegion,
   type TmdbMediaType,
   type TmdbResult,
   type TmdbSearchResponse,
@@ -24,42 +28,37 @@ interface TmdbSearchItem {
   first_air_date?: string;
   poster_path?: string | null;
   vote_average?: number;
+  origin_country?: string[];
+  production_countries?: { iso_3166_1: string; name: string }[];
 }
 
-interface TmdbWatchProvider {
-  provider_id: number;
-}
-
-interface TmdbWatchProvidersResponse {
-  'watch/providers'?: {
-    results?: Record<
-      string,
-      {
-        flatrate?: TmdbWatchProvider[];
-        ads?: TmdbWatchProvider[];
-        free?: TmdbWatchProvider[];
-      }
-    >;
-  };
-}
-
-async function fetchProviders(type: TmdbMediaType, id: number, apiKey: string): Promise<TmdbResult['providers']> {
+async function fetchProviders(
+  type: TmdbMediaType,
+  id: number,
+  apiKey: string,
+  watchRegion: WatchRegion = DEFAULT_WATCH_REGION,
+): Promise<{ providers: TmdbResult['providers']; has_th_providers: boolean }> {
   try {
     const res = await fetch(
-      `${TMDB_API_BASE}/${type}/${id}?api_key=${apiKey}&append_to_response=watch/providers`
+      `${TMDB_API_BASE}/${type === 'documentary' || type === 'music' ? 'movie' : type}/${id}?api_key=${apiKey}&append_to_response=watch/providers`
     );
-    if (!res.ok) return [];
-    const data: TmdbWatchProvidersResponse = await res.json();
-    const regional = data['watch/providers']?.results?.[WATCH_REGION];
-    const providerIds = [
-      ...(regional?.flatrate ?? []),
-      ...(regional?.ads ?? []),
-      ...(regional?.free ?? []),
-    ].map((p) => p.provider_id);
-    return mapProviderIdsToPlatforms(providerIds);
+    if (!res.ok) return { providers: [], has_th_providers: false };
+    const data = await res.json();
+    const collected = collectProvidersFromRegions(data, WATCH_REGIONS);
+    return { providers: collected.providers, has_th_providers: collected.has_th_providers };
   } catch {
-    return [];
+    return { providers: [], has_th_providers: false };
   }
+}
+
+function getOriginCountry(item: TmdbSearchItem, type: TmdbMediaType): string | null {
+  if (type === 'tv' && item.origin_country && item.origin_country.length > 0) {
+    return item.origin_country[0];
+  }
+  if (type === 'movie' && item.production_countries && item.production_countries.length > 0) {
+    return item.production_countries[0].iso_3166_1;
+  }
+  return null;
 }
 
 export async function GET(request: NextRequest) {
@@ -79,19 +78,34 @@ export async function GET(request: NextRequest) {
   const q = searchParams.get('q')?.trim() || '';
   const type: TmdbMediaType = searchParams.get('type') === 'tv' ? 'tv' : 'movie';
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+  const language = searchParams.get('language') || DEFAULT_LANGUAGE;
+  const watchRegion: WatchRegion = (WATCH_REGIONS as readonly string[]).includes(searchParams.get('watch_region') || '')
+    ? (searchParams.get('watch_region') as WatchRegion)
+    : DEFAULT_WATCH_REGION;
+  const country = searchParams.get('country') || DEFAULT_COUNTRY;
 
   if (!q) {
     return NextResponse.json({ results: [], total_pages: 0, page: 1 });
   }
 
-  const cacheKey = `${type}:${q.toLowerCase()}:${page}`;
+  const cacheKey = `${type}:${q.toLowerCase()}:${page}:${language}:${watchRegion}:${country}`;
   const cached = cache.get(cacheKey);
   if (cached && cached.expires > Date.now()) {
     return NextResponse.json(cached.data);
   }
 
   try {
-    const searchUrl = `${TMDB_API_BASE}/search/${type}?api_key=${apiKey}&query=${encodeURIComponent(q)}&page=${page}&include_adult=false`;
+    let searchUrl: string;
+    if (country !== DEFAULT_COUNTRY) {
+      // Use discover endpoint for country-filtered search
+      if (type === 'tv') {
+        searchUrl = `${TMDB_API_BASE}/discover/tv?api_key=${apiKey}&with_keywords=${encodeURIComponent(q)}&with_origin_country=${country}&page=${page}&language=${language}&sort_by=popularity.desc&vote_count.gte=1`;
+      } else {
+        searchUrl = `${TMDB_API_BASE}/discover/movie?api_key=${apiKey}&with_keywords=${encodeURIComponent(q)}&region=${country}&page=${page}&language=${language}&sort_by=popularity.desc&vote_count.gte=1`;
+      }
+    } else {
+      searchUrl = `${TMDB_API_BASE}/search/${type}?api_key=${apiKey}&query=${encodeURIComponent(q)}&page=${page}&include_adult=false&language=${language}`;
+    }
     const searchRes = await fetch(searchUrl);
 
     if (!searchRes.ok) {
@@ -106,7 +120,12 @@ export async function GET(request: NextRequest) {
         const title = (type === 'movie' ? item.title : item.name) || 'ไม่ทราบชื่อ';
         const dateStr = type === 'movie' ? item.release_date : item.first_air_date;
         const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) || null : null;
-        const providers = await fetchProviders(type, item.id, apiKey);
+        const { providers, has_th_providers } = await fetchProviders(
+          type,
+          item.id,
+          apiKey,
+          watchRegion
+        );
 
         return {
           id: item.id,
@@ -116,6 +135,8 @@ export async function GET(request: NextRequest) {
           rating: Math.round((item.vote_average || 0) * 10) / 10,
           type,
           providers,
+          has_th_providers,
+          origin_country: getOriginCountry(item, type),
         };
       })
     );

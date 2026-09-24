@@ -9,10 +9,27 @@ import CardSkeleton from '@/components/CardSkeleton';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, PlatformType } from '@/lib/types';
 import type { TmdbMediaType, TmdbResult } from '@/lib/tmdb';
+import { WATCH_REGIONS, DEFAULT_WATCH_REGION, DEFAULT_LANGUAGE, DEFAULT_COUNTRY, COUNTRY_OPTIONS, type WatchRegion } from '@/lib/tmdb';
 
 function savedKey(title: string, year: number | null) {
   return `${title.trim().toLowerCase()}|${year ?? ''}`;
 }
+
+const REGION_LABELS: Record<WatchRegion, string> = {
+  TH: '🇹🇭 ไทย',
+  US: '🇺🇸 อเมริกา',
+  KR: '🇰🇷 เกาหลี',
+  CN: '🇨🇳 จีน',
+  JP: '🇯🇵 ญี่ปุ่น',
+};
+
+const LANGUAGE_OPTIONS = [
+  { value: 'th-TH', label: '🇹🇭 ไทย' },
+  { value: 'en-US', label: '🇺🇸 อังกฤษ' },
+  { value: 'ko-KR', label: '🇰🇷 เกาหลี' },
+  { value: 'zh-CN', label: '🇨🇳 จีน' },
+  { value: 'ja-JP', label: '🇯🇵 ญี่ปุ่น' },
+];
 
 export default function SearchPage() {
   const { t } = useLanguage();
@@ -24,6 +41,9 @@ export default function SearchPage() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [typeTab, setTypeTab] = useState<TmdbMediaType>('movie');
   const [providerFilter, setProviderFilter] = useState<Set<PlatformType>>(new Set());
+  const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
+  const [watchRegion, setWatchRegion] = useState<WatchRegion>(DEFAULT_WATCH_REGION);
+  const [country, setCountry] = useState<string>(DEFAULT_COUNTRY);
 
   const [results, setResults] = useState<TmdbResult[]>([]);
   const [page, setPage] = useState(1);
@@ -69,7 +89,7 @@ export default function SearchPage() {
 
     try {
       const res = await fetch(
-        `/api/tmdb?q=${encodeURIComponent(searchTerm)}&type=${type}&page=${pageNum}`
+        `/api/tmdb?q=${encodeURIComponent(searchTerm)}&type=${type}&page=${pageNum}&language=${language}&watch_region=${watchRegion}&country=${country}`
       );
       const data = await res.json();
       if (requestId !== requestIdRef.current) return;
@@ -102,7 +122,7 @@ export default function SearchPage() {
     }
     fetchResults(debouncedQuery, typeTab, 1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, typeTab]);
+  }, [debouncedQuery, typeTab, language, watchRegion]);
 
   const toggleProvider = (platform: PlatformType) => {
     setProviderFilter((prev) => {
@@ -181,39 +201,49 @@ export default function SearchPage() {
   return (
     <AppShell>
       <div className="pb-20 md:pb-0">
-        {/* Search Input */}
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{t('search_title')}</h1>
-          <div className="relative">
-            <svg
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('search_placeholder')}
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-base focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-colors shadow-sm"
-            />
+        {/* Cinematic Search Header */}
+        <div className="relative mb-8 p-6 md:p-8 rounded-2xl overflow-hidden glass border border-cinema-border animate-fade-up">
+          <div className="absolute top-0 right-0 w-72 h-48 bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-0 w-56 h-40 bg-brand-600/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/3" />
+
+          <div className="relative z-10">
+            <h1 className="text-2xl md:text-3xl font-bold text-gold-gradient mb-4">{t('search_title')}</h1>
+
+            {/* Search Input with Glow */}
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-500 via-brand-400 to-brand-600 rounded-2xl opacity-30 group-hover:opacity-50 group-focus-within:opacity-60 blur transition-opacity duration-300" />
+              <div className="relative">
+                <svg
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t('search_placeholder')}
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl bg-cinema-900 border border-cinema-border text-cinema-text placeholder-cinema-text-muted text-base focus:outline-none focus:border-brand-500/50 transition-colors"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Type Tabs */}
-        <div className="flex gap-2 mb-3">
+        <div className="flex gap-2 mb-4">
           {(['movie', 'tv'] as TmdbMediaType[]).map((type) => (
             <button
               key={type}
               onClick={() => setTypeTab(type)}
-              className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors min-h-[44px] ${
+              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
                 typeTab === type
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                  ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
+                  : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
               }`}
             >
               {type === 'movie' ? t('type_tab_movie') : t('type_tab_tv')}
@@ -221,14 +251,58 @@ export default function SearchPage() {
           ))}
         </div>
 
+        {/* Language Filter */}
+        <div className="mb-4">
+          <label className="text-xs font-medium text-cinema-text-muted mb-1.5 block">
+            {t('filter_language')}
+          </label>
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+            {LANGUAGE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setLanguage(opt.value)}
+                className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all min-h-[44px] ${
+                  language === opt.value
+                    ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
+                    : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Region Filter */}
+        <div className="mb-4">
+          <label className="text-xs font-medium text-cinema-text-muted mb-1.5 block">
+            {t('filter_region')}
+          </label>
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+            {WATCH_REGIONS.map((region) => (
+              <button
+                key={region}
+                onClick={() => setWatchRegion(region)}
+                className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all min-h-[44px] ${
+                  watchRegion === region
+                    ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
+                    : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
+                }`}
+              >
+                {REGION_LABELS[region]}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Provider Filter Chips */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
           <button
             onClick={() => setProviderFilter(new Set())}
-            className={`flex-shrink-0 px-3 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px] ${
+            className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all min-h-[44px] ${
               providerFilter.size === 0
-                ? 'bg-brand-600 text-white'
-                : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300'
+                ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
+                : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
             }`}
           >
             {t('filter_all')}
@@ -237,10 +311,10 @@ export default function SearchPage() {
             <button
               key={platform}
               onClick={() => toggleProvider(platform)}
-              className={`flex-shrink-0 px-3 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px] ${
+              className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all min-h-[44px] ${
                 providerFilter.has(platform)
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300'
+                  ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
+                  : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
               }`}
             >
               {label}
@@ -249,7 +323,7 @@ export default function SearchPage() {
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm">
+          <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
             ❌ {error}
           </div>
         )}
@@ -262,28 +336,28 @@ export default function SearchPage() {
             ))}
           </div>
         ) : !debouncedQuery ? (
-          <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="text-center py-20 glass rounded-2xl border border-cinema-border animate-fade-up">
+            <div className="text-7xl mb-6 animate-float">🔍</div>
+            <h3 className="text-xl font-semibold text-cinema-text mb-3">
               {t('start_search_title')}
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-cinema-text-muted text-sm max-w-sm mx-auto">
               {t('start_search_hint')}
             </p>
           </div>
         ) : filteredResults.length === 0 ? (
-          <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
-            <div className="text-6xl mb-4">📭</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="text-center py-20 glass rounded-2xl border border-cinema-border animate-fade-up">
+            <div className="text-7xl mb-6">📭</div>
+            <h3 className="text-xl font-semibold text-cinema-text mb-3">
               {t('no_results_title')}
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-cinema-text-muted text-sm max-w-sm mx-auto">
               {t('no_results_hint')}
             </p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-grid">
               {filteredResults.map((result) => (
                 <MediaCard
                   key={`${result.type}-${result.id}`}
@@ -296,11 +370,11 @@ export default function SearchPage() {
             </div>
 
             {page < totalPages && (
-              <div className="flex justify-center mt-6">
+              <div className="flex justify-center mt-8">
                 <button
                   onClick={() => fetchResults(debouncedQuery, typeTab, page + 1, true)}
                   disabled={loadingMore}
-                  className="px-6 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 rounded-xl font-medium text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 min-h-[44px]"
+                  className="px-6 py-3 glass border border-cinema-border text-cinema-text rounded-xl font-medium text-sm hover:border-brand-500/30 hover:shadow-gold transition-all disabled:opacity-50 min-h-[44px]"
                 >
                   {loadingMore ? t('loading_more') : t('load_more')}
                 </button>
