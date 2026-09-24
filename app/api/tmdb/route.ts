@@ -72,13 +72,6 @@ function getOriginCountry(item: TmdbSearchItem, type: TmdbMediaType): string | n
 }
 
 export async function GET(request: NextRequest) {
-  const cookieStore = cookies();
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey || apiKey === 'placeholder') {
     return NextResponse.json({ error: 'ยังไม่ได้ตั้งค่า TMDB_API_KEY' }, { status: 500 });
