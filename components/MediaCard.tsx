@@ -1,7 +1,8 @@
 'use client';
 
+import { useLanguage } from '@/context/LanguageContext';
 import type { PlatformType } from '@/lib/types';
-import { PLATFORM_ICONS, PLATFORM_LABELS } from '@/lib/types';
+import { PLATFORM_ICONS } from '@/lib/types';
 import { PLATFORM_URLS } from '@/lib/tmdb';
 import type { TmdbResult } from '@/lib/tmdb';
 
@@ -13,6 +14,8 @@ interface MediaCardProps {
 }
 
 export default function MediaCard({ result, saved, saving, onToggleSave }: MediaCardProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="group relative bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700 hover:shadow-md transition-shadow">
       <div className="relative aspect-[2/3] bg-gray-100 dark:bg-slate-700">
@@ -36,7 +39,7 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
             onToggleSave(result);
           }}
           disabled={saving}
-          aria-label={saved ? 'ลบออกจากรอดู' : 'บันทึกลงรอดู'}
+          aria-label={saved ? t('remove_from_watchlist') : t('save_to_watchlist')}
           className="absolute top-2 right-2 w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-slate-900/90 shadow-md backdrop-blur-sm disabled:opacity-50 transition-transform active:scale-95"
         >
           {saving ? (
@@ -81,10 +84,10 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
                 return (
                   <span
                     key={platform}
-                    title={PLATFORM_LABELS[platform]}
+                    title={t(`type_${result.type}`)}
                     className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-slate-700 text-[10px] font-medium text-gray-600 dark:text-gray-300"
                   >
-                    {PLATFORM_ICONS[platform]} {PLATFORM_LABELS[platform]}
+                    {PLATFORM_ICONS[platform]} {t(`type_${result.type}`)}
                   </span>
                 );
               }
@@ -94,10 +97,10 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  title={`ดูบน ${PLATFORM_LABELS[platform]}`}
+                  title={`${t('watch_on')} ${platform}`}
                   className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-slate-700 text-[10px] font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
                 >
-                  {PLATFORM_ICONS[platform]} {PLATFORM_LABELS[platform]} ↗
+                  {PLATFORM_ICONS[platform]} {platform} ↗
                 </a>
               );
             })}

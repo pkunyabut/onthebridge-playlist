@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
 import type { TmdbResult } from '@/lib/tmdb';
 import { PLATFORM_URLS } from '@/lib/tmdb';
-import { PLATFORM_LABELS } from '@/lib/types';
 
 interface MediaModalProps {
   result: TmdbResult;
@@ -15,13 +15,6 @@ interface MediaModalProps {
   onToggleSave: (result: TmdbResult) => void;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  movie: 'ภาพยนตร์',
-  tv: 'ซีรีส์',
-  documentary: 'สารคดี',
-  music: 'เพลง',
-};
-
 export default function MediaModal({
   result,
   isLoggedIn,
@@ -31,6 +24,7 @@ export default function MediaModal({
   onToggleSave,
 }: MediaModalProps) {
   const router = useRouter();
+  const { t } = useLanguage();
 
   // Close on Escape
   useEffect(() => {
@@ -49,7 +43,6 @@ export default function MediaModal({
 
   const primaryPlatform = result.providers[0];
   const platformUrl = primaryPlatform ? PLATFORM_URLS[primaryPlatform] : null;
-  const platformLabel = primaryPlatform ? PLATFORM_LABELS[primaryPlatform] : null;
 
   const handleGoToPlatform = () => {
     if (platformUrl && platformUrl !== '#') {
@@ -80,7 +73,7 @@ export default function MediaModal({
         <button
           onClick={onClose}
           className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
-          aria-label="ปิด"
+          aria-label={t('close')}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -120,7 +113,7 @@ export default function MediaModal({
               </span>
             )}
             <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700 text-xs font-medium text-gray-600 dark:text-gray-300">
-              {TYPE_LABELS[result.type] || result.type}
+              {t(`type_${result.type}`)}
             </span>
           </div>
 
@@ -139,7 +132,7 @@ export default function MediaModal({
                   key={platform}
                   className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 dark:bg-slate-700 text-xs font-medium text-gray-600 dark:text-gray-300"
                 >
-                  {PLATFORM_LABELS[platform]}
+                  {platform}
                 </span>
               ))}
             </div>
@@ -148,13 +141,13 @@ export default function MediaModal({
           {/* Action buttons */}
           <div className="mt-5 flex flex-col gap-2">
             {/* Go to platform button */}
-            {platformUrl && platformUrl !== '#' && platformLabel && (
+            {platformUrl && platformUrl !== '#' && (
               <button
                 onClick={handleGoToPlatform}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium text-sm transition-colors min-h-[44px]"
               >
                 <span>🔗</span>
-                ไปที่ {platformLabel} ที่ออนแอร์ ↗
+                {t('go_to')} {primaryPlatform} {t('streaming_on')} ↗
               </button>
             )}
 
@@ -179,7 +172,7 @@ export default function MediaModal({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
               )}
-              {saved ? 'อยู่ในรอดูแล้ว' : 'เพิ่มลงรอดู'}
+              {saved ? t('already_in_watchlist') : t('add_to_watchlist')}
             </button>
           </div>
         </div>

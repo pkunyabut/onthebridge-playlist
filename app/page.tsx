@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import MediaCard from '@/components/MediaCard';
 import CardSkeleton from '@/components/CardSkeleton';
 import MediaModal from '@/components/MediaModal';
+import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, PlatformType } from '@/lib/types';
 import type { TmdbCategory, TmdbMediaType, TmdbResult } from '@/lib/tmdb';
 
@@ -15,21 +16,10 @@ function savedKey(title: string, year: number | null) {
   return `${title.trim().toLowerCase()}|${year ?? ''}`;
 }
 
-const TYPE_TABS: { value: TmdbMediaType; label: string }[] = [
-  { value: 'movie', label: '🎬 หนัง' },
-  { value: 'tv', label: '📺 ซีรีส์' },
-  { value: 'documentary', label: '📖 สารคดี' },
-  { value: 'music', label: '🎵 เพลง' },
-];
-
-const CATEGORY_TABS: { value: TmdbCategory; label: string }[] = [
-  { value: 'popular', label: 'ยอดนิยม' },
-  { value: 'top_rated', label: 'คะแนนสูงสุด' },
-];
-
 export default function LandingPage() {
   const router = useRouter();
   const requestIdRef = useRef(0);
+  const { t, lang, setLang } = useLanguage();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -46,6 +36,18 @@ export default function LandingPage() {
   const [savedMap, setSavedMap] = useState<Record<string, string>>({});
   const [savingKeys, setSavingKeys] = useState<Set<string>>(new Set());
   const [modalResult, setModalResult] = useState<TmdbResult | null>(null);
+
+  const TYPE_TABS: { value: TmdbMediaType; label: string }[] = [
+    { value: 'movie', label: t('type_tab_movie') },
+    { value: 'tv', label: t('type_tab_tv') },
+    { value: 'documentary', label: t('type_tab_documentary') },
+    { value: 'music', label: t('type_tab_music') },
+  ];
+
+  const CATEGORY_TABS: { value: TmdbCategory; label: string }[] = [
+    { value: 'popular', label: t('category_popular') },
+    { value: 'top_rated', label: t('category_top_rated') },
+  ];
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -86,7 +88,7 @@ export default function LandingPage() {
       if (requestId !== requestIdRef.current) return;
 
       if (!res.ok) {
-        setError(data.error || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
+        setError(data.error || t('error_loading'));
         if (!append) setResults([]);
         return;
       }
@@ -96,7 +98,7 @@ export default function LandingPage() {
       setPage(pageNum);
     } catch {
       if (requestId !== requestIdRef.current) return;
-      setError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      setError(t('error_connection'));
     } finally {
       if (requestId !== requestIdRef.current) return;
       setLoading(false);
@@ -169,29 +171,35 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <span className="text-2xl">🌉</span>
             <span className="text-lg font-bold text-brand-700 dark:text-brand-400">
-              OnTheBridge Playlist
+              {t('app_name')}
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLang(lang === 'th' ? 'en' : 'th')}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              {lang === 'th' ? 'EN' : 'TH'}
+            </button>
             <Link
               href="/search"
               className="px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors"
             >
-              🔍 ค้นหา
+              🔍 {t('nav_search')}
             </Link>
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
                 className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium text-sm transition-colors"
               >
-                แดชบอร์ด
+                {t('nav_dashboard')}
               </Link>
             ) : (
               <Link
                 href="/login"
                 className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium text-sm transition-colors"
               >
-                เข้าสู่ระบบ
+                {t('nav_login')}
               </Link>
             )}
           </div>
@@ -201,14 +209,15 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-4 py-14 md:py-20 text-center">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-          จัดรายการ
-          <span className="text-brand-600 dark:text-brand-400"> ภาพยนตร์ ซีส์ สารคดี</span>
+          {t('hero_line1')}
+          <span className="text-brand-600 dark:text-brand-400"> {t('hero_line2_highlight')}</span>
           <br />
-          และเพลง
+          {t('hero_line3')}
         </h1>
         <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-          เก็บรายการที่อยากดูและฟังจากทุกแพลตฟอร์มไว้ในที่เดียว
-          พร้อม AI ที่แนะนำรายการใหม่ๆ ตามรสนิยมของคุณ
+          {t('hero_sub1')}
+          <br />
+          {t('hero_sub2')}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           {!isLoggedIn && (
@@ -216,14 +225,14 @@ export default function LandingPage() {
               href="/login"
               className="px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-lg transition-colors shadow-lg shadow-brand-600/20"
             >
-              เริ่มใช้งานฟรี
+              {t('cta_start_free')}
             </Link>
           )}
           <a
             href="#browse"
             className="px-8 py-4 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold text-lg transition-colors hover:bg-gray-50 dark:hover:bg-slate-700"
           >
-            เลื่อนดูเนื้อหา
+            {t('cta_browse')}
           </a>
         </div>
       </section>
@@ -231,7 +240,7 @@ export default function LandingPage() {
       {/* Browse */}
       <section id="browse" className="max-w-6xl mx-auto px-4 pb-16 md:pb-24">
         <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white mb-6">
-          สำรวจหนัง <span className="whitespace-nowrap">ซีรีส์</span> สารคดี และเพลง
+          {t('browse_title_1')} <span className="whitespace-nowrap">{t('browse_title_2')}</span> {t('browse_title_3')} {t('browse_title_4')}
         </h2>
 
         {/* Type Tabs */}
@@ -284,10 +293,10 @@ export default function LandingPage() {
           <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
             <div className="text-6xl mb-4">📭</div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              ไม่พบข้อมูล
+              {t('no_data_title')}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 text-sm">
-              กรุณาลองใหม่อีกครั้งในภายหลัง
+              {t('no_data_desc')}
             </p>
           </div>
         ) : (
@@ -316,7 +325,7 @@ export default function LandingPage() {
                   disabled={loadingMore}
                   className="px-6 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 rounded-xl font-medium text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 min-h-[44px]"
                 >
-                  {loadingMore ? 'กำลังโหลด...' : 'โหลดเพิ่มเติม'}
+                  {loadingMore ? t('loading_more') : t('load_more')}
                 </button>
               </div>
             )}
@@ -328,10 +337,10 @@ export default function LandingPage() {
       <section className="bg-brand-50 dark:bg-slate-800 py-16">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            รองรับทุกแพลตฟอร์ม
+            {t('platforms_title')}
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-8">
-            เก็บรายการจากแพลตฟอร์มยอดนิยม
+            {t('platforms_subtitle')}
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-sm">
             {[
@@ -365,16 +374,16 @@ export default function LandingPage() {
       {!isLoggedIn && (
         <section className="max-w-4xl mx-auto px-4 py-16 md:py-24 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            เริ่มจัดรายการของคุณวันนี้
+            {t('cta_title')}
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-8">
-            สมัครฟรี ไม่ต้องใช้บัตรเครดิต
+            {t('cta_subtitle')}
           </p>
           <Link
             href="/login"
             className="inline-block px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-lg transition-colors shadow-lg shadow-brand-600/20"
           >
-            สมัครใช้งานฟรี
+            {t('cta_signup_free')}
           </Link>
         </section>
       )}
@@ -382,36 +391,36 @@ export default function LandingPage() {
       {/* Terms of Service */}
       <section className="max-w-3xl mx-auto px-4 pb-16">
         <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
-          เงื่อนไขบริการ
+          {t('terms_title')}
         </h2>
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-6 md:p-8 space-y-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
           <div className="flex gap-3">
             <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">1.</span>
-            <p><strong className="text-gray-900 dark:text-white">จุดประสงค์:</strong> แอปนี้สร้างเพื่อคนที่ชอบดูหนัง เพราะหนังดีๆ กระจายอยู่หลายแพลตฟอร์ม เราทำแค่ Playlist เพื่อให้คุณบันทึกและตั้งแจ้งเตือน "อย่าลืมดู" เท่านั้น</p>
+            <p><strong className="text-gray-900 dark:text-white">{t('terms_purpose')}</strong> {t('terms_purpose_text')}</p>
           </div>
           <div className="flex gap-3">
             <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">2.</span>
-            <p><strong className="text-gray-900 dark:text-white">เราไม่ใช่เจ้าของเนื้อหา:</strong> เราไม่ได้ให้บริการ streaming ไม่ได้เก็บไฟล์ภาพยนตร์/ซีรีส์/เพลง เนื้อหาทั้งหมดอยู่ที่แพลตฟอร์มต้นทาง (Netflix, Disney+, HBO, Prime, YouTube, Spotify, WeTV, VIU, iQIYI, Youku ฯลฯ) คุณต้องมีสมาชิก/บัญชีเองที่แพลตฟอร์มนั้น</p>
+            <p><strong className="text-gray-900 dark:text-white">{t('terms_not_owner')}</strong> {t('terms_not_owner_text')}</p>
           </div>
           <div className="flex gap-3">
             <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">3.</span>
-            <p><strong className="text-gray-900 dark:text-white">ข้อมูลรายการ:</strong> (ชื่อ คะแนน ประเภท) มาจาก TMDb ฟรี เราไม่เป็นเจ้าของข้อมูลนี้</p>
+            <p><strong className="text-gray-900 dark:text-white">{t('terms_data')}</strong> {t('terms_data_text')}</p>
           </div>
           <div className="flex gap-3">
             <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">4.</span>
-            <p><strong className="text-gray-900 dark:text-white">บัญชีผู้ใช้:</strong> ใช้ Google login เพื่อเก็บรายการของตัวเองเท่านั้น ไม่แชร์ข้อมูลกับบุคคลที่สาม ไม่เก็บข้อมูลเกินจำเป็น</p>
+            <p><strong className="text-gray-900 dark:text-white">{t('terms_account')}</strong> {t('terms_account_text')}</p>
           </div>
           <div className="flex gap-3">
             <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">5.</span>
-            <p><strong className="text-gray-900 dark:text-white">AI (DeepSeek):</strong> ช่วยแนะนำรายการเพิ่มจากรายการที่คุณเคยบันทึกเท่านั้น ไม่เก็บข้อมูลส่วนตัวเพื่อใช้เชิงพาณิชย์</p>
+            <p><strong className="text-gray-900 dark:text-white">{t('terms_ai')}</strong> {t('terms_ai_text')}</p>
           </div>
           <div className="flex gap-3">
             <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">6.</span>
-            <p><strong className="text-gray-900 dark:text-white">ฟรีตลอด:</strong> ไม่มีค่าใช้จ่าย ไม่มีโฆษณา ไม่มีการเก็บเงิน</p>
+            <p><strong className="text-gray-900 dark:text-white">{t('terms_free')}</strong> {t('terms_free_text')}</p>
           </div>
           <div className="flex gap-3">
             <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">7.</span>
-            <p>สร้างด้วย ❤️ เพื่อทุกคน</p>
+            <p>{t('terms_made_with')}</p>
           </div>
         </div>
       </section>
@@ -419,8 +428,8 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-gray-100 dark:border-slate-700 py-8">
         <div className="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>OnTheBridge Playlist © 2569</p>
-          <p className="mt-1">สร้างด้วย ❤️ เพื่อทุกคน</p>
+          <p>{t('footer_copyright')}</p>
+          <p className="mt-1">{t('footer_made_with')}</p>
         </div>
       </footer>
 

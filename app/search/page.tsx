@@ -6,8 +6,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import MediaCard from '@/components/MediaCard';
 import CardSkeleton from '@/components/CardSkeleton';
+import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, PlatformType } from '@/lib/types';
-import { PLATFORM_LABELS } from '@/lib/types';
 import type { TmdbMediaType, TmdbResult } from '@/lib/tmdb';
 
 function savedKey(title: string, year: number | null) {
@@ -15,6 +15,7 @@ function savedKey(title: string, year: number | null) {
 }
 
 export default function SearchPage() {
+  const { t } = useLanguage();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
@@ -74,7 +75,7 @@ export default function SearchPage() {
       if (requestId !== requestIdRef.current) return;
 
       if (!res.ok) {
-        setError(data.error || 'เกิดข้อผิดพลาดในการค้นหา');
+        setError(data.error || t('error_search'));
         if (!append) setResults([]);
         return;
       }
@@ -84,7 +85,7 @@ export default function SearchPage() {
       setPage(pageNum);
     } catch {
       if (requestId !== requestIdRef.current) return;
-      setError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      setError(t('error_connection'));
     } finally {
       if (requestId !== requestIdRef.current) return;
       setLoading(false);
@@ -160,14 +161,29 @@ export default function SearchPage() {
     }
   };
 
-  const providerEntries = Object.entries(PLATFORM_LABELS) as [PlatformType, string][];
+  const providerLabels: Record<string, string> = {
+    netflix: 'Netflix',
+    disney: 'Disney+',
+    hbo: 'HBO Max',
+    prime: 'Prime Video',
+    youtube: 'YouTube',
+    spotify: 'Spotify',
+    apple_music: 'Apple Music',
+    wetv: 'WeTV',
+    viu: 'VIU',
+    iqiyi: 'iQIYI',
+    youku: 'Youku',
+    other: t('type_other'),
+  };
+
+  const providerEntries = Object.entries(providerLabels) as [PlatformType, string][];
 
   return (
     <AppShell>
       <div className="pb-20 md:pb-0">
         {/* Search Input */}
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">ค้นหา</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{t('search_title')}</h1>
           <div className="relative">
             <svg
               className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -182,7 +198,7 @@ export default function SearchPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="ค้นหาหนังหรือซีรีส์..."
+              placeholder={t('search_placeholder')}
               className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-base focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-colors shadow-sm"
             />
           </div>
@@ -190,17 +206,17 @@ export default function SearchPage() {
 
         {/* Type Tabs */}
         <div className="flex gap-2 mb-3">
-          {(['movie', 'tv'] as TmdbMediaType[]).map((t) => (
+          {(['movie', 'tv'] as TmdbMediaType[]).map((type) => (
             <button
-              key={t}
-              onClick={() => setTypeTab(t)}
+              key={type}
+              onClick={() => setTypeTab(type)}
               className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors min-h-[44px] ${
-                typeTab === t
+                typeTab === type
                   ? 'bg-brand-600 text-white'
                   : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
               }`}
             >
-              {t === 'movie' ? '🎬 หนัง' : '📺 ซีรีส์'}
+              {type === 'movie' ? t('type_tab_movie') : t('type_tab_tv')}
             </button>
           ))}
         </div>
@@ -215,7 +231,7 @@ export default function SearchPage() {
                 : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300'
             }`}
           >
-            ทั้งหมด
+            {t('filter_all')}
           </button>
           {providerEntries.map(([platform, label]) => (
             <button
@@ -249,20 +265,20 @@ export default function SearchPage() {
           <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              เริ่มค้นหาหนังหรือซีรีส์
+              {t('start_search_title')}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 text-sm">
-              พิมพ์ชื่อเรื่องที่ต้องการค้นหาด้านบน
+              {t('start_search_hint')}
             </p>
           </div>
         ) : filteredResults.length === 0 ? (
           <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
             <div className="text-6xl mb-4">📭</div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              ไม่พบผลลัพธ์
+              {t('no_results_title')}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 text-sm">
-              ลองค้นหาด้วยคำอื่น หรือเปลี่ยนตัวกรองแพลตฟอร์ม
+              {t('no_results_hint')}
             </p>
           </div>
         ) : (
@@ -286,7 +302,7 @@ export default function SearchPage() {
                   disabled={loadingMore}
                   className="px-6 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 rounded-xl font-medium text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 min-h-[44px]"
                 >
-                  {loadingMore ? 'กำลังโหลด...' : 'โหลดเพิ่มเติม'}
+                  {loadingMore ? t('loading_more') : t('load_more')}
                 </button>
               </div>
             )}

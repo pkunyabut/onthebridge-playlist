@@ -5,10 +5,11 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase-browser';
 import type { MediaItem } from '@/lib/types';
-import { MEDIA_TYPE_LABELS } from '@/lib/types';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
@@ -41,7 +42,7 @@ export default function DashboardPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('ต้องการลบรายการนี้หรือไม่?')) return;
+    if (!confirm(t('confirm_delete_item'))) return;
 
     setDeleting(id);
     try {
@@ -87,12 +88,21 @@ export default function DashboardPage() {
     news: '📰',
   };
 
+  const typeLabels: Record<string, string> = {
+    movie: t('type_movie'),
+    series: t('type_series'),
+    documentary: t('type_documentary'),
+    talkshow: t('type_talkshow'),
+    music: t('type_music'),
+    news: t('type_news'),
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 dark:text-gray-400">กำลังโหลด...</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
     );
@@ -104,10 +114,10 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            รายการของฉัน
+            {t('my_items')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            ทั้งหมด {mediaItems.length} รายการ
+            {t('total_items', { count: mediaItems.length })}
           </p>
         </div>
         <Link
@@ -115,7 +125,7 @@ export default function DashboardPage() {
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium text-sm transition-colors shadow-sm"
         >
           <span>➕</span>
-          เพิ่มรายการ
+          {t('add_item')}
         </Link>
       </div>
 
@@ -129,9 +139,9 @@ export default function DashboardPage() {
               : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
           }`}
         >
-          ทั้งหมด
+          {t('filter_all')}
         </button>
-        {Object.entries(MEDIA_TYPE_LABELS).map(([type, label]) => (
+        {Object.entries(typeLabels).map(([type, label]) => (
           <button
             key={type}
             onClick={() => setFilter(type)}
@@ -151,17 +161,17 @@ export default function DashboardPage() {
         <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
           <div className="text-6xl mb-4">📭</div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            ยังไม่มีรายการ
+            {t('no_items_title')}
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
-            เริ่มเพิ่มรายการภาพยนตร์ ซีส์ หรือเพลงที่ชอบเลย!
+            {t('no_items_hint')}
           </p>
           <Link
             href="/dashboard/add"
             className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium text-sm transition-colors"
           >
             <span>➕</span>
-            เพิ่มรายการแรก
+            {t('add_first_item')}
           </Link>
         </div>
       ) : (
@@ -170,7 +180,7 @@ export default function DashboardPage() {
             <div key={type}>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                 <span>{typeIcons[type]}</span>
-                {MEDIA_TYPE_LABELS[type as keyof typeof MEDIA_TYPE_LABELS]}
+                {typeLabels[type] || type}
                 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">
                   ({items.length})
                 </span>
@@ -189,7 +199,7 @@ export default function DashboardPage() {
                         onClick={() => handleDelete(item.id)}
                         disabled={deleting === item.id}
                         className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0 p-1"
-                        aria-label="ลบ"
+                        aria-label={t('delete')}
                       >
                         {deleting === item.id ? (
                           <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
@@ -203,19 +213,19 @@ export default function DashboardPage() {
                     <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
                       {item.platform && (
                         <div className="flex items-center gap-1">
-                          <span className="text-gray-400 dark:text-gray-500">แพลตฟอร์ม:</span>
+                          <span className="text-gray-400 dark:text-gray-500">{t('label_platform')}</span>
                           <span className="font-medium">{item.platform}</span>
                         </div>
                       )}
                       {item.genre && (
                         <div className="flex items-center gap-1">
-                          <span className="text-gray-400 dark:text-gray-500">หมวด:</span>
+                          <span className="text-gray-400 dark:text-gray-500">{t('label_genre')}</span>
                           <span className="font-medium">{item.genre}</span>
                         </div>
                       )}
                       {item.year && (
                         <div className="flex items-center gap-1">
-                          <span className="text-gray-400 dark:text-gray-500">ปี:</span>
+                          <span className="text-gray-400 dark:text-gray-500">{t('label_year')}</span>
                           <span className="font-medium">{item.year}</span>
                         </div>
                       )}

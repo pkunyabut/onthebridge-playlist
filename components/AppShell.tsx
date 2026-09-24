@@ -3,22 +3,28 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-
-const navItems = [
-  { href: '/dashboard', label: 'หน้าหลัก', icon: '🏠' },
-  { href: '/dashboard/add', label: 'เพิ่มรายการ', icon: '➕' },
-  { href: '/search', label: 'ค้นหา', icon: '🔍' },
-  { href: '/watchlist', label: 'รอดู', icon: '🔖' },
-];
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+  const { t, lang, setLang } = useLanguage();
+
+  const navItems = [
+    { href: '/dashboard', label: t('nav_home'), icon: '🏠' },
+    { href: '/dashboard/add', label: t('nav_add'), icon: '➕' },
+    { href: '/search', label: t('nav_search'), icon: '🔍' },
+    { href: '/watchlist', label: t('nav_watchlist'), icon: '🔖' },
+  ];
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
+  };
+
+  const toggleLang = () => {
+    setLang(lang === 'th' ? 'en' : 'th');
   };
 
   const isActive = (href: string) => {
@@ -37,15 +43,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               OnTheBridge
             </span>
           </Link>
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-            aria-label="เมนู"
-          >
-            <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleLang}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              {lang === 'th' ? 'EN' : 'TH'}
+            </button>
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              aria-label={t('menu')}
+            >
+              <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -71,7 +85,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
               <span>🚪</span>
-              ออกจากระบบ
+              {t('logout')}
             </button>
           </div>
         )}
@@ -104,13 +118,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-          >
-            <span>🚪</span>
-            ออกจากระบบ
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <span>🌐</span>
+              {lang === 'th' ? 'English' : 'ไทย'}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
+              <span>🚪</span>
+              {t('logout')}
+            </button>
+          </div>
         </aside>
 
         {/* Main Content */}

@@ -5,26 +5,28 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, MediaType, PlatformType } from '@/lib/types';
-import { MEDIA_TYPE_LABELS, PLATFORM_ICONS, PLATFORM_LABELS } from '@/lib/types';
+import { PLATFORM_ICONS } from '@/lib/types';
 
 type FilterType = 'all' | MediaType;
 
-const FILTER_TABS: { key: FilterType; label: string }[] = [
-  { key: 'all', label: 'ทั้งหมด' },
-  { key: 'movie', label: 'ภาพยนตร์' },
-  { key: 'series', label: 'ซีรีส์' },
-  { key: 'documentary', label: 'สารคดี' },
-  { key: 'talkshow', label: 'ทอล์คโชว์' },
-  { key: 'music', label: 'เพลง' },
-  { key: 'news', label: 'ข่าว' },
-];
-
 export default function WatchlistPage() {
+  const { t } = useLanguage();
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
+
+  const FILTER_TABS: { key: FilterType; label: string }[] = [
+    { key: 'all', label: t('filter_all') },
+    { key: 'movie', label: t('type_movie') },
+    { key: 'series', label: t('type_series') },
+    { key: 'documentary', label: t('type_documentary') },
+    { key: 'talkshow', label: t('type_talkshow') },
+    { key: 'music', label: t('type_music') },
+    { key: 'news', label: t('type_news') },
+  ];
 
   useEffect(() => {
     fetchMedia();
@@ -45,7 +47,7 @@ export default function WatchlistPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('ต้องการลบรายการนี้ออกจากรอดูหรือไม่?')) return;
+    if (!confirm(t('confirm_delete'))) return;
     setDeleting(id);
     try {
       const res = await fetch(`/api/media?id=${id}`, { method: 'DELETE' });
@@ -81,7 +83,7 @@ export default function WatchlistPage() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
-            <p className="text-gray-500 dark:text-gray-400">กำลังโหลด...</p>
+            <p className="text-gray-500 dark:text-gray-400">{t('loading')}</p>
           </div>
         </div>
       </AppShell>
@@ -92,9 +94,9 @@ export default function WatchlistPage() {
     <AppShell>
       <div className="pb-20 md:pb-0">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">รอดู</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('watchlist_title')}</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            ทั้งหมด {mediaItems.length} รายการ
+            {t('total_items', { count: mediaItems.length })}
           </p>
         </div>
 
@@ -130,19 +132,19 @@ export default function WatchlistPage() {
           <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
             <div className="text-6xl mb-4">🔖</div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              {selectedFilter === 'all' ? 'รอดูยังว่างอยู่' : 'ไม่มีรายการในหมวดนี้'}
+              {selectedFilter === 'all' ? t('watchlist_empty') : t('no_items_in_category')}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
               {selectedFilter === 'all'
-                ? 'ไปค้นหาหนังหรือซีรีส์ที่ชอบแล้วกดบันทึกไว้ดูทีหลัง'
-                : 'เปลี่ยนหมวดหมู่หรือเพิ่มรายการใหม่'}
+                ? t('empty_hint')
+                : t('change_category_hint')}
             </p>
             <Link
               href="/search"
               className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium text-sm transition-colors"
             >
               <span>🔍</span>
-              ไปค้นหา
+              {t('go_search')}
             </Link>
           </div>
         ) : (
@@ -151,7 +153,7 @@ export default function WatchlistPage() {
               <div key={platform}>
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <span>{PLATFORM_ICONS[platform as PlatformType]}</span>
-                  {PLATFORM_LABELS[platform as PlatformType]}
+                  {platform}
                   <span className="text-sm font-normal text-gray-400 dark:text-gray-500">
                     ({items.length})
                   </span>
@@ -170,7 +172,7 @@ export default function WatchlistPage() {
                           onClick={() => handleDelete(item.id)}
                           disabled={deleting === item.id}
                           className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0 p-2 -m-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
-                          aria-label="ลบ"
+                          aria-label={t('delete')}
                         >
                           {deleting === item.id ? (
                             <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
@@ -183,18 +185,18 @@ export default function WatchlistPage() {
                       </div>
                       <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
                         <div className="flex items-center gap-1">
-                          <span className="text-gray-400 dark:text-gray-500">ประเภท:</span>
-                          <span className="font-medium">{MEDIA_TYPE_LABELS[item.type]}</span>
+                          <span className="text-gray-400 dark:text-gray-500">{t('label_type')}</span>
+                          <span className="font-medium">{t(`type_${item.type}`)}</span>
                         </div>
                         {item.genre && (
                           <div className="flex items-center gap-1">
-                            <span className="text-gray-400 dark:text-gray-500">หมวด:</span>
+                            <span className="text-gray-400 dark:text-gray-500">{t('label_genre')}</span>
                             <span className="font-medium">{item.genre}</span>
                           </div>
                         )}
                         {item.year && (
                           <div className="flex items-center gap-1">
-                            <span className="text-gray-400 dark:text-gray-500">ปี:</span>
+                            <span className="text-gray-400 dark:text-gray-500">{t('label_year')}</span>
                             <span className="font-medium">{item.year}</span>
                           </div>
                         )}
