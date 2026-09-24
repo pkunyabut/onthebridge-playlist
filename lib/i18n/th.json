@@ -135,5 +135,10 @@
   "ai_type_documentary": "สารคดี",
   "ai_type_music": "เพลง",
   "ai_reason": "เหตุผล:",
-  "ai_try_again": "ลองอีกครั้ง"
+  "ai_try_again": "ลองอีกครั้ง",
+  "type_tv": "ซีรีส์",
+  "login_required_save": "กรุณาเข้าสู่ระบบก่อนบันทึกรายการ",
+  "save_success": "บันทึก \"{title}\" ลงรอดูแล้ว!",
+  "save_failed": "ไม่สามารถบันทึกได้: {error}",
+  "unknown_error": "ข้อผิดพลาดที่ไม่รู้จัก"
 }

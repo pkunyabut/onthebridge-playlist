@@ -58,16 +58,48 @@ export function getCountryFlag(code: string): string {
 }
 
 // TMDb watch/providers IDs mapped to our PlatformType.
+// IDs verified against https://api.themoviedb.org/3/watch/providers/{movie,tv} — the
+// same service is listed under several IDs per region (e.g. Disney+ is 122 in TH/SEA
+// and 337 in US/KR/JP, Prime Video is 9 / 119 / 10), so every alias must be mapped or
+// Thai items silently lose their provider badges.
 const PROVIDER_ID_TO_PLATFORM: Record<number, PlatformType> = {
+  // Netflix (8 = Netflix, 175 = Netflix Kids, 1796 = Netflix Standard with Ads)
   8: 'netflix',
+  175: 'netflix',
+  1796: 'netflix',
+  // Disney+ (122 = Disney+ TH/SEA/EU, 337 = Disney Plus US/KR/JP, 508 = DisneyNOW)
+  122: 'disney',
   337: 'disney',
+  508: 'disney',
+  // HBO Max (1899 = HBO Max, 384 = legacy id, 1825 = Amazon Channel, 2284 = on U-Next)
+  1899: 'hbo',
   384: 'hbo',
+  1825: 'hbo',
+  2284: 'hbo',
+  // Prime Video (9 / 119 = Amazon Prime Video, 10 = Amazon Video, 613 / 2100 = ad tiers)
   9: 'prime',
+  119: 'prime',
+  10: 'prime',
+  613: 'prime',
+  2100: 'prime',
+  // YouTube (192 = YouTube, 188 = Premium, 235 = Free, 2528 = YouTube TV)
   192: 'youtube',
-  247: 'wetv',
-  248: 'viu',
-  249: 'iqiyi',
+  188: 'youtube',
+  235: 'youtube',
+  2528: 'youtube',
+  // WeTV (623 = movie catalog, 509 = TV catalog) — the old 247 id was wrong
+  623: 'wetv',
+  509: 'wetv',
+  // Viu — the old 248 id was wrong
+  158: 'viu',
+  // iQIYI — the old 249 id was wrong
+  581: 'iqiyi',
+  // Youku has no TMDb provider id yet; kept so manually entered items still map.
   250: 'youku',
+  // Storefronts / rent-and-buy only: Apple TV Store, Google Play Movies, Fandango at Home
+  2: 'other',
+  3: 'other',
+  7: 'other',
 };
 
 export function mapProviderIdsToPlatforms(providerIds: number[]): PlatformType[] {
@@ -87,6 +119,8 @@ interface TmdbWatchProvidersResult {
   flatrate?: TmdbWatchProviderData[];
   ads?: TmdbWatchProviderData[];
   free?: TmdbWatchProviderData[];
+  buy?: TmdbWatchProviderData[];
+  rent?: TmdbWatchProviderData[];
 }
 
 interface TmdbWatchProvidersResponse {
@@ -95,38 +129,52 @@ interface TmdbWatchProvidersResponse {
 
 /**
  * Collect providers from all watch regions.
+ * Streaming tiers (flatrate/free/ads) win; rent/buy-only titles fall back to the
+ * storefronts so an item is never shown without any provider badge.
  * Returns combined providers (TH first) and whether TH providers exist.
- * Falls back to US if TH has no providers.
  */
 export function collectProvidersFromRegions(
   provData: TmdbWatchProvidersResponse,
   regions: WatchRegion[] = [...WATCH_REGIONS]
 ): { providers: PlatformType[]; has_th_providers: boolean } {
-  const allPlatforms = new Set<PlatformType>();
-  const thPlatforms = new Set<PlatformType>();
+  const streaming = new Set<PlatformType>();
+  const purchase = new Set<PlatformType>();
+  const thStreaming = new Set<PlatformType>();
+  const thPurchase = new Set<PlatformType>();
 
-  // Try TH first, then fall back to other regions
   for (const region of regions) {
     const regional = provData.results?.[region];
     if (!regional) continue;
 
-    const providerIds = [
-      ...(regional.flatrate ?? []),
-      ...(regional.ads ?? []),
-      ...(regional.free ?? []),
-    ].map((p) => p.provider_id);
+    const tierIds = (tier?: TmdbWatchProviderData[]) => (tier ?? []).map((p) => p.provider_id);
 
-    const platforms = mapProviderIdsToPlatforms(providerIds);
+    const streamPlatforms = mapProviderIdsToPlatforms([
+      ...tierIds(regional.flatrate),
+      ...tierIds(regional.free),
+      ...tierIds(regional.ads),
+    ]);
+    const purchasePlatforms = mapProviderIdsToPlatforms([
+      ...tierIds(regional.buy),
+      ...tierIds(regional.rent),
+    ]);
+
+    streamPlatforms.forEach((p) => streaming.add(p));
+    purchasePlatforms.forEach((p) => purchase.add(p));
 
     if (region === 'TH') {
-      platforms.forEach((p) => thPlatforms.add(p));
+      streamPlatforms.forEach((p) => thStreaming.add(p));
+      purchasePlatforms.forEach((p) => thPurchase.add(p));
     }
-    platforms.forEach((p) => allPlatforms.add(p));
   }
 
+  // Prefer subscription/free availability; only fall back to rent/buy when nothing is
+  // included in a subscription anywhere we look.
+  const providers = streaming.size > 0 ? Array.from(streaming) : Array.from(purchase);
+
   return {
-    providers: Array.from(allPlatforms),
-    has_th_providers: thPlatforms.size > 0,
+    providers,
+    has_th_providers:
+      thStreaming.size > 0 || (streaming.size === 0 && thPurchase.size > 0),
   };
 }
 
@@ -217,50 +265,37 @@ export async function fetchPopularTmdb(
   const isGenreFiltered = type === 'documentary' || type === 'music';
   const endpointType = type === 'documentary' || type === 'music' ? 'movie' : type;
   const genreParam = type === 'documentary' ? '99' : type === 'music' ? '10402' : '';
-
-  let url: string;
   const isTvOrSeries = type === 'tv';
   const isMovieLike = type === 'movie' || type === 'documentary' || type === 'music';
 
-  if (isGenreFiltered) {
-    const sortBy = category === 'top_rated' ? 'vote_average.desc' : 'popularity.desc';
-    let baseUrl = `${TMDB_API_BASE}/discover/${endpointType}?api_key=${apiKey}&with_genres=${genreParam}&sort_by=${sortBy}&page=${page}&language=${language}&vote_count.gte=10`;
-    if (country !== DEFAULT_COUNTRY) {
-      if (isTvOrSeries) {
-        baseUrl += `&with_origin_country=${country}`;
-      } else {
-        baseUrl += `&region=${country}`;
-      }
-    }
-    url = baseUrl;
-  } else if (isTvOrSeries) {
-    // TV shows: use discover endpoint to support with_origin_country
-    const sortBy = category === 'top_rated' ? 'vote_average.desc' : 'popularity.desc';
-    let baseUrl = `${TMDB_API_BASE}/discover/tv?api_key=${apiKey}&sort_by=${sortBy}&page=${page}&language=${language}&vote_count.gte=10`;
-    if (country !== DEFAULT_COUNTRY) {
-      baseUrl += `&with_origin_country=${country}`;
-    }
-    url = baseUrl;
-  } else {
-    // Movies: use discover endpoint to support region filter
-    const sortBy = category === 'top_rated' ? 'vote_average.desc' : 'popularity.desc';
-    let baseUrl = `${TMDB_API_BASE}/discover/movie?api_key=${apiKey}&sort_by=${sortBy}&page=${page}&language=${language}&vote_count.gte=10`;
-    if (country !== DEFAULT_COUNTRY) {
-      baseUrl += `&region=${country}`;
-    }
-    url = baseUrl;
+  const sortBy = category === 'top_rated' ? 'vote_average.desc' : 'popularity.desc';
+  const params = new URLSearchParams({
+    sort_by: sortBy,
+    page: String(page),
+    language,
+    'vote_count.gte': '10',
+    // Only return titles that are actually watchable in the selected region, otherwise
+    // the browse grid fills up with cinema-only releases that have no provider data.
+    watch_region: watchRegion,
+    with_watch_monetization_types: 'flatrate|free|ads',
+  });
+
+  if (isGenreFiltered && genreParam) {
+    params.set('with_genres', genreParam);
   }
 
-  // Use the shared client with retry/backoff
-  // Parse URL to extract path and params (excluding api_key, which fetchTmdb adds)
-  const urlObj = new URL(url);
-  const params: Record<string, string> = {};
-  urlObj.searchParams.forEach((value, key) => {
-    if (key !== 'api_key') {
-      params[key] = value;
-    }
+  // Country-of-origin filter works on discover for both movies and TV.
+  if (country !== DEFAULT_COUNTRY) {
+    params.set('with_origin_country', country);
+  }
+
+  const path = `/discover/${endpointType}`;
+  const query: Record<string, string> = {};
+  params.forEach((value, key) => {
+    query[key] = value;
   });
-  const data = await fetchTmdb(urlObj.pathname, params, apiKey) as { results?: TmdbListItem[]; total_pages?: number; page?: number };
+
+  const data = await fetchTmdb(path, query, apiKey) as { results?: TmdbListItem[]; total_pages?: number; page?: number };
 
   const rawResults = data.results || [];
 

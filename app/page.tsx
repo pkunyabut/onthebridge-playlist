@@ -10,6 +10,7 @@ import CardSkeleton from '@/components/CardSkeleton';
 import MediaModal from '@/components/MediaModal';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, PlatformType } from '@/lib/types';
+import { toMediaType } from '@/lib/types';
 import { WATCH_REGIONS, DEFAULT_WATCH_REGION, DEFAULT_LANGUAGE, DEFAULT_COUNTRY, COUNTRY_OPTIONS, type WatchRegion, type CountryOption } from '@/lib/tmdb';
 import type { TmdbCategory, TmdbMediaType, TmdbResult } from '@/lib/tmdb';
 
@@ -158,7 +159,7 @@ export default function LandingPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title: result.title,
-            type: result.type === 'tv' ? 'series' : result.type === 'movie' ? 'movie' : result.type === 'documentary' ? 'documentary' : 'music',
+            type: toMediaType(result.type),
             platform,
             genre: null,
             year: result.year,
@@ -166,18 +167,20 @@ export default function LandingPage() {
           }),
         });
         if (res.status === 401) {
-          alert('กรุณาเข้าสู่ระบบก่อนบันทึกรายการ');
+          alert(t('login_required_save'));
           router.push('/login');
           return;
         }
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (res.ok && data.media) {
           setSavedMap((prev) => ({ ...prev, [key]: data.media.id }));
-          alert(`บันทึก "${result.title}" ลงรอดูแล้ว!`);
+          alert(t('save_success').replace('{title}', result.title));
         } else {
-          alert(`ไม่สามารถบันทึกได้: ${data.error || 'ข้อผิดพลาดที่ไม่รู้จัก'}`);
+          alert(t('save_failed').replace('{error}', data.error || t('unknown_error')));
         }
       }
+    } catch {
+      alert(t('save_failed').replace('{error}', t('error_connection')));
     } finally {
       setSavingKeys((prev) => {
         const next = new Set(prev);

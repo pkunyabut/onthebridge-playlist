@@ -1,8 +1,26 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidMediaType, isValidPlatform } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Validate the fields that the media_items CHECK constraints enforce, so the caller gets
+ * a readable 400 instead of a raw Postgres constraint violation.
+ */
+function validateMediaPayload(body: { title?: unknown; type?: unknown; platform?: unknown }): string | null {
+  if (typeof body.title !== 'string' || body.title.trim().length === 0) {
+    return 'กรุณากรอกชื่อรายการ';
+  }
+  if (!isValidMediaType(body.type)) {
+    return `ประเภทรายการไม่ถูกต้อง (รองรับ: movie, series, documentary, talkshow, music, news)`;
+  }
+  if (!isValidPlatform(body.platform)) {
+    return `แพลตฟอร์มไม่ถูกต้อง (รองรับ: netflix, disney, hbo, prime, youtube, spotify, apple_music, wetv, viu, iqiyi, youku, other)`;
+  }
+  return null;
+}
 
 // GET /api/media — list all media items for current user
 export async function GET() {
@@ -40,8 +58,9 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { title, type, platform, genre, year, notes } = body;
 
-  if (!title || !type || !platform) {
-    return NextResponse.json({ error: 'กรุณากรอกข้อมูลให้ครบถ้วน' }, { status: 400 });
+  const validationError = validateMediaPayload(body);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
   const { data, error } = await supabase
@@ -108,8 +127,13 @@ export async function PUT(request: NextRequest) {
   const body = await request.json();
   const { id, title, type, platform, genre, year, notes } = body;
 
-  if (!id || !title || !type || !platform) {
-    return NextResponse.json({ error: 'กรุณากรอกข้อมูลให้ครบถ้วน' }, { status: 400 });
+  if (!id) {
+    return NextResponse.json({ error: 'ต้องระบุ ID' }, { status: 400 });
+  }
+
+  const validationError = validateMediaPayload(body);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
   const { data, error } = await supabase

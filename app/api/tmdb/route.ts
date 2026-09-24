@@ -26,6 +26,7 @@ interface TmdbSearchItem {
   first_air_date?: string;
   poster_path?: string | null;
   vote_average?: number;
+  original_language?: string;
   origin_country?: string[];
   production_countries?: { iso_3166_1: string; name: string }[];
   'watch/providers'?: {
@@ -33,9 +34,21 @@ interface TmdbSearchItem {
       flatrate?: { provider_id: number }[];
       ads?: { provider_id: number }[];
       free?: { provider_id: number }[];
+      buy?: { provider_id: number }[];
+      rent?: { provider_id: number }[];
     }>;
   };
 }
+
+// TMDb search has no country filter, so a country filter is applied by matching the
+// result's original_language (the country picker is about where the title is from).
+const LANGUAGE_BY_COUNTRY: Record<string, string> = {
+  TH: 'th',
+  KR: 'ko',
+  CN: 'zh',
+  JP: 'ja',
+  US: 'en',
+};
 
 async function fetchProviders(
   type: TmdbMediaType,
@@ -98,19 +111,17 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let searchUrl: string;
-    if (country !== DEFAULT_COUNTRY) {
-      if (type === 'tv') {
-        searchUrl = `/discover/tv?with_keywords=${encodeURIComponent(q)}&with_origin_country=${country}&page=${page}&language=${language}&sort_by=popularity.desc&vote_count.gte=1`;
-      } else {
-        searchUrl = `/discover/movie?with_keywords=${encodeURIComponent(q)}&region=${country}&page=${page}&language=${language}&sort_by=popularity.desc&vote_count.gte=1`;
-      }
-    } else {
-      searchUrl = `/search/${type}?query=${encodeURIComponent(q)}&page=${page}&include_adult=false&language=${language}`;
-    }
+    // TMDb has no free-text search on the discover endpoints, so always search and then
+    // narrow by the selected country's original language when a country filter is on.
+    const searchUrl = `/search/${type}?query=${encodeURIComponent(q)}&page=${page}&include_adult=false&language=${language}`;
 
     const searchData = await fetchTmdb(searchUrl, {}, apiKey) as { results?: TmdbSearchItem[]; total_pages?: number; page?: number };
-    const rawResults = searchData.results || [];
+    let rawResults = searchData.results || [];
+
+    const countryLanguage = country !== DEFAULT_COUNTRY ? LANGUAGE_BY_COUNTRY[country] : undefined;
+    if (countryLanguage) {
+      rawResults = rawResults.filter((item) => item.original_language === countryLanguage);
+    }
 
     const results: TmdbResult[] = await Promise.all(
       rawResults.map(async (item) => {
@@ -133,7 +144,7 @@ export async function GET(request: NextRequest) {
           type,
           providers,
           has_th_providers,
-          origin_country: getOriginCountry(item, type),
+          origin_country: getOriginCountry(item, type) ?? (countryLanguage ? country : null),
         };
       })
     );

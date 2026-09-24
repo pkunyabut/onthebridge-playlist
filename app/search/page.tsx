@@ -9,6 +9,7 @@ import MediaCard from '@/components/MediaCard';
 import CardSkeleton from '@/components/CardSkeleton';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, PlatformType } from '@/lib/types';
+import { toMediaType } from '@/lib/types';
 import type { TmdbMediaType, TmdbResult } from '@/lib/tmdb';
 import { WATCH_REGIONS, DEFAULT_WATCH_REGION, DEFAULT_LANGUAGE, DEFAULT_COUNTRY, COUNTRY_OPTIONS, type WatchRegion } from '@/lib/tmdb';
 
@@ -174,7 +175,7 @@ export default function SearchPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title: result.title,
-            type: result.type,
+            type: toMediaType(result.type),
             platform,
             genre: null,
             year: result.year,
@@ -182,14 +183,20 @@ export default function SearchPage() {
           }),
         });
         if (res.status === 401) {
+          alert(t('login_required_save'));
           router.push('/login');
           return;
         }
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (res.ok && data.media) {
           setSavedMap((prev) => ({ ...prev, [key]: data.media.id }));
+          alert(t('save_success').replace('{title}', result.title));
+        } else {
+          alert(t('save_failed').replace('{error}', data.error || t('unknown_error')));
         }
       }
+    } catch {
+      alert(t('save_failed').replace('{error}', t('error_connection')));
     } finally {
       setSavingKeys((prev) => {
         const next = new Set(prev);

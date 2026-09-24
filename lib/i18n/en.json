@@ -135,5 +135,10 @@
   "ai_type_documentary": "Documentary",
   "ai_type_music": "Music",
   "ai_reason": "Reason:",
-  "ai_try_again": "Try Again"
+  "ai_try_again": "Try Again",
+  "type_tv": "Series",
+  "login_required_save": "Please sign in before saving",
+  "save_success": "Saved \"{title}\" to your watchlist!",
+  "save_failed": "Could not save: {error}",
+  "unknown_error": "Unknown error"
 }
