@@ -138,6 +138,13 @@ export default function MediaModal({
             </div>
           )}
 
+          {/* No TH providers notice */}
+          {!result.has_th_providers && result.providers.length > 0 && (
+            <p className="mt-2 text-xs text-gray-400 dark:text-gray-500 italic">
+              {t('no_th_providers')}
+            </p>
+          )}
+
           {/* Action buttons */}
           <div className="mt-5 flex flex-col gap-2">
             {/* Go to platform button */}

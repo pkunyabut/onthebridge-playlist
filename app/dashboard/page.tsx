@@ -66,19 +66,6 @@ export default function DashboardPage() {
     }
   };
 
-  const groupedItems = mediaItems.reduce<Record<string, MediaItem[]>>((acc, item) => {
-    const type = item.type;
-    if (!acc[type]) acc[type] = [];
-    acc[type].push(item);
-    return acc;
-  }, {});
-
-  const filteredGroups = filter === 'all'
-    ? groupedItems
-    : Object.fromEntries(
-        Object.entries(groupedItems).filter(([type]) => type === filter)
-      );
-
   const typeIcons: Record<string, string> = {
     movie: '🎬',
     series: '📺',
@@ -97,12 +84,27 @@ export default function DashboardPage() {
     news: t('type_news'),
   };
 
+  // Stats by type
+  const statsByType = mediaItems.reduce<Record<string, number>>((acc, item) => {
+    acc[item.type] = (acc[item.type] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Recent items (last 6)
+  const recentItems = [...mediaItems]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 6);
+
+  const filteredItems = filter === 'all'
+    ? recentItems
+    : recentItems.filter((item) => item.type === filter);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 dark:text-gray-400">{t('loading')}</p>
+          <div className="w-12 h-12 border-2 border-brand-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-cinema-text-muted">{t('loading')}</p>
         </div>
       </div>
     );
@@ -110,33 +112,60 @@ export default function DashboardPage() {
 
   return (
     <div className="pb-20 md:pb-0">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+      {/* Hero Section */}
+      <div className="relative mb-8 p-6 md:p-8 rounded-2xl overflow-hidden glass border border-cinema-border animate-fade-up">
+        {/* Background glow */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-600/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
+        <div className="relative z-10">
+          <h1 className="text-2xl md:text-3xl font-bold text-cinema-text mb-2">
             {t('my_items')}
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-cinema-text-muted text-sm md:text-base mb-4">
             {t('total_items', { count: mediaItems.length })}
           </p>
+          <Link
+            href="/dashboard/add"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white rounded-xl font-medium text-sm transition-all shadow-gold hover:shadow-gold-lg active:scale-95"
+          >
+            <span>➕</span>
+            {t('add_item')}
+          </Link>
         </div>
-        <Link
-          href="/dashboard/add"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium text-sm transition-colors shadow-sm"
-        >
-          <span>➕</span>
-          {t('add_item')}
-        </Link>
       </div>
+
+      {/* Stats Cards */}
+      {mediaItems.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8 stagger-grid">
+          {Object.entries(typeLabels).map(([type, label]) => {
+            const count = statsByType[type] || 0;
+            if (count === 0) return null;
+            return (
+              <button
+                key={type}
+                onClick={() => setFilter(filter === type ? 'all' : type)}
+                className={`p-4 rounded-xl glass border transition-all duration-300 hover:-translate-y-1 hover:shadow-gold text-left ${
+                  filter === type ? 'border-brand-500/50 shadow-glow' : 'border-cinema-border'
+                }`}
+              >
+                <div className="text-2xl mb-1">{typeIcons[type]}</div>
+                <div className="text-xl font-bold text-cinema-text">{count}</div>
+                <div className="text-xs text-cinema-text-muted">{label}</div>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
         <button
           onClick={() => setFilter('all')}
-          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
             filter === 'all'
-              ? 'bg-brand-600 text-white'
-              : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+              ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
+              : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
           }`}
         >
           {t('filter_all')}
@@ -145,10 +174,10 @@ export default function DashboardPage() {
           <button
             key={type}
             onClick={() => setFilter(type)}
-            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
               filter === type
-                ? 'bg-brand-600 text-white'
-                : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
+                : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
             }`}
           >
             {typeIcons[type]} {label}
@@ -158,80 +187,75 @@ export default function DashboardPage() {
 
       {/* Content */}
       {mediaItems.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
+        <div className="text-center py-16 glass rounded-2xl border border-cinema-border animate-fade-up">
           <div className="text-6xl mb-4">📭</div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-lg font-semibold text-cinema-text mb-2">
             {t('no_items_title')}
           </h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
+          <p className="text-cinema-text-muted mb-6 text-sm">
             {t('no_items_hint')}
           </p>
           <Link
             href="/dashboard/add"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium text-sm transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white rounded-xl font-medium text-sm transition-all shadow-gold hover:shadow-gold-lg active:scale-95"
           >
             <span>➕</span>
             {t('add_first_item')}
           </Link>
         </div>
+      ) : filteredItems.length === 0 ? (
+        <div className="text-center py-12 glass rounded-2xl border border-cinema-border">
+          <div className="text-4xl mb-3">{typeIcons[filter]}</div>
+          <p className="text-cinema-text-muted">{t('no_items_in_category')}</p>
+        </div>
       ) : (
-        <div className="space-y-6">
-          {Object.entries(filteredGroups).map(([type, items]) => (
-            <div key={type}>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <span>{typeIcons[type]}</span>
-                {typeLabels[type] || type}
-                <span className="text-sm font-normal text-gray-400 dark:text-gray-500">
-                  ({items.length})
-                </span>
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-100 dark:border-slate-700 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight line-clamp-2">
-                        {item.title}
-                      </h3>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        disabled={deleting === item.id}
-                        className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0 p-1"
-                        aria-label={t('delete')}
-                      >
-                        {deleting === item.id ? (
-                          <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                    <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
-                      {item.platform && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400 dark:text-gray-500">{t('label_platform')}</span>
-                          <span className="font-medium">{item.platform}</span>
-                        </div>
-                      )}
-                      {item.genre && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400 dark:text-gray-500">{t('label_genre')}</span>
-                          <span className="font-medium">{item.genre}</span>
-                        </div>
-                      )}
-                      {item.year && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400 dark:text-gray-500">{t('label_year')}</span>
-                          <span className="font-medium">{item.year}</span>
-                        </div>
-                      )}
-                    </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-grid">
+          {filteredItems.map((item) => (
+            <div
+              key={item.id}
+              className="glass rounded-xl p-4 border border-cinema-border hover:border-brand-500/30 hover:shadow-gold transition-all duration-300 group"
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-lg flex-shrink-0">{typeIcons[item.type]}</span>
+                  <h3 className="font-semibold text-cinema-text text-sm leading-tight line-clamp-2">
+                    {item.title}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  disabled={deleting === item.id}
+                  className="text-cinema-text-muted hover:text-red-400 transition-colors flex-shrink-0 p-1 rounded-lg hover:bg-red-500/10"
+                  aria-label={t('delete')}
+                >
+                  {deleting === item.id ? (
+                    <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <div className="space-y-1 text-xs text-cinema-text-muted">
+                {item.platform && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-cinema-text-muted/60">{t('label_platform')}</span>
+                    <span className="font-medium text-cinema-text">{item.platform}</span>
                   </div>
-                ))}
+                )}
+                {item.genre && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-cinema-text-muted/60">{t('label_genre')}</span>
+                    <span className="font-medium text-cinema-text">{item.genre}</span>
+                  </div>
+                )}
+                {item.year && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-cinema-text-muted/60">{t('label_year')}</span>
+                    <span className="font-medium text-cinema-text">{item.year}</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
