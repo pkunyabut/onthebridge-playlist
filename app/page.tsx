@@ -296,24 +296,6 @@ export default function LandingPage() {
           ))}
         </div>
 
-        {/* Region Filter Tabs */}
-        <div className="flex justify-center gap-2 mb-3">
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 self-center mr-1">{t('filter_region')}:</span>
-          {WATCH_REGIONS.map((region) => (
-            <button
-              key={region}
-              onClick={() => setWatchRegion(region)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
-                watchRegion === region
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-              }`}
-            >
-              {REGION_LABELS[region]}
-            </button>
-          ))}
-        </div>
-
         {/* Country Filter Tabs */}
         <div className="flex justify-center gap-2 mb-3">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400 self-center mr-1">{t('filter_country')}:</span>
