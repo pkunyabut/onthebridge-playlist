@@ -338,7 +338,7 @@ export default function LandingPage() {
               { name: 'HBO Max', url: 'https://www.hbomax.com' },
               { name: 'Prime Video', url: 'https://www.primevideo.com' },
               { name: 'YouTube', url: 'https://www.youtube.com' },
-              { name: 'WeTV', url: 'https://www.wetv.com' },
+              { name: 'WeTV', url: 'https://wetv.vip' },
               { name: 'VIU', url: 'https://www.viu.com' },
               { name: 'iQIYI', url: 'https://www.iq.com' },
               { name: 'Youku', url: 'https://www.youku.com' },

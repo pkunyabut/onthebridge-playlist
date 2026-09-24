@@ -11,7 +11,7 @@ export const PLATFORM_URLS: Record<string, string> = {
   hbo: 'https://www.hbomax.com',
   prime: 'https://www.primevideo.com',
   youtube: 'https://www.youtube.com',
-  wetv: 'https://www.wetv.com',
+  wetv: 'https://wetv.vip',
   viu: 'https://www.viu.com',
   iqiyi: 'https://www.iq.com',
   youku: 'https://www.youku.com',
