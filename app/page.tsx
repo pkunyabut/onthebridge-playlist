@@ -17,6 +17,8 @@ function savedKey(title: string, year: number | null) {
 const TYPE_TABS: { value: TmdbMediaType; label: string }[] = [
   { value: 'movie', label: '🎬 หนัง' },
   { value: 'tv', label: '📺 ซีรีส์' },
+  { value: 'documentary', label: '📖 สารคดี' },
+  { value: 'music', label: '🎵 เพลง' },
 ];
 
 const CATEGORY_TABS: { value: TmdbCategory; label: string }[] = [
@@ -132,7 +134,7 @@ export default function LandingPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title: result.title,
-            type: result.type === 'movie' ? 'movie' : 'series',
+            type: result.type === 'tv' ? 'series' : result.type === 'movie' ? 'movie' : result.type === 'documentary' ? 'documentary' : 'music',
             platform,
             genre: null,
             year: result.year,
@@ -227,7 +229,7 @@ export default function LandingPage() {
       {/* Browse */}
       <section id="browse" className="max-w-6xl mx-auto px-4 pb-16 md:pb-24">
         <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white mb-6">
-          สำรวจหนังและซีรีส์
+          สำรวจหนัง <span className="whitespace-nowrap">ซีรีส์</span> สารคดี และเพลง
         </h2>
 
         {/* Type Tabs */}
@@ -360,11 +362,48 @@ export default function LandingPage() {
         </section>
       )}
 
+      {/* Terms of Service */}
+      <section className="max-w-3xl mx-auto px-4 pb-16">
+        <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
+          เงื่อนไขบริการ
+        </h2>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-6 md:p-8 space-y-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+          <div className="flex gap-3">
+            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">1.</span>
+            <p><strong className="text-gray-900 dark:text-white">จุดประสงค์:</strong> แอปนี้สร้างเพื่อคนที่ชอบดูหนัง เพราะหนังดีๆ กระจายอยู่หลายแพลตฟอร์ม เราทำแค่ Playlist เพื่อให้คุณบันทึกและตั้งแจ้งเตือน "อย่าลืมดู" เท่านั้น</p>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">2.</span>
+            <p><strong className="text-gray-900 dark:text-white">เราไม่ใช่เจ้าของเนื้อหา:</strong> เราไม่ได้ให้บริการ streaming ไม่ได้เก็บไฟล์ภาพยนตร์/ซีรีส์/เพลง เนื้อหาทั้งหมดอยู่ที่แพลตฟอร์มต้นทาง (Netflix, Disney+, HBO, Prime, YouTube, Spotify, WeTV, VIU, iQIYI, Youku ฯลฯ) คุณต้องมีสมาชิก/บัญชีเองที่แพลตฟอร์มนั้น</p>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">3.</span>
+            <p><strong className="text-gray-900 dark:text-white">ข้อมูลรายการ:</strong> (ชื่อ คะแนน ประเภท) มาจาก TMDb ฟรี เราไม่เป็นเจ้าของข้อมูลนี้</p>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">4.</span>
+            <p><strong className="text-gray-900 dark:text-white">บัญชีผู้ใช้:</strong> ใช้ Google login เพื่อเก็บรายการของตัวเองเท่านั้น ไม่แชร์ข้อมูลกับบุคคลที่สาม ไม่เก็บข้อมูลเกินจำเป็น</p>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">5.</span>
+            <p><strong className="text-gray-900 dark:text-white">AI (DeepSeek):</strong> ช่วยแนะนำรายการเพิ่มจากรายการที่คุณเคยบันทึกเท่านั้น ไม่เก็บข้อมูลส่วนตัวเพื่อใช้เชิงพาณิชย์</p>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">6.</span>
+            <p><strong className="text-gray-900 dark:text-white">ฟรีตลอด:</strong> ไม่มีค่าใช้จ่าย ไม่มีโฆษณา ไม่มีการเก็บเงิน</p>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">7.</span>
+            <p>สร้างด้วย ❤️ เพื่อทุกคน</p>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-gray-100 dark:border-slate-700 py-8">
         <div className="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>OnTheBridge Playlist © 2569</p>
-          <p className="mt-1">สร้างด้วย ❤️ เพื่อคนไทยทุกคน</p>
+          <p className="mt-1">สร้างด้วย ❤️ เพื่อทุกคน</p>
         </div>
       </footer>
     </div>

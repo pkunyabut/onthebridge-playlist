@@ -31,7 +31,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Mobile Header */}
       <header className="sticky top-0 z-50 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 safe-top">
         <div className="flex items-center justify-between px-4 py-3">
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <span className="text-xl">🌉</span>
             <span className="text-base font-bold text-brand-700 dark:text-brand-400">
               OnTheBridge
@@ -80,7 +80,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex">
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col w-64 min-h-screen bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 p-4 sticky top-0 h-screen">
-          <Link href="/dashboard" className="flex items-center gap-2 px-4 py-3 mb-6">
+          <Link href="/" className="flex items-center gap-2 px-4 py-3 mb-6">
             <span className="text-2xl">🌉</span>
             <span className="text-lg font-bold text-brand-700 dark:text-brand-400">
               OnTheBridge

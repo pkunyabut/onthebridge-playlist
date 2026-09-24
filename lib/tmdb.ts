@@ -20,7 +20,7 @@ export const PLATFORM_URLS: Record<string, string> = {
   other: '#',
 };
 
-export type TmdbMediaType = 'movie' | 'tv';
+export type TmdbMediaType = 'movie' | 'tv' | 'documentary' | 'music';
 
 // TMDb watch/providers IDs (US region) mapped to our PlatformType.
 // Providers with no equivalent in PlatformType are intentionally left unmapped.
@@ -85,7 +85,11 @@ export async function fetchPopularTmdb(
   page: number,
   apiKey: string
 ): Promise<TmdbPopularResponse> {
-  const url = `${TMDB_API_BASE}/${type}/${category}?api_key=${apiKey}&page=${page}&language=en-US`;
+  // Documentary (genre 99) and Music (genre 10402) are movie-type on TMDb
+  const isGenreFiltered = type === 'documentary' || type === 'music';
+  const endpointType = isGenreFiltered ? 'movie' : type;
+  const genreParam = type === 'documentary' ? '&with_genres=99' : type === 'music' ? '&with_genres=10402' : '';
+  const url = `${TMDB_API_BASE}/${endpointType}/${category}?api_key=${apiKey}&page=${page}&language=en-US${genreParam}`;
   const res = await fetch(url);
 
   if (!res.ok) {
@@ -98,14 +102,15 @@ export async function fetchPopularTmdb(
   // Fetch watch providers for each item (US region)
   const results: TmdbResult[] = await Promise.all(
     rawResults.map(async (item) => {
-      const title = (type === 'movie' ? item.title : item.name) || 'Untitled';
-      const dateStr = type === 'movie' ? item.release_date : item.first_air_date;
+      const isMovieLike = type === 'movie' || type === 'documentary' || type === 'music';
+      const title = (isMovieLike ? item.title : item.name) || 'Untitled';
+      const dateStr = isMovieLike ? item.release_date : item.first_air_date;
       const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) || null : null;
 
       let providers: PlatformType[] = [];
       try {
         const provRes = await fetch(
-          `${TMDB_API_BASE}/${type}/${item.id}/watch/providers?api_key=${apiKey}`
+          `${TMDB_API_BASE}/${endpointType}/${item.id}/watch/providers?api_key=${apiKey}`
         );
         if (provRes.ok) {
           const provData = await provRes.json();

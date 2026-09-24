@@ -19,7 +19,9 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const type: TmdbMediaType = searchParams.get('type') === 'tv' ? 'tv' : 'movie';
+  const type: TmdbMediaType = (searchParams.get('type') === 'tv' || searchParams.get('type') === 'documentary' || searchParams.get('type') === 'music')
+    ? searchParams.get('type') as TmdbMediaType
+    : 'movie';
   const category: TmdbCategory = searchParams.get('category') === 'top_rated' ? 'top_rated' : 'popular';
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
 
