@@ -5,7 +5,6 @@ import {
   type TmdbMediaType,
   type TmdbPopularResponse,
 } from '@/lib/tmdb';
-import { fetchPopularMusic } from '@/lib/musicbrainz';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +12,7 @@ const CACHE_TTL_MS = 10 * 60 * 1000;
 const cache = new Map<string, { data: TmdbPopularResponse; expires: number }>();
 
 // GET /api/tmdb/popular — public endpoint for the landing page browse grid.
-// Music type is delegated to MusicBrainz (no TMDb music endpoint exists).
+// All types (movie, tv, documentary, music) are served via TMDb.
 export async function GET(request: NextRequest) {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey || apiKey === 'placeholder') {
@@ -34,18 +33,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let responseBody: TmdbPopularResponse;
-
-    if (type === 'music') {
-      const musicData = await fetchPopularMusic(page);
-      responseBody = {
-        results: musicData.results,
-        total_pages: musicData.total_pages,
-        page: musicData.page,
-      };
-    } else {
-      responseBody = await fetchPopularTmdb(type, category, page, apiKey);
-    }
+    const responseBody = await fetchPopularTmdb(type, category, page, apiKey);
 
     cache.set(cacheKey, { data: responseBody, expires: Date.now() + CACHE_TTL_MS });
     return NextResponse.json(responseBody);

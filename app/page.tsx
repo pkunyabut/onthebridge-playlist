@@ -249,24 +249,22 @@ export default function LandingPage() {
           ))}
         </div>
 
-        {/* Category Sub-tabs (hidden for music — MusicBrainz has no categories) */}
-        {typeTab !== 'music' && (
-          <div className="flex justify-center gap-2 mb-8">
-            {CATEGORY_TABS.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setCategoryTab(tab.value)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
-                  categoryTab === tab.value
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-slate-900'
-                    : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-600'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Category Sub-tabs */}
+        <div className="flex justify-center gap-2 mb-8">
+          {CATEGORY_TABS.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setCategoryTab(tab.value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
+                categoryTab === tab.value
+                  ? 'bg-gray-900 dark:bg-white text-white dark:text-slate-900'
+                  : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
         {error && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm text-center">

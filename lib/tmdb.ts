@@ -84,13 +84,23 @@ export async function fetchPopularTmdb(
   type: TmdbMediaType,
   category: TmdbCategory,
   page: number,
-  apiKey: string
+  apiKey: string,
 ): Promise<TmdbPopularResponse> {
-  // Documentary (genre 99) is movie-type on TMDb — music uses MusicBrainz instead
-  const isGenreFiltered = type === 'documentary';
-  const endpointType = isGenreFiltered ? 'movie' : type;
-  const genreParam = type === 'documentary' ? '&with_genres=99' : '';
-  const url = `${TMDB_API_BASE}/${endpointType}/${category}?api_key=${apiKey}&page=${page}&language=en-US${genreParam}`;
+  // Genre-filtered types use /discover/movie with sort_by param.
+  // TMDb's /movie/popular and /tv/popular IGNORE with_genres, so we must
+  // use /discover/ endpoints for documentary (genre 99) and music (genre 10402).
+  const isGenreFiltered = type === 'documentary' || type === 'music';
+  const endpointType = type === 'documentary' || type === 'music' ? 'movie' : type;
+  const genreParam = type === 'documentary' ? '99' : type === 'music' ? '10402' : '';
+
+  let url: string;
+  if (isGenreFiltered) {
+    const sortBy = category === 'top_rated' ? 'vote_average.desc' : 'popularity.desc';
+    url = `${TMDB_API_BASE}/discover/${endpointType}?api_key=${apiKey}&with_genres=${genreParam}&sort_by=${sortBy}&page=${page}&language=en-US&vote_count.gte=10`;
+  } else {
+    url = `${TMDB_API_BASE}/${endpointType}/${category}?api_key=${apiKey}&page=${page}&language=en-US`;
+  }
+
   const res = await fetch(url);
 
   if (!res.ok) {
@@ -103,7 +113,7 @@ export async function fetchPopularTmdb(
   // Fetch watch providers for each item (US region)
   const results: TmdbResult[] = await Promise.all(
     rawResults.map(async (item) => {
-      const isMovieLike = type === 'movie' || type === 'documentary';
+      const isMovieLike = type === 'movie' || type === 'documentary' || type === 'music';
       const title = (isMovieLike ? item.title : item.name) || 'Untitled';
       const dateStr = isMovieLike ? item.release_date : item.first_air_date;
       const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) || null : null;
