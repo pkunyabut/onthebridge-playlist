@@ -8,12 +8,25 @@ import type { MediaItem } from '@/lib/types';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 
+interface Recommendation {
+  title: string;
+  type: string;
+  reason: string;
+  suggestedPlatform?: string;
+}
+
 export default function DashboardPage() {
   const { t } = useLanguage();
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
+
+  // AI Recommendations state
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState<Recommendation[] | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [showAiSection, setShowAiSection] = useState(false);
 
   useEffect(() => {
     fetchMedia();
@@ -66,6 +79,42 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchAiRecommendations = async () => {
+    setAiLoading(true);
+    setAiError(null);
+    setAiRecommendations(null);
+    setShowAiSection(true);
+
+    try {
+      const items = mediaItems.map((item) => ({
+        title: item.title,
+        type: item.type,
+        platform: item.platform,
+        genre: item.genre || undefined,
+        year: item.year || undefined,
+      }));
+
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'API error');
+      }
+
+      const data = await res.json();
+      setAiRecommendations(data.recommendations || []);
+    } catch (error) {
+      console.error('AI recommendation error:', error);
+      setAiError(error instanceof Error ? error.message : t('ai_error'));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const typeIcons: Record<string, string> = {
     movie: '🎬',
     series: '📺',
@@ -82,6 +131,13 @@ export default function DashboardPage() {
     talkshow: t('type_talkshow'),
     music: t('type_music'),
     news: t('type_news'),
+  };
+
+  const aiTypeLabels: Record<string, string> = {
+    movie: t('ai_type_movie'),
+    series: t('ai_type_series'),
+    documentary: t('ai_type_documentary'),
+    music: t('ai_type_music'),
   };
 
   // Stats by type
@@ -125,15 +181,95 @@ export default function DashboardPage() {
           <p className="text-cinema-text-muted text-sm md:text-base mb-4">
             {t('total_items', { count: mediaItems.length })}
           </p>
-          <Link
-            href="/dashboard/add"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white rounded-xl font-medium text-sm transition-all shadow-gold hover:shadow-gold-lg active:scale-95"
-          >
-            <span>➕</span>
-            {t('add_item')}
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/dashboard/add"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white rounded-xl font-medium text-sm transition-all shadow-gold hover:shadow-gold-lg active:scale-95"
+            >
+              <span>➕</span>
+              {t('add_item')}
+            </Link>
+            <button
+              onClick={fetchAiRecommendations}
+              disabled={aiLoading || mediaItems.length === 0}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white rounded-xl font-medium text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {aiLoading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span>✨</span>
+              )}
+              {t('ai_recommend')}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* AI Recommendations Section */}
+      {showAiSection && (
+        <div className="mb-8 p-6 rounded-2xl glass border border-purple-500/20 animate-fade-up">
+          <h2 className="text-lg font-bold text-cinema-text mb-4 flex items-center gap-2">
+            <span>✨</span>
+            {t('ai_recommendations_title')}
+          </h2>
+
+          {aiLoading && (
+            <div className="text-center py-8">
+              <div className="w-10 h-10 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <p className="text-cinema-text-muted text-sm">{t('ai_analyzing')}</p>
+            </div>
+          )}
+
+          {aiError && !aiLoading && (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-3">⚠️</div>
+              <p className="text-cinema-text-muted mb-4">{aiError}</p>
+              <button
+                onClick={fetchAiRecommendations}
+                className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-sm transition-colors"
+              >
+                {t('ai_try_again')}
+              </button>
+            </div>
+          )}
+
+          {!aiLoading && !aiError && aiRecommendations && aiRecommendations.length === 0 && (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-3">📭</div>
+              <p className="text-cinema-text-muted">{t('ai_empty_hint')}</p>
+            </div>
+          )}
+
+          {!aiLoading && !aiError && aiRecommendations && aiRecommendations.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {aiRecommendations.map((rec, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 rounded-xl bg-white/5 border border-cinema-border hover:border-purple-500/30 transition-all duration-300"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-lg flex-shrink-0">
+                      {typeIcons[rec.type] || '🎬'}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-cinema-text text-sm leading-tight mb-1">
+                        {rec.title}
+                      </h3>
+                      <p className="text-xs text-cinema-text-muted mb-2">
+                        {aiTypeLabels[rec.type] || rec.type}
+                      </p>
+                      <p className="text-xs text-cinema-text-muted/80 leading-relaxed">
+                        <span className="text-purple-300 font-medium">{t('ai_reason')}</span>{' '}
+                        {rec.reason}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Stats Cards */}
       {mediaItems.length > 0 && (

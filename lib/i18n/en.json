@@ -124,5 +124,16 @@
   "placeholder_notes": "Additional notes — e.g. who to watch with, mood",
   "saving": "Saving...",
   "save_item": "Save Item",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "ai_recommend": "✨ AI Recommend",
+  "ai_analyzing": "Analyzing your items...",
+  "ai_recommendations_title": "AI Recommendations",
+  "ai_error": "Unable to get AI recommendations",
+  "ai_empty_hint": "Add items to your watchlist to get AI recommendations",
+  "ai_type_movie": "Movie",
+  "ai_type_series": "Series",
+  "ai_type_documentary": "Documentary",
+  "ai_type_music": "Music",
+  "ai_reason": "Reason:",
+  "ai_try_again": "Try Again"
 }
