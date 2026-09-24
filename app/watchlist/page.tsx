@@ -5,13 +5,26 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import Link from 'next/link';
-import type { MediaItem, PlatformType } from '@/lib/types';
+import type { MediaItem, MediaType, PlatformType } from '@/lib/types';
 import { MEDIA_TYPE_LABELS, PLATFORM_ICONS, PLATFORM_LABELS } from '@/lib/types';
+
+type FilterType = 'all' | MediaType;
+
+const FILTER_TABS: { key: FilterType; label: string }[] = [
+  { key: 'all', label: 'ทั้งหมด' },
+  { key: 'movie', label: 'ภาพยนตร์' },
+  { key: 'series', label: 'ซีรีส์' },
+  { key: 'documentary', label: 'สารคดี' },
+  { key: 'talkshow', label: 'ทอล์คโชว์' },
+  { key: 'music', label: 'เพลง' },
+  { key: 'news', label: 'ข่าว' },
+];
 
 export default function WatchlistPage() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
 
   useEffect(() => {
     fetchMedia();
@@ -33,7 +46,6 @@ export default function WatchlistPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('ต้องการลบรายการนี้ออกจากวอทช์ลิสต์หรือไม่?')) return;
-
     setDeleting(id);
     try {
       const res = await fetch(`/api/media?id=${id}`, { method: 'DELETE' });
@@ -47,12 +59,21 @@ export default function WatchlistPage() {
     }
   };
 
-  const groupedItems = mediaItems.reduce<Record<string, MediaItem[]>>((acc, item) => {
+  const filteredItems = selectedFilter === 'all'
+    ? mediaItems
+    : mediaItems.filter((item) => item.type === selectedFilter);
+
+  const groupedItems = filteredItems.reduce<Record<string, MediaItem[]>>((acc, item) => {
     const platform = item.platform;
     if (!acc[platform]) acc[platform] = [];
     acc[platform].push(item);
     return acc;
   }, {});
+
+  const getCount = (filter: FilterType): number => {
+    if (filter === 'all') return mediaItems.length;
+    return mediaItems.filter((item) => item.type === filter).length;
+  };
 
   if (loading) {
     return (
@@ -77,14 +98,44 @@ export default function WatchlistPage() {
           </p>
         </div>
 
-        {mediaItems.length === 0 ? (
+        {/* Category Filter Tabs */}
+        <div className="mb-6">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {FILTER_TABS.map((tab) => {
+              const count = getCount(tab.key);
+              const isActive = selectedFilter === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setSelectedFilter(tab.key)}
+                  className={`
+                    flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                    ${isActive
+                      ? 'bg-brand-600 text-white shadow-md'
+                      : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-500'
+                    }
+                  `}
+                >
+                  {tab.label}
+                  <span className={`ml-1.5 text-xs ${isActive ? 'text-brand-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                    ({count})
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {filteredItems.length === 0 ? (
           <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
             <div className="text-6xl mb-4">🔖</div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              วอทช์ลิสต์ยังว่างอยู่
+              {selectedFilter === 'all' ? 'วอทช์ลิสต์ยังว่างอยู่' : 'ไม่มีรายการในหมวดนี้'}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
-              ไปค้นหาหนังหรือซีรีส์ที่ชอบแล้วกดบันทึกไว้ดูทีหลัง
+              {selectedFilter === 'all'
+                ? 'ไปค้นหาหนังหรือซีรีส์ที่ชอบแล้วกดบันทึกไว้ดูทีหลัง'
+                : 'เปลี่ยนหมวดหมู่หรือเพิ่มรายการใหม่'}
             </p>
             <Link
               href="/search"
