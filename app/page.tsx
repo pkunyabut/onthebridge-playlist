@@ -296,51 +296,7 @@ export default function LandingPage() {
           ))}
         </div>
 
-        {/* Country Filter Tabs */}
-        <div className="flex justify-center gap-2 mb-3">
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 self-center mr-1">{t('filter_country')}:</span>
-          <button
-            onClick={() => setCountry(DEFAULT_COUNTRY)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
-              country === DEFAULT_COUNTRY
-                ? 'bg-brand-600 text-white'
-                : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-            }`}
-          >
-            {t('filter_all')}
-          </button>
-          {COUNTRY_OPTIONS.map((opt) => (
-            <button
-              key={opt.code}
-              onClick={() => setCountry(opt.code)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
-                country === opt.code
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-              }`}
-            >
-              {opt.flag} {opt.label}
-            </button>
-          ))}
-        </div>
 
-        {/* Language Filter Tabs */}
-        <div className="flex justify-center gap-2 mb-8">
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 self-center mr-1">{t('filter_language')}:</span>
-          {LANGUAGE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setLanguage(opt.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
-                language === opt.value
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
 
         {error && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm text-center">
