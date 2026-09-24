@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase-browser';
 import type { MediaItem } from '@/lib/types';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
+import type { PlatformType } from '@/lib/types';
+import { PLATFORM_ICONS } from '@/lib/types';
 
 interface Recommendation {
   title: string;
@@ -26,7 +28,7 @@ export default function DashboardPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState<Recommendation[] | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [showAiSection, setShowAiSection] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
 
   useEffect(() => {
     fetchMedia();
@@ -83,9 +85,8 @@ export default function DashboardPage() {
     setAiLoading(true);
     setAiError(null);
     setAiRecommendations(null);
-    setShowAiSection(true);
+    setShowAiModal(true);
 
-    // Show hint when no items instead of calling API
     if (mediaItems.length === 0) {
       setAiLoading(false);
       setAiError(t('ai_empty_hint'));
@@ -93,18 +94,10 @@ export default function DashboardPage() {
     }
 
     try {
-      const items = mediaItems.map((item) => ({
-        title: item.title,
-        type: item.type,
-        platform: item.platform,
-        genre: item.genre || undefined,
-        year: item.year || undefined,
-      }));
-
-      const res = await fetch('/api/ai', {
+      const res = await fetch('/api/ai/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({}),
       });
 
       if (!res.ok) {
@@ -147,16 +140,31 @@ export default function DashboardPage() {
     music: t('ai_type_music'),
   };
 
+  const aiPlatformIcons: Record<string, string> = {
+    netflix: '🔴',
+    disney: '✨',
+    hbo: '🟣',
+    prime: '📦',
+    youtube: '▶️',
+    spotify: '🎧',
+    apple_music: '🍎',
+    wetv: '🟢',
+    viu: '🔵',
+    iqiyi: '🟡',
+    youku: '🟠',
+    other: '📌',
+  };
+
   // Stats by type
   const statsByType = mediaItems.reduce<Record<string, number>>((acc, item) => {
     acc[item.type] = (acc[item.type] || 0) + 1;
     return acc;
   }, {});
 
-  // Recent items (last 6)
+  // Recent items (last 12)
   const recentItems = [...mediaItems]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 6);
+    .slice(0, 12);
 
   const filteredItems = filter === 'all'
     ? recentItems
@@ -166,7 +174,7 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-12 h-12 border-2 border-brand-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-10 h-10 border-2 border-brand-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-cinema-text-muted">{t('loading')}</p>
         </div>
       </div>
@@ -175,23 +183,22 @@ export default function DashboardPage() {
 
   return (
     <div className="pb-20 md:pb-0">
-      {/* Hero Section */}
-      <div className="relative mb-8 p-6 md:p-8 rounded-2xl overflow-hidden glass border border-cinema-border animate-fade-up">
-        {/* Background glow */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-600/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+      {/* Hero Section — IMDb style */}
+      <div className="relative mb-6 p-5 md:p-7 rounded-xl overflow-hidden glass border border-cinema-border animate-fade-up">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-36 h-36 bg-brand-600/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
 
         <div className="relative z-10">
-          <h1 className="text-2xl md:text-3xl font-bold text-cinema-text mb-2">
+          <h1 className="text-xl md:text-2xl font-bold text-white mb-1">
             {t('my_items')}
           </h1>
-          <p className="text-cinema-text-muted text-sm md:text-base mb-4">
+          <p className="text-cinema-text-muted text-sm mb-4">
             {t('total_items', { count: mediaItems.length })}
           </p>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             <Link
               href="/dashboard/add"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white rounded-xl font-medium text-sm transition-all shadow-gold hover:shadow-gold-lg active:scale-95"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium text-sm transition-colors shadow-gold"
             >
               <span>➕</span>
               {t('add_item')}
@@ -199,7 +206,7 @@ export default function DashboardPage() {
             <button
               onClick={fetchAiRecommendations}
               disabled={aiLoading}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white rounded-xl font-medium text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg font-medium text-sm transition-all shadow-lg hover:shadow-xl disabled:opacity-50"
             >
               {aiLoading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -212,75 +219,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* AI Recommendations Section */}
-      {showAiSection && (
-        <div className="mb-8 p-6 rounded-2xl glass border border-purple-500/20 animate-fade-up">
-          <h2 className="text-lg font-bold text-cinema-text mb-4 flex items-center gap-2">
-            <span>✨</span>
-            {t('ai_recommendations_title')}
-          </h2>
-
-          {aiLoading && (
-            <div className="text-center py-8">
-              <div className="w-10 h-10 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-cinema-text-muted text-sm">{t('ai_analyzing')}</p>
-            </div>
-          )}
-
-          {aiError && !aiLoading && (
-            <div className="text-center py-8">
-              <div className="text-4xl mb-3">⚠️</div>
-              <p className="text-cinema-text-muted mb-4">{aiError}</p>
-              <button
-                onClick={fetchAiRecommendations}
-                className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-sm transition-colors"
-              >
-                {t('ai_try_again')}
-              </button>
-            </div>
-          )}
-
-          {!aiLoading && !aiError && aiRecommendations && aiRecommendations.length === 0 && (
-            <div className="text-center py-8">
-              <div className="text-4xl mb-3">📭</div>
-              <p className="text-cinema-text-muted">{t('ai_empty_hint')}</p>
-            </div>
-          )}
-
-          {!aiLoading && !aiError && aiRecommendations && aiRecommendations.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {aiRecommendations.map((rec, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-xl bg-white/5 border border-cinema-border hover:border-purple-500/30 transition-all duration-300"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg flex-shrink-0">
-                      {typeIcons[rec.type] || '🎬'}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-cinema-text text-sm leading-tight mb-1">
-                        {rec.title}
-                      </h3>
-                      <p className="text-xs text-cinema-text-muted mb-2">
-                        {aiTypeLabels[rec.type] || rec.type}
-                      </p>
-                      <p className="text-xs text-cinema-text-muted/80 leading-relaxed">
-                        <span className="text-purple-300 font-medium">{t('ai_reason')}</span>{' '}
-                        {rec.reason}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Stats Cards */}
       {mediaItems.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8 stagger-grid">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-6 stagger-grid">
           {Object.entries(typeLabels).map(([type, label]) => {
             const count = statsByType[type] || 0;
             if (count === 0) return null;
@@ -288,13 +229,13 @@ export default function DashboardPage() {
               <button
                 key={type}
                 onClick={() => setFilter(filter === type ? 'all' : type)}
-                className={`p-4 rounded-xl glass border transition-all duration-300 hover:-translate-y-1 hover:shadow-gold text-left ${
-                  filter === type ? 'border-brand-500/50 shadow-glow' : 'border-cinema-border'
+                className={`p-3 rounded-lg glass border transition-all duration-200 text-left ${
+                  filter === type ? 'border-brand-500/50 shadow-glow' : 'border-cinema-border hover:border-white/10'
                 }`}
               >
-                <div className="text-2xl mb-1">{typeIcons[type]}</div>
-                <div className="text-xl font-bold text-cinema-text">{count}</div>
-                <div className="text-xs text-cinema-text-muted">{label}</div>
+                <div className="text-xl mb-1">{typeIcons[type]}</div>
+                <div className="text-lg font-bold text-white">{count}</div>
+                <div className="text-[11px] text-cinema-text-muted">{label}</div>
               </button>
             );
           })}
@@ -302,13 +243,13 @@ export default function DashboardPage() {
       )}
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+      <div className="flex gap-1.5 overflow-x-auto pb-2 mb-5 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
         <button
           onClick={() => setFilter('all')}
-          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+          className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
             filter === 'all'
-              ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
-              : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
+              ? 'bg-brand-600 text-white'
+              : 'glass text-cinema-text-muted hover:text-white border border-cinema-border'
           }`}
         >
           {t('filter_all')}
@@ -317,10 +258,10 @@ export default function DashboardPage() {
           <button
             key={type}
             onClick={() => setFilter(type)}
-            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               filter === type
-                ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
-                : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
+                ? 'bg-brand-600 text-white'
+                : 'glass text-cinema-text-muted hover:text-white border border-cinema-border'
             }`}
           >
             {typeIcons[type]} {label}
@@ -330,9 +271,9 @@ export default function DashboardPage() {
 
       {/* Content */}
       {mediaItems.length === 0 ? (
-        <div className="text-center py-16 glass rounded-2xl border border-cinema-border animate-fade-up">
-          <div className="text-6xl mb-4">📭</div>
-          <h3 className="text-lg font-semibold text-cinema-text mb-2">
+        <div className="text-center py-16 glass rounded-xl border border-cinema-border animate-fade-up">
+          <div className="text-5xl mb-4">📭</div>
+          <h3 className="text-lg font-semibold text-white mb-2">
             {t('no_items_title')}
           </h3>
           <p className="text-cinema-text-muted mb-6 text-sm">
@@ -340,68 +281,149 @@ export default function DashboardPage() {
           </p>
           <Link
             href="/dashboard/add"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white rounded-xl font-medium text-sm transition-all shadow-gold hover:shadow-gold-lg active:scale-95"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium text-sm transition-colors shadow-gold"
           >
             <span>➕</span>
             {t('add_first_item')}
           </Link>
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="text-center py-12 glass rounded-2xl border border-cinema-border">
-          <div className="text-4xl mb-3">{typeIcons[filter]}</div>
-          <p className="text-cinema-text-muted">{t('no_items_in_category')}</p>
+        <div className="text-center py-12 glass rounded-xl border border-cinema-border">
+          <div className="text-3xl mb-3">{typeIcons[filter]}</div>
+          <p className="text-cinema-text-muted text-sm">{t('no_items_in_category')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-grid">
+        <div className="imdb-grid stagger-grid">
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className="glass rounded-xl p-4 border border-cinema-border hover:border-brand-500/30 hover:shadow-gold transition-all duration-300 group"
+              className="imdb-card !cursor-default"
             >
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-lg flex-shrink-0">{typeIcons[item.type]}</span>
-                  <h3 className="font-semibold text-cinema-text text-sm leading-tight line-clamp-2">
-                    {item.title}
-                  </h3>
-                </div>
+              {/* Poster placeholder for saved items */}
+              <div className="poster-container flex items-center justify-center bg-cinema-800">
+                <span className="text-4xl">{typeIcons[item.type]}</span>
+                <div className="poster-overlay" />
+                {/* Delete button */}
                 <button
                   onClick={() => handleDelete(item.id)}
                   disabled={deleting === item.id}
-                  className="text-cinema-text-muted hover:text-red-400 transition-colors flex-shrink-0 p-1 rounded-lg hover:bg-red-500/10"
+                  className="save-btn"
                   aria-label={t('delete')}
                 >
                   {deleting === item.id ? (
-                    <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-white/60 hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   )}
                 </button>
               </div>
-              <div className="space-y-1 text-xs text-cinema-text-muted">
-                {item.platform && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-cinema-text-muted/60">{t('label_platform')}</span>
-                    <span className="font-medium text-cinema-text">{item.platform}</span>
-                  </div>
-                )}
+              <div className="card-info">
+                <h3 className="card-title">{item.title}</h3>
+                <div className="card-metadata">
+                  {item.year && <span className="year">{item.year}</span>}
+                  {item.year && <span className="text-white/20">·</span>}
+                  <span className="genre-tag">{typeLabels[item.type] || item.type}</span>
+                </div>
                 {item.genre && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-cinema-text-muted/60">{t('label_genre')}</span>
-                    <span className="font-medium text-cinema-text">{item.genre}</span>
-                  </div>
+                  <p className="text-[11px] text-cinema-text-muted mt-0.5 line-clamp-1">{item.genre}</p>
                 )}
-                {item.year && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-cinema-text-muted/60">{t('label_year')}</span>
-                    <span className="font-medium text-cinema-text">{item.year}</span>
+                {item.platform && (
+                  <div className="mt-1.5">
+                    <span className="platform-badge">
+                      {PLATFORM_ICONS[item.platform as PlatformType]} {item.platform}
+                    </span>
                   </div>
                 )}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* AI Recommendations Modal */}
+      {showAiModal && (
+        <div className="imdb-modal-backdrop" onClick={() => setShowAiModal(false)}>
+          <div className="ai-recommend-modal" onClick={(e) => e.stopPropagation()}>
+            {/* Modal header */}
+            <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-white/5 bg-[#1a1f2e]">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <span>✨</span>
+                {t('ai_recommendations_title')}
+              </h2>
+              <button
+                onClick={() => setShowAiModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white hover:bg-white/10 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-5">
+              {aiLoading && (
+                <div className="text-center py-12">
+                  <div className="w-10 h-10 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-cinema-text-muted text-sm">{t('ai_analyzing')}</p>
+                </div>
+              )}
+
+              {aiError && !aiLoading && (
+                <div className="text-center py-12">
+                  <div className="text-4xl mb-3">⚠️</div>
+                  <p className="text-cinema-text-muted mb-4">{aiError}</p>
+                  <button
+                    onClick={fetchAiRecommendations}
+                    className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-sm transition-colors"
+                  >
+                    {t('ai_try_again')}
+                  </button>
+                </div>
+              )}
+
+              {!aiLoading && !aiError && aiRecommendations && aiRecommendations.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="text-4xl mb-3">📭</div>
+                  <p className="text-cinema-text-muted">{t('ai_empty_hint')}</p>
+                </div>
+              )}
+
+              {!aiLoading && !aiError && aiRecommendations && aiRecommendations.length > 0 && (
+                <div>
+                  {aiRecommendations.map((rec, idx) => (
+                    <div key={idx} className="rec-item">
+                      <div className="flex items-start gap-3">
+                        <span className="text-lg flex-shrink-0 mt-0.5">
+                          {typeIcons[rec.type] || '🎬'}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h3 className="font-semibold text-white text-sm leading-tight">
+                              {rec.title}
+                            </h3>
+                            <span className="text-[10px] text-cinema-text-muted bg-white/5 px-1.5 py-0.5 rounded">
+                              {aiTypeLabels[rec.type] || rec.type}
+                            </span>
+                            {rec.suggestedPlatform && (
+                              <span className="text-[10px]">
+                                {aiPlatformIcons[rec.suggestedPlatform] || '📌'} {rec.suggestedPlatform}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-cinema-text-muted leading-relaxed">
+                            <span className="text-purple-300 font-medium">{t('ai_reason')}</span>{' '}
+                            {rec.reason}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

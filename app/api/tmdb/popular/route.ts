@@ -8,15 +8,14 @@ import {
   type WatchRegion,
   type TmdbCategory,
   type TmdbMediaType,
-  type TmdbPopularResponse,
 } from '@/lib/tmdb';
+import { tmdbPopularCache } from '@/lib/tmdb-cache';
+import { TmdbApiError } from '@/lib/tmdb-client';
 
 export const dynamic = 'force-dynamic';
 
-const CACHE_TTL_MS = 10 * 60 * 1000;
-const cache = new Map<string, { data: TmdbPopularResponse; expires: number }>();
-
 // GET /api/tmdb/popular — public endpoint for the landing page browse grid.
+// Cache-first: checks in-memory LRU cache, then falls back to TMDb API.
 export async function GET(request: NextRequest) {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey || apiKey === 'placeholder') {
@@ -36,17 +35,22 @@ export async function GET(request: NextRequest) {
   const country = searchParams.get('country') || DEFAULT_COUNTRY;
 
   const cacheKey = `${type}:${category}:${page}:${language}:${watchRegion}:${country}`;
-  const cached = cache.get(cacheKey);
-  if (cached && cached.expires > Date.now()) {
-    return NextResponse.json(cached.data);
+  const cached = tmdbPopularCache.get(cacheKey);
+  if (cached !== null) {
+    return NextResponse.json(cached);
   }
 
   try {
     const responseBody = await fetchPopularTmdb(type, category, page, apiKey, language, watchRegion, country);
 
-    cache.set(cacheKey, { data: responseBody, expires: Date.now() + CACHE_TTL_MS });
+    tmdbPopularCache.set(cacheKey, responseBody);
+
     return NextResponse.json(responseBody);
-  } catch {
+  } catch (error) {
+    if (error instanceof TmdbApiError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    console.error('[TMDb] Popular fetch error:', error);
     return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการเชื่อมต่อ' }, { status: 500 });
   }
 }

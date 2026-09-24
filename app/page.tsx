@@ -184,26 +184,26 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-brand-50 dark:from-slate-900 dark:to-slate-800">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-700">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-cinema-950">
+      {/* Header — IMDb-style dark bar */}
+      <header className="sticky top-0 z-50 glass-strong border-b border-cinema-border">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🌉</span>
-            <span className="text-lg font-bold text-brand-700 dark:text-brand-400">
+            <span className="text-lg font-bold text-gold-gradient">
               {t('app_name')}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setLang(lang === 'th' ? 'en' : 'th')}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-xs font-bold border border-cinema-border text-cinema-text-muted hover:bg-cinema-700 transition-colors"
             >
               {lang === 'th' ? 'EN' : 'TH'}
             </button>
             <Link
               href="/search"
-              className="px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors"
+              className="px-4 py-2 text-cinema-text hover:bg-cinema-800 rounded-lg font-medium text-sm transition-colors"
             >
               🔍 {t('nav_search')}
             </Link>
@@ -226,14 +226,14 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="max-w-4xl mx-auto px-4 py-14 md:py-20 text-center">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+      {/* Hero — IMDb-style cinematic */}
+      <section className="max-w-4xl mx-auto px-4 py-12 md:py-16 text-center">
+        <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
           {t('hero_line1')}{' '}
-          <span className="text-brand-600 dark:text-brand-400">{t('hero_line2_highlight')}</span>{' '}
+          <span className="text-gold-gradient">{t('hero_line2_highlight')}</span>{' '}
           {t('hero_line3')}
         </h1>
-        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+        <p className="text-base md:text-lg text-cinema-text-muted mb-8 max-w-2xl mx-auto">
           {t('hero_sub1')}
           <br />
           {t('hero_sub2')}
@@ -242,36 +242,38 @@ export default function LandingPage() {
           {!isLoggedIn && (
             <Link
               href="/login"
-              className="px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-lg transition-colors shadow-lg shadow-brand-600/20"
+              className="px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-lg transition-colors shadow-gold"
             >
               {t('cta_start_free')}
             </Link>
           )}
           <a
             href="#browse"
-            className="px-8 py-4 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold text-lg transition-colors hover:bg-gray-50 dark:hover:bg-slate-700"
+            className="px-8 py-4 bg-white/5 border border-white/10 text-cinema-text rounded-xl font-semibold text-lg transition-colors hover:bg-white/10"
           >
             {t('cta_browse')}
           </a>
         </div>
       </section>
 
-      {/* Browse */}
-      <section id="browse" className="max-w-6xl mx-auto px-4 pb-16 md:pb-24">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white mb-6">
-          {t('browse_title_1')} <span className="whitespace-nowrap">{t('browse_title_2')}</span> {t('browse_title_3')} {t('browse_title_4')}
-        </h2>
+      {/* Browse — IMDb-style grid */}
+      <section id="browse" className="max-w-7xl mx-auto px-4 pb-16 md:pb-24">
+        <div className="imdb-section-header">
+          <h2>
+            {t('browse_title_1')} <span className="whitespace-nowrap">{t('browse_title_2')}</span> {t('browse_title_3')} {t('browse_title_4')}
+          </h2>
+        </div>
 
-        {/* Type Tabs */}
-        <div className="flex justify-center gap-2 mb-3">
+        {/* Type Tabs — IMDb style */}
+        <div className="flex justify-start gap-1 mb-3 overflow-x-auto scrollbar-hide">
           {TYPE_TABS.map((tab) => (
             <button
               key={tab.value}
               onClick={() => setTypeTab(tab.value)}
-              className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors min-h-[44px] ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                 typeTab === tab.value
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                  ? 'bg-brand-600 text-white shadow-gold'
+                  : 'bg-white/5 text-cinema-text-muted hover:bg-white/10 border border-white/5'
               }`}
             >
               {tab.label}
@@ -280,15 +282,15 @@ export default function LandingPage() {
         </div>
 
         {/* Category Sub-tabs */}
-        <div className="flex justify-center gap-2 mb-4">
+        <div className="flex gap-2 mb-5">
           {CATEGORY_TABS.map((tab) => (
             <button
               key={tab.value}
               onClick={() => setCategoryTab(tab.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 categoryTab === tab.value
-                  ? 'bg-gray-900 dark:bg-white text-white dark:text-slate-900'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-600'
+                  ? 'bg-white/10 text-white border border-white/20'
+                  : 'text-cinema-text-muted hover:text-white'
               }`}
             >
               {tab.label}
@@ -296,38 +298,35 @@ export default function LandingPage() {
           ))}
         </div>
 
-
-
         {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm text-center">
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm text-center">
             ❌ {error}
           </div>
         )}
 
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {Array.from({ length: 15 }).map((_, i) => (
+          <div className="imdb-grid">
+            {Array.from({ length: 14 }).map((_, i) => (
               <CardSkeleton key={i} />
             ))}
           </div>
         ) : results.length === 0 ? (
-          <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
+          <div className="text-center py-16 glass rounded-2xl border border-cinema-border">
             <div className="text-6xl mb-4">📭</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-semibold text-white mb-2">
               {t('no_data_title')}
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-cinema-text-muted text-sm">
               {t('no_data_desc')}
             </p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="imdb-grid">
               {results.map((result) => (
                 <div
                   key={`${result.type}-${result.id}`}
                   onClick={() => setModalResult(result)}
-                  className="cursor-pointer"
                 >
                   <MediaCard
                     result={result}
@@ -344,7 +343,7 @@ export default function LandingPage() {
                 <button
                   onClick={() => fetchResults(typeTab, categoryTab, page + 1, true)}
                   disabled={loadingMore}
-                  className="px-6 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 rounded-xl font-medium text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 min-h-[44px]"
+                  className="px-6 py-3 bg-white/5 border border-white/10 text-cinema-text rounded-xl font-medium text-sm hover:bg-white/10 transition-colors disabled:opacity-50 min-h-[44px]"
                 >
                   {loadingMore ? t('loading_more') : t('load_more')}
                 </button>
@@ -355,15 +354,15 @@ export default function LandingPage() {
       </section>
 
       {/* Platforms */}
-      <section className="bg-brand-50 dark:bg-slate-800 py-16">
+      <section className="bg-cinema-900/50 py-14 border-y border-cinema-border">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-3">
             {t('platforms_title')}
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-8">
+          <p className="text-cinema-text-muted mb-6 text-sm">
             {t('platforms_subtitle')}
           </p>
-          <div className="flex flex-wrap justify-center gap-4 text-sm">
+          <div className="flex flex-wrap justify-center gap-3">
             {[
               { name: 'Netflix', url: 'https://www.netflix.com' },
               { name: 'Disney+', url: 'https://www.disneyplus.com' },
@@ -373,16 +372,14 @@ export default function LandingPage() {
               { name: 'WeTV', url: 'https://wetv.vip' },
               { name: 'VIU', url: 'https://www.viu.com' },
               { name: 'iQIYI', url: 'https://www.iq.com' },
-              { name: 'Youku', url: 'https://www.youku.com' },
               { name: 'Spotify', url: 'https://open.spotify.com' },
-              { name: 'Apple Music', url: 'https://music.apple.com' },
             ].map((platform) => (
               <a
                 key={platform.name}
                 href={platform.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-white dark:bg-slate-700 rounded-full text-gray-700 dark:text-gray-200 font-medium shadow-sm hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
+                className="platform-badge"
               >
                 {platform.name} ↗
               </a>
@@ -393,82 +390,30 @@ export default function LandingPage() {
 
       {/* CTA */}
       {!isLoggedIn && (
-        <section className="max-w-4xl mx-auto px-4 py-16 md:py-24 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        <section className="max-w-4xl mx-auto px-4 py-14 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
             {t('cta_title')}
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-8">
+          <p className="text-cinema-text-muted mb-6 text-sm">
             {t('cta_subtitle')}
           </p>
           <Link
             href="/login"
-            className="inline-block px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-lg transition-colors shadow-lg shadow-brand-600/20"
+            className="inline-block px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-lg transition-colors shadow-gold"
           >
             {t('cta_signup_free')}
           </Link>
         </section>
       )}
 
-      {/* Terms of Service */}
-      <section className="max-w-3xl mx-auto px-4 pb-16">
-        <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
-          {t('terms_title')}
-        </h2>
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-6 md:p-8 space-y-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-          <div className="flex gap-3">
-            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">1.</span>
-            <p><strong className="text-gray-900 dark:text-white">{t('terms_purpose')}</strong> {t('terms_purpose_text')}</p>
-          </div>
-          <div className="flex gap-3">
-            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">2.</span>
-            <p><strong className="text-gray-900 dark:text-white">{t('terms_not_owner')}</strong> {t('terms_not_owner_text')}</p>
-          </div>
-          <div className="flex gap-3">
-            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">3.</span>
-            <p><strong className="text-gray-900 dark:text-white">{t('terms_data')}</strong> {t('terms_data_text')}</p>
-          </div>
-          <div className="flex gap-3">
-            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">4.</span>
-            <p><strong className="text-gray-900 dark:text-white">{t('terms_account')}</strong> {t('terms_account_text')}</p>
-          </div>
-          <div className="flex gap-3">
-            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">5.</span>
-            <p><strong className="text-gray-900 dark:text-white">{t('terms_ai')}</strong> {t('terms_ai_text')}</p>
-          </div>
-          <div className="flex gap-3">
-            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">6.</span>
-            <p><strong className="text-gray-900 dark:text-white">{t('terms_free')}</strong> {t('terms_free_text')}</p>
-          </div>
-          <div className="flex gap-3">
-            <span className="text-brand-600 dark:text-brand-400 font-bold shrink-0">7.</span>
-            <p>{t('terms_made_with')}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Us */}
-      <section className="max-w-3xl mx-auto px-4 pb-16">
-        <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 dark:text-white mb-4">
-          {t('contact_title')}
-        </h2>
-        <p className="text-center text-gray-600 dark:text-gray-300 mb-4">
-          {t('contact_subtitle')}
-        </p>
-        <div className="text-center">
-          <a
-            href="mailto:thonglorproduction@gmail.com"
-            className="inline-block px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
-          >
-            ✉️ thonglorproduction@gmail.com
-          </a>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="border-t border-gray-100 dark:border-slate-700 py-8">
-        <div className="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <footer className="border-t border-cinema-border py-6 mb-16 md:mb-0">
+        <div className="max-w-6xl mx-auto px-4 text-center text-xs text-cinema-text-muted">
           <p>{t('footer_copyright')}</p>
           <p className="mt-1">{t('footer_made_with')}</p>
+          <a href="mailto:thonglorproduction@gmail.com" className="mt-2 inline-block text-brand-400 hover:text-brand-300 transition-colors">
+            ✉️ thonglorproduction@gmail.com
+          </a>
         </div>
       </footer>
 
@@ -482,7 +427,6 @@ export default function LandingPage() {
           onClose={() => setModalResult(null)}
           onToggleSave={(result) => {
             handleToggleSave(result);
-            // Close modal after save action completes
             setTimeout(() => setModalResult(null), 600);
           }}
         />

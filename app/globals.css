@@ -3,9 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --cinema-bg: #06080f;
-  --cinema-surface: #0a0e1a;
-  --cinema-card: rgba(17, 24, 39, 0.7);
+  --cinema-bg: #0a0e1a;
+  --cinema-surface: #0f1525;
+  --cinema-card: rgba(17, 24, 39, 0.85);
+  --cinema-card-hover: rgba(30, 41, 59, 0.9);
   --cinema-border: rgba(245, 158, 11, 0.12);
   --cinema-gold: #f59e0b;
   --cinema-gold-light: #fbbf24;
@@ -13,6 +14,8 @@
   --cinema-text: #f1f5f9;
   --cinema-text-muted: #94a3b8;
   --cinema-glow: rgba(245, 158, 11, 0.15);
+  --cinema-rating: #f5c518;
+  --imdb-yellow: #f5c518;
 }
 
 * {
@@ -25,32 +28,30 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
 }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Better touch targets on mobile */
 button, a, input, select, textarea {
   touch-action: manipulation;
 }
 
-/* Glassmorphism utility */
+/* === IMDb-style Glassmorphism === */
 .glass {
-  background: rgba(17, 24, 39, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(245, 158, 11, 0.1);
 }
 
 .glass-strong {
-  background: rgba(17, 24, 39, 0.85);
+  background: rgba(10, 14, 26, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(245, 158, 11, 0.15);
 }
 
-/* Gold gradient text */
+/* === Gold gradient text === */
 .text-gold-gradient {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
   -webkit-background-clip: text;
@@ -58,14 +59,228 @@ button, a, input, select, textarea {
   background-clip: text;
 }
 
-/* Shimmer effect for skeleton loading */
-.shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(245, 158, 11, 0.08) 50%, rgba(255,255,255,0) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2s linear infinite;
+/* === IMDb-style Rating === */
+.imdb-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--imdb-yellow);
+  font-weight: 700;
+  font-size: 0.875rem;
 }
 
-/* Scrollbar styling */
+.imdb-rating .star {
+  color: var(--imdb-yellow);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.imdb-rating .score {
+  color: var(--imdb-yellow);
+}
+
+/* === IMDb-style Card === */
+.imdb-card {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(17, 24, 39, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+}
+
+.imdb-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(245, 197, 24, 0.4);
+  box-shadow: 0 12px 40px -8px rgba(245, 197, 24, 0.15), 0 0 0 1px rgba(245, 197, 24, 0.2);
+}
+
+.imdb-card .poster-container {
+  position: relative;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  background: #1a1f2e;
+}
+
+.imdb-card .poster-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.imdb-card:hover .poster-container img {
+  transform: scale(1.06);
+}
+
+.imdb-card .poster-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 40%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.imdb-card:hover .poster-overlay {
+  opacity: 1;
+}
+
+.imdb-card .card-info {
+  padding: 10px 12px 12px;
+}
+
+.imdb-card .card-title {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.imdb-card .card-metadata {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cinema-text-muted);
+  font-size: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.imdb-card .card-metadata .year {
+  color: var(--cinema-text-muted);
+}
+
+.imdb-card .card-metadata .runtime {
+  color: var(--cinema-text-muted);
+}
+
+.imdb-card .card-metadata .genre-tag {
+  color: var(--cinema-text-muted);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+}
+
+/* Save button on card */
+.imdb-card .save-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.imdb-card .save-btn:hover {
+  background: rgba(245, 158, 11, 0.3);
+  border-color: var(--cinema-gold);
+  transform: scale(1.1);
+}
+
+.imdb-card .save-btn.saved {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: var(--cinema-gold);
+}
+
+/* Country badge */
+.imdb-card .country-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* IMDb-style Grid */
+.imdb-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .imdb-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+}
+@media (min-width: 768px) {
+  .imdb-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+}
+@media (min-width: 1024px) {
+  .imdb-grid { grid-template-columns: repeat(5, 1fr); gap: 16px; }
+}
+@media (min-width: 1280px) {
+  .imdb-grid { grid-template-columns: repeat(6, 1fr); gap: 18px; }
+}
+@media (min-width: 1536px) {
+  .imdb-grid { grid-template-columns: repeat(7, 1fr); gap: 18px; }
+}
+
+/* === IMDb-style Section Header === */
+.imdb-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.imdb-section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.imdb-section-header .count {
+  color: var(--cinema-text-muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+/* === IMDb-style Badge === */
+.imdb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--cinema-gold-light);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* === Shimmer skeleton === */
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(245, 158, 11, 0.06) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s linear infinite;
+}
+
+/* === Scrollbar === */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -74,49 +289,177 @@ button, a, input, select, textarea {
   display: none;
 }
 
-/* Custom scrollbar for content areas */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.25);
   border-radius: 3px;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(245, 158, 11, 0.5);
-}
 
-/* Focus ring */
+/* === Focus ring === */
 *:focus-visible {
   outline: 2px solid var(--cinema-gold);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* Stagger animation for grids */
+/* === Stagger animation === */
 .stagger-grid > * {
-  animation: fadeUp 0.5s ease-out both;
+  animation: fadeUp 0.4s ease-out both;
 }
 .stagger-grid > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-grid > *:nth-child(2) { animation-delay: 50ms; }
-.stagger-grid > *:nth-child(3) { animation-delay: 100ms; }
-.stagger-grid > *:nth-child(4) { animation-delay: 150ms; }
-.stagger-grid > *:nth-child(5) { animation-delay: 200ms; }
-.stagger-grid > *:nth-child(6) { animation-delay: 250ms; }
-.stagger-grid > *:nth-child(7) { animation-delay: 300ms; }
-.stagger-grid > *:nth-child(8) { animation-delay: 350ms; }
-.stagger-grid > *:nth-child(9) { animation-delay: 400ms; }
-.stagger-grid > *:nth-child(10) { animation-delay: 450ms; }
-.stagger-grid > *:nth-child(11) { animation-delay: 500ms; }
-.stagger-grid > *:nth-child(12) { animation-delay: 550ms; }
+.stagger-grid > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-grid > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-grid > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-grid > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-grid > *:nth-child(6) { animation-delay: 200ms; }
+.stagger-grid > *:nth-child(7) { animation-delay: 240ms; }
+.stagger-grid > *:nth-child(8) { animation-delay: 280ms; }
+.stagger-grid > *:nth-child(n+9) { animation-delay: 320ms; }
 
-/* Safe area insets for mobile */
-.safe-top {
-  padding-top: env(safe-area-inset-top, 0);
+/* === Safe area === */
+.safe-top { padding-top: env(safe-area-inset-top, 0); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+/* === IMDb Modal === */
+.imdb-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
 }
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0);
+
+.imdb-modal {
+  background: #1a1f2e;
+  border-radius: 12px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  animation: fadeUp 0.25s ease;
+}
+
+.imdb-modal .modal-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  border-radius: 12px 12px 0 0;
+  max-height: 380px;
+}
+
+.imdb-modal .modal-body {
+  padding: 20px;
+}
+
+.imdb-modal .modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  padding-right: 32px;
+}
+
+.imdb-modal .modal-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  color: var(--cinema-text-muted);
+}
+
+.imdb-modal .modal-overview {
+  color: var(--cinema-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+/* === AI Recommend Modal === */
+.ai-recommend-modal {
+  background: #1a1f2e;
+  border-radius: 16px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+}
+
+.ai-recommend-modal .rec-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.15s ease;
+}
+
+.ai-recommend-modal .rec-item:last-child {
+  border-bottom: none;
+}
+
+.ai-recommend-modal .rec-item:hover {
+  background: rgba(139, 92, 246, 0.05);
+}
+
+/* === Animations === */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-fade-in { animation: fadeIn 0.3s ease; }
+.animate-fade-up { animation: fadeUp 0.3s ease; }
+.animate-float { animation: float 3s ease-in-out infinite; }
+
+/* === Platform badge hover === */
+.platform-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  background: rgba(255,255,255,0.05);
+  color: var(--cinema-text-muted);
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.15s ease;
+}
+
+.platform-badge:hover {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--cinema-gold-light);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.platform-badge.link {
+  cursor: pointer;
 }

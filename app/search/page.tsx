@@ -201,17 +201,17 @@ export default function SearchPage() {
   return (
     <AppShell>
       <div className="pb-20 md:pb-0">
-        {/* Cinematic Search Header */}
-        <div className="relative mb-8 p-6 md:p-8 rounded-2xl overflow-hidden glass border border-cinema-border animate-fade-up">
-          <div className="absolute top-0 right-0 w-72 h-48 bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-          <div className="absolute bottom-0 left-0 w-56 h-40 bg-brand-600/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/3" />
+        {/* Search Header — IMDb style */}
+        <div className="relative mb-6 p-5 md:p-7 rounded-xl overflow-hidden glass border border-cinema-border animate-fade-up">
+          <div className="absolute top-0 right-0 w-56 h-40 bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-0 w-44 h-32 bg-brand-600/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/3" />
 
           <div className="relative z-10">
-            <h1 className="text-2xl md:text-3xl font-bold text-gold-gradient mb-4">{t('search_title')}</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-white mb-4">{t('search_title')}</h1>
 
-            {/* Search Input with Glow */}
+            {/* Search Input */}
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-500 via-brand-400 to-brand-600 rounded-2xl opacity-30 group-hover:opacity-50 group-focus-within:opacity-60 blur transition-opacity duration-300" />
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-500 via-brand-400 to-brand-600 rounded-xl opacity-20 group-hover:opacity-40 group-focus-within:opacity-50 blur transition-opacity duration-300" />
               <div className="relative">
                 <svg
                   className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-400"
@@ -227,7 +227,7 @@ export default function SearchPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={t('search_placeholder')}
-                  className="w-full pl-12 pr-4 py-4 rounded-2xl bg-cinema-900 border border-cinema-border text-cinema-text placeholder-cinema-text-muted text-base focus:outline-none focus:border-brand-500/50 transition-colors"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-cinema-900 border border-cinema-border text-white placeholder-cinema-text-muted text-sm focus:outline-none focus:border-brand-500/50 transition-colors"
                 />
               </div>
             </div>
@@ -235,15 +235,15 @@ export default function SearchPage() {
         </div>
 
         {/* Type Tabs */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-1.5 mb-4">
           {(['movie', 'tv'] as TmdbMediaType[]).map((type) => (
             <button
               key={type}
               onClick={() => setTypeTab(type)}
-              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 typeTab === type
-                  ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
-                  : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
+                  ? 'bg-brand-600 text-white shadow-gold'
+                  : 'bg-white/5 text-cinema-text-muted hover:bg-white/10 border border-white/5'
               }`}
             >
               {type === 'movie' ? t('type_tab_movie') : t('type_tab_tv')}
@@ -251,16 +251,14 @@ export default function SearchPage() {
           ))}
         </div>
 
-
-
         {/* Provider Filter Chips */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+        <div className="flex gap-1.5 overflow-x-auto pb-2 mb-5 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
           <button
             onClick={() => setProviderFilter(new Set())}
-            className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all min-h-[44px] ${
+            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               providerFilter.size === 0
-                ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
-                : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
+                ? 'bg-brand-600 text-white'
+                : 'bg-white/5 text-cinema-text-muted hover:bg-white/10 border border-white/5'
             }`}
           >
             {t('filter_all')}
@@ -269,10 +267,10 @@ export default function SearchPage() {
             <button
               key={platform}
               onClick={() => toggleProvider(platform)}
-              className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all min-h-[44px] ${
+              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 providerFilter.has(platform)
-                  ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-gold'
-                  : 'glass text-cinema-text-muted hover:text-cinema-text border border-cinema-border'
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-white/5 text-cinema-text-muted hover:bg-white/10 border border-white/5'
               }`}
             >
               {label}
@@ -286,17 +284,17 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Results Grid */}
+        {/* Results Grid — IMDb style */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="imdb-grid">
             {Array.from({ length: 12 }).map((_, i) => (
               <CardSkeleton key={i} />
             ))}
           </div>
         ) : !debouncedQuery ? (
-          <div className="text-center py-20 glass rounded-2xl border border-cinema-border animate-fade-up">
-            <div className="text-7xl mb-6 animate-float">🔍</div>
-            <h3 className="text-xl font-semibold text-cinema-text mb-3">
+          <div className="text-center py-20 glass rounded-xl border border-cinema-border animate-fade-up">
+            <div className="text-6xl mb-6 animate-float">🔍</div>
+            <h3 className="text-lg font-semibold text-white mb-3">
               {t('start_search_title')}
             </h3>
             <p className="text-cinema-text-muted text-sm max-w-sm mx-auto">
@@ -304,9 +302,9 @@ export default function SearchPage() {
             </p>
           </div>
         ) : filteredResults.length === 0 ? (
-          <div className="text-center py-20 glass rounded-2xl border border-cinema-border animate-fade-up">
-            <div className="text-7xl mb-6">📭</div>
-            <h3 className="text-xl font-semibold text-cinema-text mb-3">
+          <div className="text-center py-20 glass rounded-xl border border-cinema-border animate-fade-up">
+            <div className="text-6xl mb-6">📭</div>
+            <h3 className="text-lg font-semibold text-white mb-3">
               {t('no_results_title')}
             </h3>
             <p className="text-cinema-text-muted text-sm max-w-sm mx-auto">
@@ -315,7 +313,7 @@ export default function SearchPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-grid">
+            <div className="imdb-grid stagger-grid">
               {filteredResults.map((result) => (
                 <MediaCard
                   key={`${result.type}-${result.id}`}
@@ -332,7 +330,7 @@ export default function SearchPage() {
                 <button
                   onClick={() => fetchResults(debouncedQuery, typeTab, page + 1, true)}
                   disabled={loadingMore}
-                  className="px-6 py-3 glass border border-cinema-border text-cinema-text rounded-xl font-medium text-sm hover:border-brand-500/30 hover:shadow-gold transition-all disabled:opacity-50 min-h-[44px]"
+                  className="px-6 py-3 bg-white/5 border border-white/10 text-cinema-text rounded-xl font-medium text-sm hover:bg-white/10 transition-colors disabled:opacity-50 min-h-[44px]"
                 >
                   {loadingMore ? t('loading_more') : t('load_more')}
                 </button>

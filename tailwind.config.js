@@ -27,6 +27,12 @@ module.exports = {
           900: '#0a0e1a',
           800: '#111827',
           700: '#1e293b',
+          600: '#2d3a4f',
+          500: '#3d4f6a',
+        },
+        imdb: {
+          yellow: '#f5c518',
+          dark: '#1a1f2e',
         },
       },
       boxShadow: {
@@ -34,6 +40,7 @@ module.exports = {
         'gold-lg': '0 8px 32px -4px rgba(245, 158, 11, 0.35)',
         'cinema': '0 4px 24px -2px rgba(0, 0, 0, 0.6)',
         'glow': '0 0 20px rgba(245, 158, 11, 0.15)',
+        'imdb-hover': '0 12px 40px -8px rgba(245, 197, 24, 0.15)',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
@@ -66,4 +73,4 @@ module.exports = {
     },
   },
   plugins: [],
-};
+}

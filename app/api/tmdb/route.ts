@@ -2,7 +2,6 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  TMDB_API_BASE,
   TMDB_IMAGE_BASE,
   DEFAULT_LANGUAGE,
   DEFAULT_WATCH_REGION,
@@ -14,11 +13,10 @@ import {
   type TmdbResult,
   type TmdbSearchResponse,
 } from '@/lib/tmdb';
+import { fetchTmdb, TmdbApiError } from '@/lib/tmdb-client';
+import { tmdbSearchCache } from '@/lib/tmdb-cache';
 
 export const dynamic = 'force-dynamic';
-
-const CACHE_TTL_MS = 10 * 60 * 1000;
-const cache = new Map<string, { data: TmdbSearchResponse; expires: number }>();
 
 interface TmdbSearchItem {
   id: number;
@@ -30,6 +28,13 @@ interface TmdbSearchItem {
   vote_average?: number;
   origin_country?: string[];
   production_countries?: { iso_3166_1: string; name: string }[];
+  'watch/providers'?: {
+    results?: Record<string, {
+      flatrate?: { provider_id: number }[];
+      ads?: { provider_id: number }[];
+      free?: { provider_id: number }[];
+    }>;
+  };
 }
 
 async function fetchProviders(
@@ -38,15 +43,20 @@ async function fetchProviders(
   apiKey: string,
   watchRegion: WatchRegion = DEFAULT_WATCH_REGION,
 ): Promise<{ providers: TmdbResult['providers']; has_th_providers: boolean }> {
+  const endpointType = type === 'documentary' || type === 'music' ? 'movie' : type;
   try {
-    const res = await fetch(
-      `${TMDB_API_BASE}/${type === 'documentary' || type === 'music' ? 'movie' : type}/${id}?api_key=${apiKey}&append_to_response=watch/providers`
-    );
-    if (!res.ok) return { providers: [], has_th_providers: false };
-    const data = await res.json();
-    const collected = collectProvidersFromRegions(data, WATCH_REGIONS);
+    const data = await fetchTmdb(`/${endpointType}/${id}`, {
+      append_to_response: 'watch/providers',
+      language: DEFAULT_LANGUAGE,
+    }, apiKey);
+    const provData = (data as { 'watch/providers'?: TmdbSearchItem['watch/providers'] })['watch/providers'];
+    if (!provData) return { providers: [], has_th_providers: false };
+    const collected = collectProvidersFromRegions(provData, WATCH_REGIONS);
     return { providers: collected.providers, has_th_providers: collected.has_th_providers };
-  } catch {
+  } catch (error) {
+    if (error instanceof TmdbApiError && error.status !== 429) {
+      console.warn(`[TMDb] Provider fetch failed for ${type}/${id}: ${error.status}`);
+    }
     return { providers: [], has_th_providers: false };
   }
 }
@@ -89,30 +99,24 @@ export async function GET(request: NextRequest) {
   }
 
   const cacheKey = `${type}:${q.toLowerCase()}:${page}:${language}:${watchRegion}:${country}`;
-  const cached = cache.get(cacheKey);
-  if (cached && cached.expires > Date.now()) {
-    return NextResponse.json(cached.data);
+  const cached = tmdbSearchCache.get(cacheKey);
+  if (cached !== null) {
+    return NextResponse.json(cached);
   }
 
   try {
     let searchUrl: string;
     if (country !== DEFAULT_COUNTRY) {
-      // Use discover endpoint for country-filtered search
       if (type === 'tv') {
-        searchUrl = `${TMDB_API_BASE}/discover/tv?api_key=${apiKey}&with_keywords=${encodeURIComponent(q)}&with_origin_country=${country}&page=${page}&language=${language}&sort_by=popularity.desc&vote_count.gte=1`;
+        searchUrl = `/discover/tv?with_keywords=${encodeURIComponent(q)}&with_origin_country=${country}&page=${page}&language=${language}&sort_by=popularity.desc&vote_count.gte=1`;
       } else {
-        searchUrl = `${TMDB_API_BASE}/discover/movie?api_key=${apiKey}&with_keywords=${encodeURIComponent(q)}&region=${country}&page=${page}&language=${language}&sort_by=popularity.desc&vote_count.gte=1`;
+        searchUrl = `/discover/movie?with_keywords=${encodeURIComponent(q)}&region=${country}&page=${page}&language=${language}&sort_by=popularity.desc&vote_count.gte=1`;
       }
     } else {
-      searchUrl = `${TMDB_API_BASE}/search/${type}?api_key=${apiKey}&query=${encodeURIComponent(q)}&page=${page}&include_adult=false&language=${language}`;
-    }
-    const searchRes = await fetch(searchUrl);
-
-    if (!searchRes.ok) {
-      return NextResponse.json({ error: 'ค้นหาไม่สำเร็จ กรุณาลองใหม่' }, { status: searchRes.status });
+      searchUrl = `/search/${type}?query=${encodeURIComponent(q)}&page=${page}&include_adult=false&language=${language}`;
     }
 
-    const searchData: { results?: TmdbSearchItem[]; total_pages?: number; page?: number } = await searchRes.json();
+    const searchData = await fetchTmdb(searchUrl, {}, apiKey) as { results?: TmdbSearchItem[]; total_pages?: number; page?: number };
     const rawResults = searchData.results || [];
 
     const results: TmdbResult[] = await Promise.all(
@@ -147,10 +151,14 @@ export async function GET(request: NextRequest) {
       page: searchData.page || page,
     };
 
-    cache.set(cacheKey, { data: responseBody, expires: Date.now() + CACHE_TTL_MS });
+    tmdbSearchCache.set(cacheKey, responseBody);
 
     return NextResponse.json(responseBody);
-  } catch {
+  } catch (error) {
+    if (error instanceof TmdbApiError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    console.error('[TMDb] Search error:', error);
     return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการเชื่อมต่อ TMDb' }, { status: 500 });
   }
 }

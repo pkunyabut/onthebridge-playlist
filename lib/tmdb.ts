@@ -1,4 +1,5 @@
 import type { PlatformType } from './types';
+import { fetchTmdb, TmdbApiError } from './tmdb-client';
 
 export const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 export const TMDB_API_BASE = 'https://api.themoviedb.org/3';
@@ -95,6 +96,7 @@ interface TmdbWatchProvidersResponse {
 /**
  * Collect providers from all watch regions.
  * Returns combined providers (TH first) and whether TH providers exist.
+ * Falls back to US if TH has no providers.
  */
 export function collectProvidersFromRegions(
   provData: TmdbWatchProvidersResponse,
@@ -103,6 +105,7 @@ export function collectProvidersFromRegions(
   const allPlatforms = new Set<PlatformType>();
   const thPlatforms = new Set<PlatformType>();
 
+  // Try TH first, then fall back to other regions
   for (const region of regions) {
     const regional = provData.results?.[region];
     if (!regional) continue;
@@ -138,6 +141,12 @@ export interface TmdbResult {
   providers: PlatformType[];
   has_th_providers: boolean;
   origin_country: string | null;
+  // Optional metadata (populated from cache layer)
+  overview?: string | null;
+  cast?: string | null;
+  director?: string | null;
+  runtime?: number | null;
+  genre?: string | null;
 }
 
 export interface TmdbSearchResponse {
@@ -164,6 +173,36 @@ interface TmdbListItem {
   vote_average?: number;
   origin_country?: string[];
   production_countries?: { iso_3166_1: string; name: string }[];
+  // Appended from append_to_response
+  'watch/providers'?: TmdbWatchProvidersResponse;
+}
+
+/**
+ * Fetch watch providers for a single item using append_to_response.
+ * Returns providers and whether TH providers exist.
+ */
+async function fetchProvidersForItem(
+  type: TmdbMediaType,
+  id: number,
+  apiKey: string,
+): Promise<{ providers: PlatformType[]; has_th_providers: boolean }> {
+  const endpointType = type === 'documentary' || type === 'music' ? 'movie' : type;
+  try {
+    const data = await fetchTmdb(`/${endpointType}/${id}`, {
+      append_to_response: 'watch/providers',
+      language: DEFAULT_LANGUAGE,
+    }, apiKey);
+    const provData = (data as { 'watch/providers'?: TmdbWatchProvidersResponse })['watch/providers'];
+    if (!provData) return { providers: [], has_th_providers: false };
+    const collected = collectProvidersFromRegions(provData, WATCH_REGIONS);
+    return { providers: collected.providers, has_th_providers: collected.has_th_providers };
+  } catch (error) {
+    // Log non-retryable errors for monitoring
+    if (error instanceof TmdbApiError && error.status !== 429) {
+      console.warn(`[TMDb] Provider fetch failed for ${type}/${id}: ${error.status}`);
+    }
+    return { providers: [], has_th_providers: false };
+  }
 }
 
 export async function fetchPopularTmdb(
@@ -212,15 +251,20 @@ export async function fetchPopularTmdb(
     url = baseUrl;
   }
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`TMDb request failed with status ${res.status}`);
-  }
+  // Use the shared client with retry/backoff
+  // Parse URL to extract path and params (excluding api_key, which fetchTmdb adds)
+  const urlObj = new URL(url);
+  const params: Record<string, string> = {};
+  urlObj.searchParams.forEach((value, key) => {
+    if (key !== 'api_key') {
+      params[key] = value;
+    }
+  });
+  const data = await fetchTmdb(urlObj.pathname, params, apiKey) as { results?: TmdbListItem[]; total_pages?: number; page?: number };
 
-  const data: { results?: TmdbListItem[]; total_pages?: number; page?: number } = await res.json();
   const rawResults = data.results || [];
 
-  // Fetch watch providers for each item (all regions)
+  // Fetch watch providers for each item using append_to_response
   const results: TmdbResult[] = await Promise.all(
     rawResults.map(async (item) => {
       const title = (isMovieLike ? item.title : item.name) || 'Untitled';
@@ -238,21 +282,12 @@ export async function fetchPopularTmdb(
         originCountry = country;
       }
 
-      let providers: PlatformType[] = [];
-      let has_th_providers = false;
-      try {
-        const provRes = await fetch(
-          `${TMDB_API_BASE}/${endpointType}/${item.id}/watch/providers?api_key=${apiKey}`
-        );
-        if (provRes.ok) {
-          const provData: TmdbWatchProvidersResponse = await provRes.json();
-          const collected = collectProvidersFromRegions(provData);
-          providers = collected.providers;
-          has_th_providers = collected.has_th_providers;
-        }
-      } catch {
-        // Ignore provider fetch errors — show card without provider badges
-      }
+      // Use append_to_response to fetch providers in the same call
+      const { providers, has_th_providers } = await fetchProvidersForItem(
+        type,
+        item.id,
+        apiKey,
+      );
 
       return {
         id: item.id,

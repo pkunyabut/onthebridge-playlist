@@ -34,7 +34,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-cinema-950">
-      {/* Mobile Header */}
+      {/* Mobile Header — IMDb style dark bar */}
       <header className="sticky top-0 z-50 glass-strong border-b border-cinema-border safe-top">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-2">
