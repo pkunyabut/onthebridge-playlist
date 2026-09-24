@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import MediaCard from '@/components/MediaCard';
 import CardSkeleton from '@/components/CardSkeleton';
@@ -33,10 +34,12 @@ const LANGUAGE_OPTIONS = [
 
 export default function SearchPage() {
   const { t } = useLanguage();
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [typeTab, setTypeTab] = useState<TmdbMediaType>('movie');
@@ -60,8 +63,14 @@ export default function SearchPage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/media')
-      .then((res) => (res.ok ? res.json() : null))
+    fetch('/api/auth/session')
+      .then((res) => {
+        setIsLoggedIn(res.ok);
+        return res.ok ? res.json() : null;
+      })
+      .then(() => {
+        return fetch('/api/media').then((res) => (res.ok ? res.json() : null));
+      })
       .then((data: { media?: MediaItem[] } | null) => {
         if (!data?.media) return;
         const map: Record<string, string> = {};
@@ -139,6 +148,11 @@ export default function SearchPage() {
   }, [results, providerFilter]);
 
   const handleToggleSave = async (result: TmdbResult) => {
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+
     const key = savedKey(result.title, result.year);
     const existingId = savedMap[key];
 
@@ -160,13 +174,17 @@ export default function SearchPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title: result.title,
-            type: result.type === 'movie' ? 'movie' : 'series',
+            type: result.type,
             platform,
             genre: null,
             year: result.year,
             notes: null,
           }),
         });
+        if (res.status === 401) {
+          router.push('/login');
+          return;
+        }
         const data = await res.json();
         if (res.ok && data.media) {
           setSavedMap((prev) => ({ ...prev, [key]: data.media.id }));
