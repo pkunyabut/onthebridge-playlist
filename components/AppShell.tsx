@@ -8,7 +8,7 @@ const navItems = [
   { href: '/dashboard', label: 'หน้าหลัก', icon: '🏠' },
   { href: '/dashboard/add', label: 'เพิ่มรายการ', icon: '➕' },
   { href: '/search', label: 'ค้นหา', icon: '🔍' },
-  { href: '/watchlist', label: 'วอทช์ลิสต์', icon: '🔖' },
+  { href: '/watchlist', label: 'รอดู', icon: '🔖' },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

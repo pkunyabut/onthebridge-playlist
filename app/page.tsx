@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import MediaCard from '@/components/MediaCard';
 import CardSkeleton from '@/components/CardSkeleton';
+import MediaModal from '@/components/MediaModal';
 import type { MediaItem, PlatformType } from '@/lib/types';
 import type { TmdbCategory, TmdbMediaType, TmdbResult } from '@/lib/tmdb';
 
@@ -44,6 +45,7 @@ export default function LandingPage() {
 
   const [savedMap, setSavedMap] = useState<Record<string, string>>({});
   const [savingKeys, setSavingKeys] = useState<Set<string>>(new Set());
+  const [modalResult, setModalResult] = useState<TmdbResult | null>(null);
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -294,7 +296,7 @@ export default function LandingPage() {
               {results.map((result) => (
                 <div
                   key={`${result.type}-${result.id}`}
-                  onClick={() => router.push(`/search?q=${encodeURIComponent(result.title)}`)}
+                  onClick={() => setModalResult(result)}
                   className="cursor-pointer"
                 >
                   <MediaCard
@@ -421,6 +423,22 @@ export default function LandingPage() {
           <p className="mt-1">สร้างด้วย ❤️ เพื่อทุกคน</p>
         </div>
       </footer>
+
+      {/* Media Detail Modal */}
+      {modalResult && (
+        <MediaModal
+          result={modalResult}
+          isLoggedIn={isLoggedIn}
+          saved={!!savedMap[savedKey(modalResult.title, modalResult.year)]}
+          saving={savingKeys.has(String(modalResult.id))}
+          onClose={() => setModalResult(null)}
+          onToggleSave={(result) => {
+            handleToggleSave(result);
+            // Close modal after save action completes
+            setTimeout(() => setModalResult(null), 600);
+          }}
+        />
+      )}
     </div>
   );
 }

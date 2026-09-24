@@ -45,7 +45,7 @@ export default function WatchlistPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('ต้องการลบรายการนี้ออกจากวอทช์ลิสต์หรือไม่?')) return;
+    if (!confirm('ต้องการลบรายการนี้ออกจากรอดูหรือไม่?')) return;
     setDeleting(id);
     try {
       const res = await fetch(`/api/media?id=${id}`, { method: 'DELETE' });
@@ -92,7 +92,7 @@ export default function WatchlistPage() {
     <AppShell>
       <div className="pb-20 md:pb-0">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">วอทช์ลิสต์</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">รอดู</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             ทั้งหมด {mediaItems.length} รายการ
           </p>
@@ -130,7 +130,7 @@ export default function WatchlistPage() {
           <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
             <div className="text-6xl mb-4">🔖</div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              {selectedFilter === 'all' ? 'วอทช์ลิสต์ยังว่างอยู่' : 'ไม่มีรายการในหมวดนี้'}
+              {selectedFilter === 'all' ? 'รอดูยังว่างอยู่' : 'ไม่มีรายการในหมวดนี้'}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
               {selectedFilter === 'all'

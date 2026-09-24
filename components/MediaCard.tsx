@@ -36,7 +36,7 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
             onToggleSave(result);
           }}
           disabled={saving}
-          aria-label={saved ? 'ลบออกจากวอทช์ลิสต์' : 'บันทึกลงวอทช์ลิสต์'}
+          aria-label={saved ? 'ลบออกจากรอดู' : 'บันทึกลงรอดู'}
           className="absolute top-2 right-2 w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-slate-900/90 shadow-md backdrop-blur-sm disabled:opacity-50 transition-transform active:scale-95"
         >
           {saving ? (
