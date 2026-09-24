@@ -209,9 +209,8 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-4 py-14 md:py-20 text-center">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-          {t('hero_line1')}
-          <span className="text-brand-600 dark:text-brand-400"> {t('hero_line2_highlight')}</span>
-          <br />
+          {t('hero_line1')}{' '}
+          <span className="text-brand-600 dark:text-brand-400">{t('hero_line2_highlight')}</span>{' '}
           {t('hero_line3')}
         </h1>
         <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
