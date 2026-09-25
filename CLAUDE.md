@@ -58,7 +58,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 | 0004, 0005 | ขยายรายการ platform/type (wetv, viu, iqiyi, youku) |
 | **0006_fix_save_permissions** | ✅ รันแล้ว 25 ก.ย. 69 — GRANT สิทธิ์ให้ role `authenticated` + trigger สร้าง `profiles` อัตโนมัติ (ผล: users 2 = profiles 2) |
 | **0007_media_items_music_and_tmdb** | ✅ พี่แอ้รันแล้ว 25 ก.ย. 69 — เพิ่มคอลัมน์ `artist`, `album`, `cover_url`, `itunes_track_id`, `external_url`, `tmdb_id`, `tmdb_media` (ทั้งหมดไม่บังคับ) |
-| **0008_thai_platforms** | ⏳ ยังไม่ได้รัน — โค้ดที่ใช้ค่านี้รออยู่ใน branch `thai-platforms` (commit ใน branch, ยังไม่ merge/deploy) → หลังพี่แอ้รัน SQL: `git merge thai-platforms` แล้ว deploy — เพิ่มค่า platform: `ch3plus`, `ch7`, `oned`, `gmm25`, `workpoint`, `vipa`, `amarin`, `monomax`, `ais_play`, `trueid` · **ห้าม deploy โค้ดที่บันทึกค่าเหล่านี้ก่อนรัน** |
+| **0008_thai_platforms** | ✅ พี่แอ้รันแล้ว 26 ก.ย. 69 (Success) — เพิ่มค่า platform: `ch3plus`, `ch7`, `oned`, `gmm25`, `workpoint`, `vipa`, `amarin`, `monomax`, `ais_play`, `trueid` · โค้ดจาก branch `thai-platforms` merge เข้า main แล้ว · ⚠️ ครั้งแรกพี่แอ้เผลอรันโค้ด 0002 ค้างใน SQL Editor (error policy already exists) — ให้กด New query ทุกครั้ง |
 
 `tmdb_music` (0003) เป็น cache "หนังแนวดนตรี" ของ TMDb ไม่ใช่เพลงจริง — เพลงจริงมาจาก iTunes และเก็บใน `media_items` (type `music`)
 
@@ -146,7 +146,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - Preview ซีรีส์: `/api/tmdb/details` คืน `networks` → กล่อง "📺 ออกอากาศทาง [โลโก้] ช่อง 3" + ปุ่ม "ไปที่ CH3Plus ↗" + หมายเหตุว่าเป็นช่องที่ออกอากาศครั้งแรก · ถ้า JustWatch ไม่มีข้อมูล ขึ้น "JustWatch ยังไม่มีข้อมูลเรื่องนี้ — ดูช่องที่ออกอากาศด้านล่าง"
 - ลิงก์แอป (เช็กแล้ว): Bugaboo ย้ายไป ch7.com/th แล้ว → ใช้ "CH7HD" · amarintv.com ตอบ 403 กับการเช็กอัตโนมัติ (น่าจะเปิดในเบราว์เซอร์ได้)
 - ผลทดสอบ: ครบ 13 ช่อง ช่องละ 20 เรื่อง · ช่อง 7 → ชาย, วิวาห์ปฐพี, เสน่หาวาโย · WeTV → หอมรักมิรู้เลือน, ล่าหยก · เปิด Preview "หอมรักมิรู้เลือน" → ออกอากาศทาง WeTV + ปุ่มไป wetv.vip · จอ 375px ไม่ล้น
-- ⏳ บันทึกแพลตฟอร์มไทย: เขียนเสร็จแล้วใน branch `thai-platforms` (PlatformType + ฟอร์มเพิ่มรายการ + บันทึกจากแถวตามช่องใช้ platform ของช่อง เช่น ch3→`ch3plus`, one31→`oned`, thaipbs→`vipa`, mono29→`monomax`) — รอ SQL 0008
+- ✅ บันทึกแพลตฟอร์มไทย (merge + deploy 26 ก.ย. 69): เดิมอยู่ใน branch `thai-platforms` (PlatformType + ฟอร์มเพิ่มรายการ + บันทึกจากแถวตามช่องใช้ platform ของช่อง เช่น ch3→`ch3plus`, one31→`oned`, thaipbs→`vipa`, mono29→`monomax`) — SQL 0008 รันแล้ว
 
 ## 📅 ตอนต่อไปออกอากาศวันไหน (26 ก.ย. 69) — ✅ deploy และทดสอบบนเว็บจริงแล้ว (commit `f1fdf52`, `f4b3f78`)
 - `/api/tmdb/details` คืน `next_episode`, `last_episode` (ซีซัน ตอน วันที่), `status` ของซีรีส์ · `MediaModal` แสดงกล่อง: 📅 ตอนต่อไป "ตอนที่ 5 · ออกอากาศวันนี้" / "ตอนที่ 12 · วันศุกร์ที่ 2 ตุลาคม 2569" (พ.ศ. ตาม locale th-TH) · ✅ ออกอากาศจบแล้ว ทั้งหมด N ตอน · 🕘 ออกอากาศล่าสุด (เมื่อ TMDB ยังไม่อัปเดตตอนถัดไป)
