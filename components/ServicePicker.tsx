@@ -80,7 +80,7 @@ export default function ServicePicker({
     <div className="imdb-modal-backdrop" onClick={onClose}>
       <div className="panel w-full max-w-lg max-h-[90vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h2 className="text-xl font-bold text-white">เลือกบริการที่คุณดูอยู่</h2>
+          <h2 className="text-xl font-bold text-white">{t('picker_title')}</h2>
           <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/70"
@@ -90,7 +90,7 @@ export default function ServicePicker({
           </button>
         </div>
         <p className="text-base text-cinema-text-muted mb-4">
-          เลือกบริการที่คุณมีบัญชีอยู่ ระบบจะไฮไลต์เรื่องที่มีให้ดูในบริการของคุณ
+          {t('picker_desc')}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -112,8 +112,8 @@ export default function ServicePicker({
                 )}
                 <span className="min-w-0">
                   <span className="block truncate">{service.label}</span>
-                  {service.note && (
-                    <span className="block text-sm font-normal text-cinema-text-muted">{service.note}</span>
+                  {service.noteKey && (
+                    <span className="block text-sm font-normal text-cinema-text-muted">{t(service.noteKey)}</span>
                   )}
                 </span>
                 {isSelected && <span className="check">✓</span>}
@@ -129,7 +129,7 @@ export default function ServicePicker({
             onChange={(e) => onToggleOnlyMine(e.target.checked)}
             className="w-6 h-6 accent-brand-500"
           />
-          <span className="text-base font-medium text-cinema-text">แสดงเฉพาะบริการของฉัน</span>
+          <span className="text-base font-medium text-cinema-text">{t('picker_only_mine')}</span>
         </label>
 
         <div className="flex flex-wrap gap-2 mt-4">
@@ -137,18 +137,18 @@ export default function ServicePicker({
             onClick={() => onChange([])}
             className="px-4 py-3 min-h-[44px] rounded-xl bg-white/5 border border-white/10 text-cinema-text text-base font-medium hover:bg-white/10"
           >
-            ล้างที่เลือก
+            {t('picker_clear')}
           </button>
           <button
             onClick={onClose}
             className="px-5 py-3 min-h-[44px] rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-base font-semibold"
           >
-            เสร็จสิ้น
+            {t('picker_done')}
           </button>
         </div>
 
         <p className="text-sm text-cinema-text-muted mt-4">
-          ข้อมูลผู้ให้บริการจาก TMDb (ภูมิภาคไทย) — บริการเพลงไม่มีข้อมูลใน TMDb จึงใช้ได้เฉพาะการบันทึกความสนใจ
+          {t('picker_footer')}
         </p>
       </div>
     </div>

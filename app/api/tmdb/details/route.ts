@@ -90,13 +90,14 @@ export async function GET(request: NextRequest) {
   const params = new URL(request.url).searchParams;
   const id = params.get('id') ?? '';
   const type = params.get('type') ?? 'movie';
+  const language = params.get('language') === 'en-US' ? 'en-US' : DEFAULT_LANGUAGE;
   if (!/^\d+$/.test(id)) {
     return NextResponse.json({ error: 'id ไม่ถูกต้อง' }, { status: 400 });
   }
   // Documentaries and music titles are TMDb movies (genre 99 / 10402).
   const endpoint = type === 'tv' ? 'tv' : 'movie';
 
-  const cacheKey = `${endpoint}:${id}`;
+  const cacheKey = `${endpoint}:${id}:${language}`;
   const cached = detailsCache.get(cacheKey);
   if (cached !== null) return NextResponse.json(cached);
 
@@ -104,7 +105,7 @@ export async function GET(request: NextRequest) {
     const data = (await fetchTmdb(
       `/${endpoint}/${id}`,
       {
-        language: DEFAULT_LANGUAGE,
+        language,
         append_to_response: 'credits,videos,watch/providers',
         include_video_language: 'th,en,null',
       },
@@ -125,7 +126,7 @@ export async function GET(request: NextRequest) {
 
     // One English request covers both a missing Thai synopsis and unreadable names.
     const englishNames = new Map<number, string>();
-    if (!overview || needsEnglishNames) {
+    if ((!overview && language !== 'en-US') || needsEnglishNames) {
       const en = (await fetchTmdb(`/${endpoint}/${id}`, { language: 'en-US', append_to_response: 'credits' }, apiKey)) as RawDetails;
       if (!overview) {
         overview = en.overview?.trim() || null;

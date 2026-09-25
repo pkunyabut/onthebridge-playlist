@@ -471,8 +471,8 @@ export interface ServiceOption {
   platform: PlatformType;
   /** TMDb watch-provider ids that identify this service in TH. */
   providerIds: number[];
-  /** Honest note when TMDb cannot back this service for film/TV in TH. */
-  note?: string;
+  /** i18n key of the honest note shown when TMDb cannot back this service for film/TV in TH. */
+  noteKey?: string;
   /**
    * True only when TMDb's own TH catalog (/watch/providers/movie|tv?watch_region=TH,
    * merged) actually lists one of providerIds. Services that are not backed still show
@@ -503,7 +503,7 @@ export const SERVICE_OPTIONS: ServiceOption[] = [
     platform: 'wetv',
     providerIds: [],
     thBacked: false,
-    note: 'TMDb ยังไม่มีข้อมูลผู้ให้บริการนี้ในไทย',
+    noteKey: 'service_note_no_th',
   },
   {
     key: 'iqiyi',
@@ -511,7 +511,7 @@ export const SERVICE_OPTIONS: ServiceOption[] = [
     platform: 'iqiyi',
     providerIds: [],
     thBacked: false,
-    note: 'TMDb ยังไม่มีข้อมูลผู้ให้บริการนี้ในไทย',
+    noteKey: 'service_note_no_th',
   },
   {
     key: 'youtube',
@@ -519,7 +519,7 @@ export const SERVICE_OPTIONS: ServiceOption[] = [
     platform: 'youtube',
     providerIds: [],
     thBacked: false,
-    note: 'TMDb ยังไม่มีข้อมูลผู้ให้บริการนี้ในไทย',
+    noteKey: 'service_note_no_th',
   },
   {
     key: 'spotify',
@@ -527,7 +527,7 @@ export const SERVICE_OPTIONS: ServiceOption[] = [
     platform: 'spotify',
     providerIds: [],
     thBacked: false,
-    note: 'TMDb ไม่มีข้อมูลผู้ให้บริการเพลง',
+    noteKey: 'service_note_music',
   },
   {
     key: 'apple_music',
@@ -535,7 +535,7 @@ export const SERVICE_OPTIONS: ServiceOption[] = [
     platform: 'apple_music',
     providerIds: [],
     thBacked: false,
-    note: 'TMDb ไม่มีข้อมูลผู้ให้บริการเพลง',
+    noteKey: 'service_note_music',
   },
 ];
 

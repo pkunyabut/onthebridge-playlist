@@ -33,22 +33,6 @@ import {
 } from '@/lib/tmdb';
 import type { TmdbCategory, TmdbMediaType, TmdbResult } from '@/lib/tmdb';
 
-const REGION_LABELS: Record<WatchRegion, string> = {
-  TH: '🇹🇭 ไทย',
-  US: '🇺🇸 อเมริกา',
-  KR: '🇰🇷 เกาหลี',
-  CN: '🇨🇳 จีน',
-  JP: '🇯🇵 ญี่ปุ่น',
-};
-
-const LANGUAGE_OPTIONS = [
-  { value: 'th-TH', label: '🇹🇭 ไทย' },
-  { value: 'en-US', label: '🇺🇸 อังกฤษ' },
-  { value: 'ko-KR', label: '🇰🇷 เกาหลี' },
-  { value: 'zh-CN', label: '🇨🇳 จีน' },
-  { value: 'ja-JP', label: '🇯🇵 ญี่ปุ่น' },
-];
-
 // localStorage keys for the choices the user asked us to remember (items 4 & 5).
 const LS_SERVICES = 'otb-my-services';
 const LS_MODE = 'otb-browse-mode';
@@ -76,13 +60,14 @@ function toResult(item: TmdbRowItem): TmdbResult {
 export default function LandingPage() {
   const router = useRouter();
   const requestIdRef = useRef(0);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [typeTab, setTypeTab] = useState<TmdbMediaType>('movie');
   const [categoryTab, setCategoryTab] = useState<TmdbCategory>('popular');
-  const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
+  // TMDb content language (titles, genres) follows the ไทย | EN switch.
+  const language = lang === 'en' ? 'en-US' : DEFAULT_LANGUAGE;
   const [watchRegion, setWatchRegion] = useState<WatchRegion>(DEFAULT_WATCH_REGION);
   const [country, setCountry] = useState<string>(DEFAULT_COUNTRY);
 
@@ -202,7 +187,7 @@ export default function LandingPage() {
   // ---------------------------------------------------------------------
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/tmdb/genres?language=th')
+    fetch(`/api/tmdb/genres?language=${language}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { movie?: TmdbGenre[]; tv?: TmdbGenre[] } | null) => {
         if (cancelled || !data) return;
@@ -470,28 +455,28 @@ export default function LandingPage() {
       {/* Item 6 — suggestion rows */}
       <section className="max-w-7xl mx-auto px-4 pb-4">
         <SuggestionRow
-          title="กำลังมาแรง"
+          title={t('row_trending')}
           icon="🔥"
           items={trendingRow}
           loading={rowsLoading}
           onSelect={(item) => setModalResult(toResult(item))}
         />
         <SuggestionRow
-          title="คะแนนสูงสุด"
+          title={t('row_top_rated')}
           icon="🏆"
           items={topRatedRow}
           loading={rowsLoading}
           onSelect={(item) => setModalResult(toResult(item))}
         />
         <SuggestionRow
-          title="แนะนำสำหรับคุณ"
+          title={t('row_for_you')}
           icon="✨"
           items={forYouRow}
           loading={rowsLoading}
           hint={
             savedTitles.length > 0
-              ? `จากรอดูของคุณ ${savedTitles.length} เรื่อง`
-              : 'ยังไม่มีรายการในรอดู — แสดงกำลังมาแรงแทน'
+              ? t('row_for_you_hint', { count: savedTitles.length })
+              : t('row_for_you_empty_hint')
           }
           onSelect={(item) => setModalResult(toResult(item))}
         />
@@ -500,7 +485,7 @@ export default function LandingPage() {
       {/* Item 7 — Thai + Asian content */}
       <section className="max-w-7xl mx-auto px-4 pb-10">
         <div className="imdb-section-header">
-          <h2>🌏 ไทยและเอเชีย</h2>
+          <h2>{t('row_origin_title')}</h2>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -509,13 +494,13 @@ export default function LandingPage() {
               className={originMedia === 'movie' ? 'active' : ''}
               onClick={() => setOriginMedia('movie')}
             >
-              🎬 ภาพยนตร์
+              {t('origin_movie')}
             </button>
             <button
               className={originMedia === 'tv' ? 'active' : ''}
               onClick={() => setOriginMedia('tv')}
             >
-              📺 ซีรีส์
+              {t('origin_tv')}
             </button>
           </div>
         </div>
@@ -527,7 +512,7 @@ export default function LandingPage() {
               onClick={() => setOriginRegion(region.key)}
               className={`chip ${originRegion === region.key ? 'active' : ''}`}
             >
-              {region.flag} {region.label}
+              {region.flag} {t(`country_${region.key}`)}
             </button>
           ))}
         </div>
@@ -599,13 +584,13 @@ export default function LandingPage() {
               className={mode === 'streaming' ? 'active' : ''}
               onClick={() => updateMode('streaming')}
             >
-              📺 ที่สตรีมมิ่ง
+              {t('mode_streaming')}
             </button>
             <button
               className={mode === 'theaters' ? 'active' : ''}
               onClick={() => updateMode('theaters')}
             >
-              🎟️ ในโรงภาพยนตร์
+              {t('mode_theaters')}
             </button>
           </div>
         </div>
@@ -613,7 +598,7 @@ export default function LandingPage() {
         {/* Item 4 — my streaming services */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <button onClick={() => setPickerOpen(true)} className="chip">
-            📺 เลือกบริการที่คุณดูอยู่
+            {t('pick_services')}
             {serviceKeys.length > 0 && <span className="text-cinema-gold-light">({serviceKeys.length})</span>}
           </button>
           {serviceKeys.length > 0 && (
@@ -621,7 +606,7 @@ export default function LandingPage() {
               onClick={() => updateOnlyMine(!onlyMine)}
               className={`chip ${onlyMine ? 'active' : ''}`}
             >
-              {onlyMine ? '✓ ' : ''}เฉพาะบริการของฉัน
+              {onlyMine ? '✓ ' : ''}{t('only_my_services')}
             </button>
           )}
           {selectedServices.length > 0 && (
@@ -631,20 +616,19 @@ export default function LandingPage() {
           )}
           {onlyMineUnavailable && (
             <span className="text-sm text-brand-300">
-              บริการที่เลือกยังไม่มีข้อมูลใน TMDb จึงยังกรองไม่ได้
+              {t('services_unbacked_all')}
             </span>
           )}
           {!onlyMineUnavailable && unbackedServices.length > 0 && (
             <span className="text-sm text-cinema-text-muted">
-              {unbackedServices.map((s) => s.label).join(', ')} ยังใช้กรองไม่ได้ (TMDb ไม่มีข้อมูลไทย)
+              {t('services_unbacked_some', { names: unbackedServices.map((s) => s.label).join(', ') })}
             </span>
           )}
         </div>
 
         {mode === 'theaters' ? (
           <p className="mb-5 text-base text-cinema-text-muted">
-            🎟️ กำลังแสดงภาพยนตร์ที่ฉายในโรงภาพยนตร์ไทย (TMDb now_playing ภูมิภาค TH) —
-            ตัวกรองประเภท/หมวด/หมวดหมู่/บริการ ใช้ได้ในโหมด &ldquo;ที่สตรีมมิ่ง&rdquo;
+            {t('theaters_note')}
           </p>
         ) : (
           <>
@@ -689,7 +673,7 @@ export default function LandingPage() {
                   onClick={() => setGenreId(null)}
                   className={`chip ${genreId === null ? 'active' : ''}`}
                 >
-                  ทั้งหมด
+                  {t('filter_all')}
                 </button>
                 {myGenreList.map((genre) => (
                   <button

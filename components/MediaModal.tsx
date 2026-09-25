@@ -25,7 +25,7 @@ export default function MediaModal({
   onToggleSave,
 }: MediaModalProps) {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   // Close on Escape
   useEffect(() => {
@@ -53,13 +53,13 @@ export default function MediaModal({
     if (!/^\d+$/.test(String(result.id))) return;
     let cancelled = false;
     setDetailsLoading(true);
-    fetch(`/api/tmdb/details?type=${result.type}&id=${result.id}`)
+    fetch(`/api/tmdb/details?type=${result.type}&id=${result.id}&language=${lang === 'en' ? 'en-US' : 'th-TH'}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data: TmdbDetails | null) => { if (!cancelled) setDetails(data); })
       .catch(() => { if (!cancelled) setDetails(null); })
       .finally(() => { if (!cancelled) setDetailsLoading(false); });
     return () => { cancelled = true; };
-  }, [result.id, result.type]);
+  }, [result.id, result.type, lang]);
 
   const overview = details?.overview ?? result.overview ?? null;
   const streamProviders = details?.providers.stream ?? [];

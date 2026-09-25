@@ -25,7 +25,7 @@ export default function SuggestionRow({
   loading = false,
   onSelect,
   hint,
-  emptyText = 'ไม่พบข้อมูลในขณะนี้',
+  emptyText,
 }: SuggestionRowProps) {
   const { t } = useLanguage();
 
@@ -38,7 +38,7 @@ export default function SuggestionRow({
             {title}
           </h2>
         </div>
-        <p className="text-base text-cinema-text-muted">{emptyText}</p>
+        <p className="text-base text-cinema-text-muted">{emptyText ?? t('row_empty')}</p>
       </div>
     );
   }

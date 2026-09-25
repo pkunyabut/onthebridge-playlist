@@ -53,7 +53,7 @@ export default function MediaCard({ result, saved, saving, onToggleSave, onMySer
         {result.origin_country && (
           <div className="country-badge">
             <span>{getCountryFlag(result.origin_country)}</span>
-            <span>{getCountryLabel(result.origin_country)}</span>
+            <span>{t(`country_${result.origin_country}`) === `country_${result.origin_country}` ? getCountryLabel(result.origin_country) : t(`country_${result.origin_country}`)}</span>
           </div>
         )}
 
