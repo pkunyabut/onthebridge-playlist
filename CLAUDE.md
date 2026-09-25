@@ -77,6 +77,11 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - ทดสอบหลัง deploy: หน้า Dashboard ต้องเห็นรายการที่บันทึก, ปุ่ม AI ต้องได้คำแนะนำภาษาไทย, ฟอร์ม /dashboard/add ต้องบันทึกได้
 - ข้อควรระวัง: ห้ามใช้ `supabase.auth.getSession()` จาก `lib/supabase-browser` เพื่อเช็กการล็อกอินในหน้าเว็บ
 
+## 🎬 หน้าต่าง Preview ของการ์ด (25 ก.ย. 69) — ✅ deploy และทดสอบบนเว็บจริงแล้ว
+- คลิกการ์ดแล้วหน้าต่างขึ้นอยู่แล้ว แต่ข้อมูลน้อย → เพิ่ม `app/api/tmdb/details` (TMDb details + credits + videos + watch/providers ของไทย, cache 6 ชม.) และ `components/MediaModal.tsx` ดึงมาแสดงตอนเปิด
+- แสดง: ความยาว/จำนวนซีซัน, แนว, ปุ่ม "▶ ดูตัวอย่าง" (YouTube ฝังในหน้าต่าง เลือกคลิปไทยก่อน), เรื่องย่อไทย (ไม่มี→อังกฤษ), ผู้กำกับ/ผู้สร้าง, นักแสดง 5 คน (ชื่อที่ไม่ใช่อักษรไทย/ละติน เช่น จีน เกาหลี จะใช้ชื่ออังกฤษ), "ดูได้ที่ไหนในไทย" จากข้อมูลจริง + ลิงก์หน้า watch ของ TMDb
+- `TMDB_API_KEY` ตั้งใน Vercel เฉพาะ Production และไม่มีใน `.env.local` → ทดสอบ API นี้ในเครื่องหรือบน Preview ไม่ได้
+
 ## 📋 งานค้าง (เรียงตามความสำคัญ)
 1. **commit + push ขึ้น GitHub + deploy Vercel production** — commit `b891b8f` ยังไม่ push; ไฟล์ใหม่/แก้ที่ยังไม่ commit: `0006_fix_save_permissions.sql`, `CLAUDE.md`, `lib/gemini.ts`, `app/api/ai/route.ts`, `app/api/ai/recommend/route.ts` (อย่า commit `.env.local`) (ไฟล์ .tsx ที่ขึ้นว่า modified 7 ไฟล์ ต่างแค่ line ending CRLF/LF ไม่ใช่งานจริง)
 2. **แท็บเพลง** — ตอนนี้แสดง "หนังแนวดนตรี" จาก TMDb (genre 10402) ไม่ใช่เพลงจริง → ถามพี่แอ้ว่าจะทำเพลงจริง (เช่น MusicBrainz) หรือตัดแท็บ
