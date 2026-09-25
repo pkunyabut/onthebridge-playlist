@@ -88,6 +88,8 @@ export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => null)) as { items?: MatchRequestItem[] } | null;
   const items = (body?.items ?? [])
     .filter((i) => i && typeof i.key === 'string' && typeof i.title === 'string' && i.title.trim())
+    // TMDb has no songs; never guess a movie poster for a music item.
+    .filter((i) => i.type !== 'music')
     .slice(0, MAX_ITEMS);
 
   const matches: Record<string, TmdbMatch | null> = {};

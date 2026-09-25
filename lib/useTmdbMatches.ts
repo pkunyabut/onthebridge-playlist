@@ -15,7 +15,8 @@ export function useTmdbMatches(items: MediaItem[]): Record<string, TmdbMatch | n
   const signature = items.map((i) => i.id).join(',');
 
   useEffect(() => {
-    const missing = items.filter((i) => !(i.id in matches));
+    // Songs are not on TMDb — a song title could match an unrelated movie poster.
+    const missing = items.filter((i) => i.type !== 'music' && !(i.id in matches));
     if (missing.length === 0) return;
     let cancelled = false;
     fetch('/api/tmdb/match', {
