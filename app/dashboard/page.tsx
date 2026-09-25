@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase-browser';
 import type { MediaItem } from '@/lib/types';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
@@ -36,14 +35,8 @@ export default function DashboardPage() {
 
   const fetchMedia = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const res = await fetch('/api/media', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
+      // /api/media reads the login cookie itself — the plain browser client can't see that session.
+      const res = await fetch('/api/media');
 
       if (res.ok) {
         const data = await res.json();
@@ -61,15 +54,7 @@ export default function DashboardPage() {
 
     setDeleting(id);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const res = await fetch(`/api/media?id=${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
+      const res = await fetch(`/api/media?id=${id}`, { method: 'DELETE' });
 
       if (res.ok) {
         setMediaItems(mediaItems.filter((item) => item.id !== id));

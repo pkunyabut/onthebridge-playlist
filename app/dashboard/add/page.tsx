@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase-browser';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaType, PlatformType } from '@/lib/types';
 
@@ -55,18 +54,11 @@ export default function AddItemPage() {
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError(t('login_required'));
-        setLoading(false);
-        return;
-      }
-
+      // /api/media reads the login cookie itself (returns 401 if not logged in).
       const res = await fetch('/api/media', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           title: formData.title,
@@ -81,7 +73,7 @@ export default function AddItemPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || t('error_retry'));
+        setError(res.status === 401 ? t('login_required') : (data.error || t('error_retry')));
         setLoading(false);
         return;
       }

@@ -70,6 +70,13 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - เปลี่ยนรุ่นได้โดยตั้ง env `GEMINI_MODEL` ใน Vercel ไม่ต้องแก้โค้ด
 - `npm run build` ผ่านแล้ว แต่ **ยังไม่ได้ทดสอบกับ Google จริง** — หลัง deploy ให้เปิด `/api/ai/recommend` (GET) ต้องได้ `"working": true` แล้วลองปุ่ม AI ในหน้า dashboard
 
+## 🐞 แก้หน้า Dashboard (25 ก.ย. 69) — รอ commit + deploy
+- อาการ: กดปุ่ม AI ขึ้น "Add items to your watchlist…" ทั้งที่บันทึกรายการไว้แล้ว
+- สาเหตุ: `app/dashboard/page.tsx` และ `app/dashboard/add/page.tsx` เช็ก session ด้วย `lib/supabase-browser` (client ธรรมดา อ่าน localStorage) แต่ระบบล็อกอินเก็บ session ใน cookie → ได้ null เสมอ ฟังก์ชันจบก่อนเรียก API รายการใน Dashboard จึงว่าง และฟอร์มเพิ่มรายการเองก็บันทึกไม่ได้
+- แก้: เรียก `/api/media` ตรงๆ (API อ่าน cookie เอง) เหมือนหน้า watchlist — build ผ่านแล้ว
+- ทดสอบหลัง deploy: หน้า Dashboard ต้องเห็นรายการที่บันทึก, ปุ่ม AI ต้องได้คำแนะนำภาษาไทย, ฟอร์ม /dashboard/add ต้องบันทึกได้
+- ข้อควรระวัง: ห้ามใช้ `supabase.auth.getSession()` จาก `lib/supabase-browser` เพื่อเช็กการล็อกอินในหน้าเว็บ
+
 ## 📋 งานค้าง (เรียงตามความสำคัญ)
 1. **commit + push ขึ้น GitHub + deploy Vercel production** — commit `b891b8f` ยังไม่ push; ไฟล์ใหม่/แก้ที่ยังไม่ commit: `0006_fix_save_permissions.sql`, `CLAUDE.md`, `lib/gemini.ts`, `app/api/ai/route.ts`, `app/api/ai/recommend/route.ts` (อย่า commit `.env.local`) (ไฟล์ .tsx ที่ขึ้นว่า modified 7 ไฟล์ ต่างแค่ line ending CRLF/LF ไม่ใช่งานจริง)
 2. **แท็บเพลง** — ตอนนี้แสดง "หนังแนวดนตรี" จาก TMDb (genre 10402) ไม่ใช่เพลงจริง → ถามพี่แอ้ว่าจะทำเพลงจริง (เช่น MusicBrainz) หรือตัดแท็บ
