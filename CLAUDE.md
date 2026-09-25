@@ -16,6 +16,7 @@
 7. **ต้องคงเครดิตแหล่งข้อมูลไว้เสมอ** (เงื่อนไขบังคับของผู้ให้ข้อมูล — ถ้าหายอาจโดนตัดสิทธิ์ API): TMDB = โลโก้ (เล็กกว่าโลโก้เรา) + ข้อความ "This website uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB." · JustWatch = ระบุเป็นแหล่งข้อมูลช่องทางรับชม · Apple/iTunes = เสียงตัวอย่างต้องอยู่ใกล้ป้ายทางการ "Listen on Apple Music" ที่ลิงก์ไปหน้าเพลง + ข้อความ "provided courtesy of iTunes" + สตรีมเท่านั้น ห้ามเก็บไฟล์เสียง · ใช้ได้เพื่อพาไปฟัง/ซื้อที่ Apple เท่านั้น
 8. **เว็บนี้ฟรีเสมอ ไม่หารายได้** (พี่แอ้ยืนยัน 25 ก.ย. 69) — ไม่ติดโฆษณา ไม่เก็บค่าสมาชิก จึงอยู่ในเงื่อนไขใช้ฟรีของ TMDB ได้ (API Terms ข้อ 2: ถ้าวันหนึ่งหารายได้ ต้องทำสัญญาเชิงพาณิชย์กับ TMDB ก่อน)
 9. **จุดยืนของเว็บ: ทำเฉพาะส่วนที่ JustWatch มองข้าม** — ไม่แข่งกับ JustWatch ในเรื่องที่เขาทำดีอยู่แล้ว (ค้นว่าหนังดูที่ไหน) ก่อนเพิ่มฟีเจอร์ใหม่ให้ถามว่า "JustWatch มีแล้วหรือยัง"
+   - ช่องว่างที่เช็กแล้ว (25 ก.ย. 69, ข้อมูล JustWatch ผ่าน TMDB `/watch/providers?watch_region=TH` มี 43 แพลตฟอร์ม): **ไม่มี** WeTV, iQIYI, YouTube, TrueID, AIS Play, Bugaboo/CH7, CH3Plus, oneD, Workpoint, TrueVisions, BEC, VIPA, Bilibili, LINE TV, Tencent · **มี** Netflix, Prime, Disney+, HBO Max, Apple TV, Viu, MONOMAX, Thai PBS, iflix, Crunchyroll · JustWatch ไม่มีเพลงเลย
 
 ## ภาพรวม
 - เว็บจัดรายการ "รอดู" หนัง ซีรีส์ สารคดี (และเพลง) ข้ามแพลตฟอร์ม — เก็บแค่ข้อมูล ไม่เล่นวิดีโอ
