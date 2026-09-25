@@ -206,5 +206,7 @@
   "music_chart_jp": "Japanese",
   "music_chart_us": "International",
   "music_chart_cn": "Chinese (Mainland)",
-  "music_chart_tw": "Taiwanese"
+  "music_chart_tw": "Taiwanese",
+  "scroll_left": "Scroll left",
+  "scroll_right": "Scroll right"
 }

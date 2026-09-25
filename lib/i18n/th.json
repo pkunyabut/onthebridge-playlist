@@ -206,5 +206,7 @@
   "music_chart_jp": "ญี่ปุ่น",
   "music_chart_us": "สากล",
   "music_chart_cn": "จีนแผ่นดินใหญ่",
-  "music_chart_tw": "ไต้หวัน"
+  "music_chart_tw": "ไต้หวัน",
+  "scroll_left": "เลื่อนไปทางซ้าย",
+  "scroll_right": "เลื่อนไปทางขวา"
 }

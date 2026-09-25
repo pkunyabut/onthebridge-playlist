@@ -1,6 +1,7 @@
 'use client';
 
 import { useLanguage } from '@/context/LanguageContext';
+import ScrollRow from '@/components/ScrollRow';
 import type { TmdbRowItem } from '@/lib/tmdb';
 
 interface SuggestionRowProps {
@@ -53,7 +54,7 @@ export default function SuggestionRow({
         {hint && <span className="count">{hint}</span>}
       </div>
 
-      <div className="suggest-row scrollbar-hide">
+      <ScrollRow>
         {loading
           ? Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="suggest-card">
@@ -97,7 +98,7 @@ export default function SuggestionRow({
                 </div>
               </button>
             ))}
-      </div>
+      </ScrollRow>
     </div>
   );
 }

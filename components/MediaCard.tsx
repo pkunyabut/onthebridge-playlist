@@ -3,7 +3,8 @@
 import { useLanguage } from '@/context/LanguageContext';
 import type { PlatformType } from '@/lib/types';
 import { PLATFORM_ICONS } from '@/lib/types';
-import { PLATFORM_URLS, getCountryLabel, getCountryFlag } from '@/lib/tmdb';
+import { PLATFORM_URLS, getCountryLabel } from '@/lib/tmdb';
+import Flag from '@/components/Flag';
 import type { TmdbResult } from '@/lib/tmdb';
 
 /**
@@ -52,7 +53,7 @@ export default function MediaCard({ result, saved, saving, onToggleSave, onMySer
         {/* Country badge */}
         {result.origin_country && (
           <div className="country-badge">
-            <span>{getCountryFlag(result.origin_country)}</span>
+            <Flag code={result.origin_country} />
             <span>{t(`country_${result.origin_country}`) === `country_${result.origin_country}` ? getCountryLabel(result.origin_country) : t(`country_${result.origin_country}`)}</span>
           </div>
         )}

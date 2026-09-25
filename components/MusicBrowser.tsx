@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { MUSIC_CHARTS, type MusicChartKey, type MusicTrack } from '@/lib/itunes';
 import CardSkeleton from '@/components/CardSkeleton';
+import Flag from '@/components/Flag';
 
 interface MusicBrowserProps {
   isSaved: (track: MusicTrack) => boolean;
@@ -73,7 +74,7 @@ export default function MusicBrowser({ isSaved, onSelect }: MusicBrowserProps) {
               onClick={() => setChart(c.key)}
               className={`chip ${chart === c.key ? 'active' : ''}`}
             >
-              {c.flag} {t(`music_chart_${c.key}`)}
+              {c.key === 'us' ? c.flag : <Flag code={c.store} />} {t(`music_chart_${c.key}`)}
             </button>
           ))}
         </div>

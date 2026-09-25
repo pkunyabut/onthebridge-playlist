@@ -11,6 +11,8 @@ import MediaModal from '@/components/MediaModal';
 import ServicePicker from '@/components/ServicePicker';
 import SuggestionRow from '@/components/SuggestionRow';
 import LangSwitch from '@/components/LangSwitch';
+import ScrollRow from '@/components/ScrollRow';
+import Flag from '@/components/Flag';
 import MusicBrowser from '@/components/MusicBrowser';
 import MusicModal from '@/components/MusicModal';
 import type { MusicTrack } from '@/lib/itunes';
@@ -454,7 +456,6 @@ export default function LandingPage() {
   const selectedServices = SERVICE_OPTIONS.filter((s) => serviceKeys.includes(s.key));
   const unbackedServices = selectedServices.filter((s) => !s.thBacked);
   const onlyMineUnavailable = onlyMine && serviceProviderIds(serviceKeys).length === 0;
-  const originRegionOption = ORIGIN_REGIONS.find((r) => r.key === originRegion);
 
   return (
     <div className="min-h-screen bg-cinema-950">
@@ -584,12 +585,12 @@ export default function LandingPage() {
               onClick={() => setOriginRegion(region.key)}
               className={`chip ${originRegion === region.key ? 'active' : ''}`}
             >
-              {region.flag} {t(`country_${region.key}`)}
+              {region.key === 'ASIA' ? region.flag : <Flag code={region.key} />} {t(`country_${region.key}`)}
             </button>
           ))}
         </div>
 
-        <div className="suggest-row scrollbar-hide">
+        <ScrollRow>
           {originLoading
             ? Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="suggest-card">
@@ -603,7 +604,7 @@ export default function LandingPage() {
             : originItems.length === 0
             ? (
                 <p className="text-base text-cinema-text-muted py-3">
-                  {t('no_data_desc')} ({originRegionOption?.label ?? originRegion})
+                  {t('no_data_desc')} ({t(`country_${originRegion}`)})
                 </p>
               )
             : originItems.map((item) => (
@@ -638,7 +639,7 @@ export default function LandingPage() {
                   </div>
                 </button>
               ))}
-        </div>
+        </ScrollRow>
       </section>
 
       {/* Browse — IMDb-style grid */}
