@@ -19,6 +19,11 @@ export interface TmdbDetails {
   runtime: number | null;
   seasons: number | null;
   episodes: number | null;
+  /** Series only — next/last episode from TMDB (air_date is YYYY-MM-DD). */
+  next_episode: EpisodeInfo | null;
+  last_episode: EpisodeInfo | null;
+  /** Series only — TMDB status, e.g. "Returning Series", "Ended", "Canceled". */
+  status: string | null;
   genres: string[];
   /** Director for movies, creators for series. */
   directors: string[];
@@ -33,6 +38,25 @@ export interface TmdbDetails {
 
 interface RawProvider { provider_id: number; provider_name: string; logo_path: string | null }
 interface RawVideo { key: string; name: string; site: string; type: string; official?: boolean; iso_639_1?: string }
+export interface EpisodeInfo {
+  season: number;
+  episode: number;
+  air_date: string | null;
+  name: string | null;
+}
+
+interface RawEpisode {
+  season_number?: number;
+  episode_number?: number;
+  air_date?: string | null;
+  name?: string | null;
+}
+
+function toEpisode(e: RawEpisode | null | undefined): EpisodeInfo | null {
+  if (!e || !e.episode_number) return null;
+  return { season: e.season_number ?? 1, episode: e.episode_number, air_date: e.air_date || null, name: e.name || null };
+}
+
 interface RawDetails {
   overview?: string;
   tagline?: string;
@@ -40,6 +64,9 @@ interface RawDetails {
   episode_run_time?: number[];
   number_of_seasons?: number;
   number_of_episodes?: number;
+  next_episode_to_air?: RawEpisode | null;
+  last_episode_to_air?: RawEpisode | null;
+  status?: string;
   genres?: { name: string }[];
   created_by?: { id: number; name: string }[];
   networks?: { id: number; name: string; logo_path?: string | null }[];
@@ -158,6 +185,9 @@ export async function GET(request: NextRequest) {
       runtime: data.runtime || data.episode_run_time?.[0] || null,
       seasons: endpoint === 'tv' ? data.number_of_seasons ?? null : null,
       episodes: endpoint === 'tv' ? data.number_of_episodes ?? null : null,
+      next_episode: endpoint === 'tv' ? toEpisode(data.next_episode_to_air) : null,
+      last_episode: endpoint === 'tv' ? toEpisode(data.last_episode_to_air) : null,
+      status: endpoint === 'tv' ? data.status ?? null : null,
       genres: (data.genres ?? []).map((g) => g.name),
       directors: Array.from(new Set(directors)).slice(0, 3),
       cast,

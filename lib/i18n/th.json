@@ -249,5 +249,13 @@
   "network_iqiyi": "iQIYI",
   "network_youku": "Youku",
   "no_streaming_th_see_network": "JustWatch ยังไม่มีข้อมูลเรื่องนี้ — ดูช่องที่ออกอากาศด้านล่าง",
-  "network_viu": "Viu"
+  "network_viu": "Viu",
+  "next_ep_label": "ตอนต่อไป",
+  "episode_label": "ตอนที่ {ep}",
+  "episode_label_season": "ซีซัน {s} ตอนที่ {ep}",
+  "airs_today": "ออกอากาศวันนี้",
+  "ended_label": "ออกอากาศจบแล้ว",
+  "episodes_total": "ทั้งหมด {n} ตอน",
+  "last_ep_label": "ออกอากาศล่าสุด",
+  "schedule_note": "วันออกอากาศจาก TMDB อาจเปลี่ยนแปลงได้"
 }

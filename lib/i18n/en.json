@@ -249,5 +249,13 @@
   "network_iqiyi": "iQIYI",
   "network_youku": "Youku",
   "no_streaming_th_see_network": "JustWatch has no data for this title yet — see the channel it aired on below",
-  "network_viu": "Viu"
+  "network_viu": "Viu",
+  "next_ep_label": "Next episode",
+  "episode_label": "Episode {ep}",
+  "episode_label_season": "Season {s}, episode {ep}",
+  "airs_today": "airs today",
+  "ended_label": "Finished airing",
+  "episodes_total": "{n} episodes in total",
+  "last_ep_label": "Last aired",
+  "schedule_note": "Air dates from TMDB may change"
 }

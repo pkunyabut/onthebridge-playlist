@@ -79,6 +79,40 @@ export default function MediaModal({
     return null;
   })();
 
+  // Series schedule: "next episode airs …" — JustWatch has no schedule for Thai channels.
+  const formatAirDate = (isoDate: string) =>
+    new Date(`${isoDate}T00:00:00`).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-GB', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
+  // viewer's local date (toISOString() is UTC — before 07:00 in Thailand it would still be yesterday)
+  const now = new Date();
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const episodeLabel = (e: { season: number; episode: number }) =>
+    details && (details.seasons ?? 1) > 1
+      ? t('episode_label_season', { s: e.season, ep: e.episode })
+      : t('episode_label', { ep: e.episode });
+  const schedule = (() => {
+    if (!details || result.type !== 'tv') return null;
+    const next = details.next_episode;
+    if (next?.air_date && next.air_date >= todayIso) {
+      const when = next.air_date === todayIso ? t('airs_today') : formatAirDate(next.air_date);
+      return { icon: '📅', label: t('next_ep_label'), value: `${episodeLabel(next)} · ${when}`, highlight: true };
+    }
+    if (details.status === 'Ended' || details.status === 'Canceled') {
+      return {
+        icon: '✅',
+        label: t('ended_label'),
+        value: details.episodes ? t('episodes_total', { n: details.episodes }) : '',
+        highlight: false,
+      };
+    }
+    const last = details.last_episode;
+    if (last?.air_date) {
+      return { icon: '🕘', label: t('last_ep_label'), value: `${episodeLabel(last)} · ${formatAirDate(last.air_date)}`, highlight: false };
+    }
+    return null;
+  })();
+
   const primaryPlatform = result.providers[0];
   const platformUrl = primaryPlatform ? PLATFORM_URLS[primaryPlatform] : null;
 
@@ -167,6 +201,21 @@ export default function MediaModal({
             <p className="text-base text-cinema-text-muted mb-3">
               {[lengthLabel, details?.genres.slice(0, 3).join(' · ')].filter(Boolean).join('  |  ')}
             </p>
+          )}
+
+          {/* Episode schedule (series) */}
+          {schedule && (
+            <div
+              className={`mb-4 p-3 rounded-xl border text-base ${
+                schedule.highlight ? 'bg-brand-600/15 border-brand-500/40' : 'bg-white/5 border-white/10'
+              }`}
+            >
+              <p className="font-semibold text-white">
+                {schedule.icon} {schedule.label}
+              </p>
+              {schedule.value && <p className="text-white/90 mt-0.5">{schedule.value}</p>}
+              <p className="text-sm text-cinema-text-muted/80 mt-1">{t('schedule_note')}</p>
+            </div>
           )}
 
           {/* Trailer button */}
