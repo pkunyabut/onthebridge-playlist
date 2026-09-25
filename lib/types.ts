@@ -43,6 +43,14 @@ export interface MediaItem {
   year: number | null;
   notes: string | null;
   created_at: string;
+  // Migration 0007 — optional, NULL for older items
+  artist?: string | null;
+  album?: string | null;
+  cover_url?: string | null;
+  itunes_track_id?: number | null;
+  external_url?: string | null;
+  tmdb_id?: number | null;
+  tmdb_media?: 'movie' | 'tv' | null;
 }
 
 export interface Playlist {

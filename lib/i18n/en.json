@@ -189,5 +189,16 @@
   "country_TW": "Taiwan",
   "country_IN": "India",
   "country_US": "USA",
-  "country_ASIA": "All Asia"
+  "country_ASIA": "All Asia",
+  "music_top_title": "Top songs in Thailand now",
+  "music_top_source": "Chart from Apple Music",
+  "music_search_placeholder": "Search songs or artists",
+  "music_search_button": "Search",
+  "music_results_for": "Results for “{q}”",
+  "music_clear_search": "Back to top songs",
+  "music_no_results": "No songs found",
+  "music_error": "Could not load songs, please try again",
+  "music_preview_label": "Listen to a 30-second preview",
+  "music_no_preview": "No preview available for this song",
+  "music_open_apple": "Listen in Apple Music"
 }

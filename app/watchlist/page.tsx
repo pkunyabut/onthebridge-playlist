@@ -9,7 +9,9 @@ import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, MediaType, PlatformType } from '@/lib/types';
 import { PLATFORM_ICONS } from '@/lib/types';
 import MediaModal from '@/components/MediaModal';
-import { useTmdbMatches, savedItemToResult } from '@/lib/useTmdbMatches';
+import MusicModal from '@/components/MusicModal';
+import { useTmdbMatches, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
+import type { MusicTrack } from '@/lib/itunes';
 import type { TmdbResult } from '@/lib/tmdb';
 
 type FilterType = 'all' | MediaType;
@@ -24,6 +26,7 @@ export default function WatchlistPage() {
   // Poster + preview for saved items
   const matches = useTmdbMatches(mediaItems);
   const [preview, setPreview] = useState<TmdbResult | null>(null);
+  const [song, setSong] = useState<MusicTrack | null>(null);
 
   const FILTER_TABS: { key: FilterType; label: string; icon: string }[] = [
     { key: 'all', label: t('filter_all'), icon: '🎯' },
@@ -180,15 +183,19 @@ export default function WatchlistPage() {
                 </h2>
                 <div className="imdb-grid stagger-grid">
                   {items.map((item) => (
-                    <div key={item.id} className={`imdb-card ${matches[item.id] ? 'cursor-pointer' : '!cursor-default'}`}
+                    <div key={item.id} className={`imdb-card ${matches[item.id] || item.type === 'music' ? 'cursor-pointer' : '!cursor-default'}`}
                       onClick={() => {
+                        if (item.type === 'music') {
+                          setSong(savedItemToTrack(item));
+                          return;
+                        }
                         const match = matches[item.id];
                         if (match) setPreview(savedItemToResult(item, match));
                       }}>
                       <div className="poster-container flex items-center justify-center bg-cinema-800">
-                        {matches[item.id]?.poster ? (
+                        {(item.type === 'music' ? item.cover_url : matches[item.id]?.poster) ? (
                           <img
-                            src={matches[item.id]!.poster!}
+                            src={(item.type === 'music' ? item.cover_url : matches[item.id]?.poster)!}
                             alt={item.title}
                             loading="lazy"
                             className="w-full h-full object-cover"
@@ -217,6 +224,9 @@ export default function WatchlistPage() {
                       </div>
                       <div className="card-info">
                         <h3 className="card-title">{item.title}</h3>
+                        {item.type === 'music' && item.artist && (
+                          <p className="text-base text-cinema-text-muted line-clamp-1">{item.artist}</p>
+                        )}
                         <div className="card-metadata">
                           {item.year && <span className="year">{item.year}</span>}
                           {item.year && <span className="text-white/20">·</span>}
@@ -234,6 +244,18 @@ export default function WatchlistPage() {
           </div>
         )}
       </div>
+
+      {/* Song preview for saved music (30-second clip) */}
+      {song && (
+        <MusicModal
+          track={song}
+          isLoggedIn
+          saved
+          saving={false}
+          onClose={() => setSong(null)}
+          onToggleSave={() => setSong(null)}
+        />
+      )}
 
       {/* Preview of a saved item (poster/details looked up on TMDb by title + year) */}
       {preview && (

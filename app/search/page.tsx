@@ -180,6 +180,10 @@ export default function SearchPage() {
             genre: null,
             year: result.year,
             notes: null,
+            ...(/^\d+$/.test(String(result.id))
+              ? { tmdb_id: Number(result.id), tmdb_media: result.type === 'tv' ? 'tv' : 'movie' }
+              : {}),
+            cover_url: result.poster,
           }),
         });
         if (res.status === 401) {

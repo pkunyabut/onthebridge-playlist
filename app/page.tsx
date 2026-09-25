@@ -11,6 +11,9 @@ import MediaModal from '@/components/MediaModal';
 import ServicePicker from '@/components/ServicePicker';
 import SuggestionRow from '@/components/SuggestionRow';
 import LangSwitch from '@/components/LangSwitch';
+import MusicBrowser from '@/components/MusicBrowser';
+import MusicModal from '@/components/MusicModal';
+import type { MusicTrack } from '@/lib/itunes';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, PlatformType } from '@/lib/types';
 import { toMediaType } from '@/lib/types';
@@ -102,6 +105,7 @@ export default function LandingPage() {
   const [savedTitles, setSavedTitles] = useState<string[]>([]);
   const [savingKeys, setSavingKeys] = useState<Set<string>>(new Set());
   const [modalResult, setModalResult] = useState<TmdbResult | null>(null);
+  const [musicTrack, setMusicTrack] = useState<MusicTrack | null>(null);
 
   const TYPE_TABS: { value: TmdbMediaType; label: string }[] = [
     { value: 'movie', label: t('type_tab_movie') },
@@ -174,7 +178,7 @@ export default function LandingPage() {
         const titles: string[] = [];
         for (const item of data.media) {
           map[savedKey(item.title, item.year)] = item.id;
-          titles.push(item.title);
+          if (item.type !== 'music') titles.push(item.title);
         }
         setSavedMap(map);
         setSavedTitles(titles.slice(0, 3));
@@ -251,7 +255,11 @@ export default function LandingPage() {
     }
   };
 
+  // เพลง tab shows real songs from Apple/iTunes (MusicBrowser) instead of the TMDb grid.
+  const showMusic = typeTab === 'music' && mode !== 'theaters';
+
   useEffect(() => {
+    if (showMusic) return;
     fetchResults(typeTab, categoryTab, 1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typeTab, categoryTab, language, watchRegion, country, mode, genreId, onlyMine, serviceKeys]);
@@ -320,6 +328,66 @@ export default function LandingPage() {
     };
   }, [originRegion, originMedia, language]);
 
+  const handleToggleSaveTrack = async (track: MusicTrack) => {
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+    const key = savedKey(track.title, track.year);
+    const existingId = savedMap[key];
+    setSavingKeys((prev) => new Set(prev).add(`song-${track.trackId}`));
+    try {
+      if (existingId) {
+        const res = await fetch(`/api/media?id=${existingId}`, { method: 'DELETE' });
+        if (res.ok) {
+          setSavedMap((prev) => {
+            const next = { ...prev };
+            delete next[key];
+            return next;
+          });
+        }
+      } else {
+        const res = await fetch('/api/media', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: track.title,
+            type: 'music',
+            platform: 'apple_music',
+            genre: track.genre,
+            year: track.year,
+            notes: null,
+            artist: track.artist || null,
+            album: track.album,
+            cover_url: track.cover,
+            itunes_track_id: track.trackId,
+            external_url: track.url,
+          }),
+        });
+        if (res.status === 401) {
+          alert(t('login_required_save'));
+          router.push('/login');
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.media) {
+          setSavedMap((prev) => ({ ...prev, [key]: data.media.id }));
+          alert(t('save_success').replace('{title}', track.title));
+        } else {
+          alert(t('save_failed').replace('{error}', data.error || t('unknown_error')));
+        }
+      }
+    } catch {
+      alert(t('save_failed').replace('{error}', t('error_connection')));
+    } finally {
+      setSavingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(`song-${track.trackId}`);
+        return next;
+      });
+    }
+  };
+
   const handleToggleSave = async (result: TmdbResult) => {
     if (!isLoggedIn) {
       router.push('/login');
@@ -352,6 +420,10 @@ export default function LandingPage() {
             genre: null,
             year: result.year,
             notes: null,
+            ...(/^\d+$/.test(String(result.id))
+              ? { tmdb_id: Number(result.id), tmdb_media: result.type === 'tv' ? 'tv' : 'movie' }
+              : {}),
+            cover_url: result.poster,
           }),
         });
         if (res.status === 401) {
@@ -649,6 +721,8 @@ export default function LandingPage() {
               ))}
             </div>
 
+            {!showMusic && (
+            <>
             {/* Category Sub-tabs */}
             <div className="flex gap-2 mb-4">
               {CATEGORY_TABS.map((tab) => (
@@ -686,9 +760,18 @@ export default function LandingPage() {
                 ))}
               </div>
             )}
+            </>
+            )}
           </>
         )}
 
+        {showMusic ? (
+          <MusicBrowser
+            isSaved={(track) => !!savedMap[savedKey(track.title, track.year)]}
+            onSelect={setMusicTrack}
+          />
+        ) : (
+        <>
         {error && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-base text-center">
             ❌ {error}
@@ -742,6 +825,8 @@ export default function LandingPage() {
               </div>
             )}
           </>
+        )}
+        </>
         )}
       </section>
 
@@ -820,6 +905,18 @@ export default function LandingPage() {
         onToggleOnlyMine={updateOnlyMine}
         onClose={() => setPickerOpen(false)}
       />
+
+      {/* Song preview (30-second clip) */}
+      {musicTrack && (
+        <MusicModal
+          track={musicTrack}
+          isLoggedIn={isLoggedIn}
+          saved={!!savedMap[savedKey(musicTrack.title, musicTrack.year)]}
+          saving={savingKeys.has(`song-${musicTrack.trackId}`)}
+          onClose={() => setMusicTrack(null)}
+          onToggleSave={handleToggleSaveTrack}
+        />
+      )}
 
       {/* Media Detail Modal */}
       {modalResult && (

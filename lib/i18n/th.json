@@ -189,5 +189,16 @@
   "country_TW": "ไต้หวัน",
   "country_IN": "อินเดีย",
   "country_US": "อเมริกา",
-  "country_ASIA": "เอเชียทั้งหมด"
+  "country_ASIA": "เอเชียทั้งหมด",
+  "music_top_title": "เพลงฮิตในไทยตอนนี้",
+  "music_top_source": "อันดับจาก Apple Music",
+  "music_search_placeholder": "ค้นหาเพลง หรือชื่อศิลปิน",
+  "music_search_button": "ค้นหา",
+  "music_results_for": "ผลค้นหา “{q}”",
+  "music_clear_search": "กลับไปเพลงฮิต",
+  "music_no_results": "ไม่พบเพลงที่ค้นหา",
+  "music_error": "ดึงข้อมูลเพลงไม่สำเร็จ ลองใหม่อีกครั้ง",
+  "music_preview_label": "ฟังตัวอย่าง 30 วินาที",
+  "music_no_preview": "เพลงนี้ไม่มีเสียงตัวอย่าง",
+  "music_open_apple": "ฟังเต็มเพลงใน Apple Music"
 }
