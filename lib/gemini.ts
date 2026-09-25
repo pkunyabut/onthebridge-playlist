@@ -77,6 +77,50 @@ export async function generateGeminiText(
   return last;
 }
 
+export interface GeminiHealth {
+  working: boolean;
+  model?: string;
+  reply?: string;
+  reason?: string;
+  /** เวลาที่ถาม Google จริงครั้งล่าสุด (ISO) */
+  checked_at: string;
+}
+
+// ผลตรวจล่าสุด — ใช้ซ้ำ 10 นาที เพื่อให้หน้าเช็ก (GET) ที่ใครก็เปิดได้ไม่ถาม Google ทุกครั้ง
+// จนโควตาฟรีหมด (ถาม Google ได้ไม่เกิน ~6 ครั้ง/ชม. ต่อเซิร์ฟเวอร์หนึ่งตัว)
+const HEALTH_TTL_MS = 10 * 60 * 1000;
+let healthCache: { expires: number; result: Promise<GeminiHealth> } | null = null;
+
+async function runHealthCheck(apiKey: string): Promise<GeminiHealth> {
+  const checked_at = new Date().toISOString();
+  try {
+    // เผื่อ token ให้รุ่นที่ "คิด" ก่อนตอบ (เดิม 10 ซึ่งจะหมดก่อนได้คำตอบ)
+    const result = await generateGeminiText(apiKey, 'Say "OK" in one word.', { maxOutputTokens: 1024 });
+    if (!result.ok) {
+      return { working: false, model: result.model, reason: `API returned ${result.status}`, checked_at };
+    }
+    return { working: true, model: result.model, reply: result.text.trim(), checked_at };
+  } catch (err) {
+    return { working: false, reason: String(err), checked_at };
+  }
+}
+
+/** ใช้ในหน้าเช็กว่าปุ่ม AI ใช้ได้ไหม — คืนผลที่จำไว้ถ้ายังไม่เกิน 10 นาที */
+export function checkGeminiHealth(): Promise<GeminiHealth> {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
+    return Promise.resolve({ working: false, reason: 'GEMINI_API_KEY not configured', checked_at: new Date().toISOString() });
+  }
+  if (healthCache && healthCache.expires > Date.now()) return healthCache.result;
+  const result = runHealthCheck(apiKey);
+  healthCache = { expires: Date.now() + HEALTH_TTL_MS, result };
+  // ถ้าเช็กไม่ผ่าน จำไว้แค่ 1 นาที จะได้เห็นผลเร็วหลังแก้ปัญหา
+  result.then((r) => {
+    if (!r.working && healthCache?.result === result) healthCache.expires = Date.now() + 60 * 1000;
+  });
+  return result;
+}
+
 /** ตัดครอบ ```json ... ``` ที่ AI บางครั้งใส่มา แล้วแปลงเป็น array */
 export function parseJsonArray<T>(text: string): T[] {
   const cleaned = text

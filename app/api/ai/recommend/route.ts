@@ -1,7 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { generateGeminiText, getGeminiApiKey, parseJsonArray } from '@/lib/gemini';
+import { checkGeminiHealth, generateGeminiText, getGeminiApiKey, parseJsonArray } from '@/lib/gemini';
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
@@ -124,22 +124,7 @@ ${itemsList}
 }
 
 // GET /api/ai/recommend — simple test to verify Gemini API key works
+// ใครก็เปิดได้ จึงใช้ผลที่จำไว้ 10 นาที ไม่ถาม Google ทุกครั้ง (กันโควตาฟรีหมด)
 export async function GET() {
-  const apiKey = getGeminiApiKey();
-  if (!apiKey) {
-    return NextResponse.json({ working: false, reason: 'GEMINI_API_KEY not configured' });
-  }
-
-  try {
-    // เผื่อ token ให้รุ่นที่ "คิด" ก่อนตอบ (เดิม 10 ซึ่งจะหมดก่อนได้คำตอบ)
-    const result = await generateGeminiText(apiKey, 'Say "OK" in one word.', { maxOutputTokens: 1024 });
-
-    if (!result.ok) {
-      return NextResponse.json({ working: false, model: result.model, reason: `API returned ${result.status}` });
-    }
-
-    return NextResponse.json({ working: true, model: result.model, reply: result.text.trim() });
-  } catch (err) {
-    return NextResponse.json({ working: false, reason: String(err) });
-  }
+  return NextResponse.json(await checkGeminiHealth());
 }
