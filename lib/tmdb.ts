@@ -723,10 +723,14 @@ export async function fetchOriginRow(
   return (data.results ?? []).slice(0, limit).map((item) => toRowItem(item, mediaType));
 }
 
+/** Kids (10762) and Animation (16) — on iQIYI/Youku these pushed kids' cartoons to the top. */
+const NETWORK_ROW_WITHOUT_GENRES = '10762,16';
+
 /**
  * Series by the channel/platform they aired on (TMDB networks, pipe = OR) — covers Thai
- * channels and Asian platforms that JustWatch has no data for. Popular first; shows that
- * have not started airing yet are left out.
+ * channels and Asian platforms that JustWatch has no data for. Shows with an episode aired in
+ * the last 12 months come first (what's on now, not "เป็นต่อ 2004"), topped up with the
+ * channel's all-time popular shows when a small channel has too few recent ones.
  */
 export async function fetchNetworkRow(
   apiKey: string,
@@ -734,16 +738,29 @@ export async function fetchNetworkRow(
   language: string = DEFAULT_LANGUAGE,
   limit: number = 20,
 ): Promise<TmdbRowItem[]> {
-  const today = new Date().toISOString().slice(0, 10);
-  const data = await fetchTmdb('/discover/tv', {
+  const today = new Date();
+  const yearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
+  const base = {
     with_networks: networkIds.join('|'),
+    without_genres: NETWORK_ROW_WITHOUT_GENRES,
     sort_by: 'popularity.desc',
-    'first_air_date.lte': today,
+    'first_air_date.lte': today.toISOString().slice(0, 10),
     language,
     page: '1',
     include_adult: 'false',
-  }, apiKey) as { results?: TmdbRowRaw[] };
-  return (data.results ?? []).slice(0, limit).map((item) => toRowItem(item, 'tv'));
+  };
+  const [recent, allTime] = await Promise.all([
+    fetchTmdb('/discover/tv', { ...base, 'air_date.gte': yearAgo.toISOString().slice(0, 10) }, apiKey) as Promise<{ results?: TmdbRowRaw[] }>,
+    fetchTmdb('/discover/tv', base, apiKey) as Promise<{ results?: TmdbRowRaw[] }>,
+  ]);
+  const seen = new Set<number>();
+  const merged: TmdbRowRaw[] = [];
+  for (const item of [...(recent.results ?? []), ...(allTime.results ?? [])]) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    merged.push(item);
+  }
+  return merged.slice(0, limit).map((item) => toRowItem(item, 'tv'));
 }
 
 export interface OriginRegionOption {
