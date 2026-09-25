@@ -183,7 +183,7 @@ export default function LandingPage() {
   }, []);
 
   // ---------------------------------------------------------------------
-  // Item 3 — genre lists in Thai
+  // Item 3 — genre lists in the selected language
   // ---------------------------------------------------------------------
   useEffect(() => {
     let cancelled = false;
@@ -197,7 +197,7 @@ export default function LandingPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [language]);
 
   // ---------------------------------------------------------------------
   // Browse grid (items 3-5)
