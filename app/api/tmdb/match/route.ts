@@ -25,6 +25,8 @@ interface RawSearchResult {
   media_type?: string;
   poster_path?: string | null;
   vote_average?: number;
+  release_date?: string;
+  first_air_date?: string;
 }
 
 const MAX_ITEMS = 60;
@@ -39,11 +41,23 @@ function toMatch(r: RawSearchResult, media: 'movie' | 'tv'): TmdbMatch {
   };
 }
 
+/**
+ * A wrong poster is worse than none: when the saved item has a year, only accept a
+ * TMDb result released within ±1 year of it (e.g. "เดอะรันเนอร์" 2026 must not match
+ * The Front Runner 2018).
+ */
+function yearFits(r: RawSearchResult, year: number | null | undefined): boolean {
+  if (!year) return true;
+  const date = r.release_date || r.first_air_date;
+  const y = date ? parseInt(date.slice(0, 4), 10) : NaN;
+  return Number.isFinite(y) && Math.abs(y - year) <= 1;
+}
+
 async function findMatch(apiKey: string, item: MatchRequestItem): Promise<TmdbMatch | null> {
   const media: 'movie' | 'tv' = ['series', 'talkshow', 'news'].includes(item.type ?? '') ? 'tv' : 'movie';
   const base = { query: item.title, language: DEFAULT_LANGUAGE, include_adult: 'false' };
 
-  // 1) same kind + year, 2) same kind without year (year typed by hand may be off)
+  // 1) same kind + exact year, 2) same kind without the year filter (a hand-typed year may be off by one)
   const attempts: Record<string, string>[] = [];
   if (item.year) {
     attempts.push({ ...base, [media === 'tv' ? 'first_air_date_year' : 'year']: String(item.year) });
@@ -52,13 +66,13 @@ async function findMatch(apiKey: string, item: MatchRequestItem): Promise<TmdbMa
 
   for (const params of attempts) {
     const data = (await fetchTmdb(`/search/${media}`, params, apiKey)) as { results?: RawSearchResult[] };
-    const first = data.results?.[0];
-    if (first) return toMatch(first, media);
+    const hit = data.results?.find((r) => yearFits(r, item.year));
+    if (hit) return toMatch(hit, media);
   }
 
   // 3) the saved type may be wrong (e.g. a series saved as "movie") — try both kinds
   const multi = (await fetchTmdb('/search/multi', base, apiKey)) as { results?: RawSearchResult[] };
-  const hit = multi.results?.find((r) => r.media_type === 'movie' || r.media_type === 'tv');
+  const hit = multi.results?.find((r) => (r.media_type === 'movie' || r.media_type === 'tv') && yearFits(r, item.year));
   return hit ? toMatch(hit, hit.media_type as 'movie' | 'tv') : null;
 }
 
