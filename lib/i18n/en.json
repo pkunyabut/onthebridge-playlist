@@ -141,5 +141,20 @@
   "save_success": "Saved \"{title}\" to your watchlist!",
   "save_failed": "Could not save: {error}",
   "unknown_error": "Unknown error",
-  "on_my_services": "On your services"
+  "on_my_services": "On your services",
+  "watch_trailer": "Watch trailer",
+  "close_trailer": "Close trailer",
+  "director": "Director",
+  "created_by": "Created by",
+  "cast": "Cast",
+  "where_to_watch_th": "Where to watch in Thailand",
+  "no_streaming_th": "No streaming info for Thailand yet",
+  "rent_or_buy": "Rent/buy",
+  "see_watch_links": "See all links",
+  "no_overview": "No synopsis yet",
+  "overview_english_only": "No Thai synopsis yet — showing English",
+  "seasons_unit": "seasons",
+  "episodes_unit": "episodes",
+  "hours_unit": "h",
+  "minutes_unit": "min"
 }

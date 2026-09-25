@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import type { TmdbResult } from '@/lib/tmdb';
 import { PLATFORM_URLS } from '@/lib/tmdb';
+import type { TmdbDetails } from '@/app/api/tmdb/details/route';
 
 interface MediaModalProps {
   result: TmdbResult;
@@ -41,6 +42,42 @@ export default function MediaModal({
     return () => { document.body.style.overflow = ''; };
   }, []);
 
+  // Extra preview info (synopsis, trailer, cast, where to watch) fetched from TMDb.
+  const [details, setDetails] = useState<TmdbDetails | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [showTrailer, setShowTrailer] = useState(false);
+
+  useEffect(() => {
+    setDetails(null);
+    setShowTrailer(false);
+    if (!/^\d+$/.test(String(result.id))) return;
+    let cancelled = false;
+    setDetailsLoading(true);
+    fetch(`/api/tmdb/details?type=${result.type}&id=${result.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: TmdbDetails | null) => { if (!cancelled) setDetails(data); })
+      .catch(() => { if (!cancelled) setDetails(null); })
+      .finally(() => { if (!cancelled) setDetailsLoading(false); });
+    return () => { cancelled = true; };
+  }, [result.id, result.type]);
+
+  const overview = details?.overview ?? result.overview ?? null;
+  const streamProviders = details?.providers.stream ?? [];
+  const rentBuyProviders = details ? [...details.providers.rent, ...details.providers.buy] : [];
+
+  const lengthLabel = (() => {
+    if (!details) return null;
+    if (details.seasons) {
+      return `${details.seasons} ${t('seasons_unit')}${details.episodes ? ` · ${details.episodes} ${t('episodes_unit')}` : ''}`;
+    }
+    if (details.runtime) {
+      const h = Math.floor(details.runtime / 60);
+      const m = details.runtime % 60;
+      return h > 0 ? `${h} ${t('hours_unit')} ${m} ${t('minutes_unit')}` : `${m} ${t('minutes_unit')}`;
+    }
+    return null;
+  })();
+
   const primaryPlatform = result.providers[0];
   const platformUrl = primaryPlatform ? PLATFORM_URLS[primaryPlatform] : null;
 
@@ -74,7 +111,18 @@ export default function MediaModal({
           </svg>
         </button>
 
-        {/* Poster */}
+        {/* Trailer (replaces the poster while playing) */}
+        {showTrailer && details?.trailer ? (
+          <div className="relative w-full aspect-video bg-black rounded-t-xl overflow-hidden">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${details.trailer.key}?autoplay=1&rel=0&playsinline=1`}
+              title={details.trailer.name}
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+        ) : (
         <div className="relative">
           {result.poster ? (
             <img
@@ -90,6 +138,7 @@ export default function MediaModal({
           {/* Gradient overlay at bottom of poster */}
           <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-imdb-dark to-transparent" />
         </div>
+        )}
 
         {/* Content */}
         <div className="modal-body">
@@ -112,9 +161,95 @@ export default function MediaModal({
             </span>
           </div>
 
+          {/* Length + genres */}
+          {(lengthLabel || (details && details.genres.length > 0)) && (
+            <p className="text-base text-cinema-text-muted mb-3">
+              {[lengthLabel, details?.genres.slice(0, 3).join(' · ')].filter(Boolean).join('  |  ')}
+            </p>
+          )}
+
+          {/* Trailer button */}
+          {details?.trailer && (
+            <button
+              onClick={() => setShowTrailer((v) => !v)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 mb-4 rounded-xl font-semibold text-base min-h-[48px] bg-red-600 hover:bg-red-700 text-white transition-colors"
+            >
+              {showTrailer ? `✕ ${t('close_trailer')}` : `▶ ${t('watch_trailer')}`}
+            </button>
+          )}
+
+          {/* Loading placeholder while details are fetched */}
+          {detailsLoading && !details && (
+            <div className="space-y-2 mb-4 animate-pulse" aria-label={t('loading')}>
+              <div className="h-4 rounded bg-white/10 w-full" />
+              <div className="h-4 rounded bg-white/10 w-11/12" />
+              <div className="h-4 rounded bg-white/10 w-3/4" />
+            </div>
+          )}
+
           {/* Overview */}
-          {result.overview && (
-            <p className="modal-overview">{result.overview}</p>
+          {overview && (
+            <>
+              {details?.overview_is_english && (
+                <p className="text-sm text-cinema-text-muted/70 mb-1">{t('overview_english_only')}</p>
+              )}
+              <p className="modal-overview">{overview}</p>
+            </>
+          )}
+          {details && !overview && (
+            <p className="modal-overview italic">{t('no_overview')}</p>
+          )}
+
+          {/* Director / cast */}
+          {details && (details.directors.length > 0 || details.cast.length > 0) && (
+            <div className="mb-4 space-y-1 text-base">
+              {details.directors.length > 0 && (
+                <p>
+                  <span className="text-cinema-text-muted">{result.type === 'tv' ? t('created_by') : t('director')}: </span>
+                  <span className="text-white">{details.directors.join(', ')}</span>
+                </p>
+              )}
+              {details.cast.length > 0 && (
+                <p>
+                  <span className="text-cinema-text-muted">{t('cast')}: </span>
+                  <span className="text-white">{details.cast.join(', ')}</span>
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Where to watch in Thailand (real TMDb data) */}
+          {details && (
+            <div className="mb-4">
+              <p className="text-base text-cinema-text-muted mb-2 font-medium">{t('where_to_watch_th')}</p>
+              {streamProviders.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {streamProviders.map((p) => (
+                    <span key={p.provider_id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-base">
+                      {p.logo && <img src={p.logo} alt="" className="w-6 h-6 rounded" />}
+                      {p.provider_name}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-base text-cinema-text-muted/80">{t('no_streaming_th')}</p>
+              )}
+              {rentBuyProviders.length > 0 && (
+                <p className="text-sm text-cinema-text-muted mt-2">
+                  {t('rent_or_buy')}: {rentBuyProviders.map((p) => p.provider_name).join(', ')}
+                </p>
+              )}
+              {details.watch_link && (streamProviders.length > 0 || rentBuyProviders.length > 0) && (
+                <a
+                  href={details.watch_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-2 text-base text-brand-400 underline underline-offset-2"
+                >
+                  {t('see_watch_links')} ↗
+                </a>
+              )}
+            </div>
           )}
 
           {/* Artist (for music) */}
@@ -124,8 +259,8 @@ export default function MediaModal({
             </p>
           )}
 
-          {/* Providers */}
-          {result.providers.length > 0 && (
+          {/* Providers from the list data — hidden once the real TH data above has loaded */}
+          {!details && result.providers.length > 0 && (
             <div className="mb-4">
               <p className="text-sm text-cinema-text-muted mb-2 font-medium">{t('watch_on')}:</p>
               <div className="flex flex-wrap gap-1.5">
@@ -142,7 +277,7 @@ export default function MediaModal({
           )}
 
           {/* No TH providers notice */}
-          {!result.has_th_providers && result.providers.length > 0 && (
+          {!details && !result.has_th_providers && result.providers.length > 0 && (
             <p className="text-sm text-cinema-text-muted/60 italic mb-3">
               {t('no_th_providers')}
             </p>

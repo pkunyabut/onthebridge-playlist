@@ -141,5 +141,20 @@
   "save_success": "บันทึก \"{title}\" ลงรอดูแล้ว!",
   "save_failed": "ไม่สามารถบันทึกได้: {error}",
   "unknown_error": "ข้อผิดพลาดที่ไม่รู้จัก",
-  "on_my_services": "อยู่ในบริการของคุณ"
+  "on_my_services": "อยู่ในบริการของคุณ",
+  "watch_trailer": "ดูตัวอย่าง",
+  "close_trailer": "ปิดตัวอย่าง",
+  "director": "ผู้กำกับ",
+  "created_by": "ผู้สร้าง",
+  "cast": "นักแสดง",
+  "where_to_watch_th": "ดูได้ที่ไหนในไทย",
+  "no_streaming_th": "ยังไม่มีข้อมูลสตรีมมิ่งในไทย",
+  "rent_or_buy": "เช่า/ซื้อ",
+  "see_watch_links": "ดูลิงก์ทั้งหมด",
+  "no_overview": "ยังไม่มีเรื่องย่อ",
+  "overview_english_only": "ยังไม่มีเรื่องย่อภาษาไทย — แสดงภาษาอังกฤษแทน",
+  "seasons_unit": "ซีซัน",
+  "episodes_unit": "ตอน",
+  "hours_unit": "ชม.",
+  "minutes_unit": "นาที"
 }
