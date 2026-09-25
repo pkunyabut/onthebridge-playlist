@@ -6,7 +6,6 @@ import {
   fetchOriginRow,
   getOriginRegion,
   DEFAULT_LANGUAGE,
-  DEFAULT_WATCH_REGION,
   type TmdbRowItem,
 } from '@/lib/tmdb';
 import { LruCache } from '@/lib/tmdb-cache';
@@ -55,8 +54,8 @@ export async function GET(request: NextRequest) {
       items = await fetchTrendingRow(apiKey, language);
       source = 'trending/movie/week';
     } else if (kind === 'top_rated') {
-      items = await fetchTopRatedRow(apiKey, language, DEFAULT_WATCH_REGION);
-      source = 'movie/top_rated';
+      items = await fetchTopRatedRow(apiKey, language);
+      source = 'discover/movie top rated (vote_count>=1000)';
     } else if (kind === 'for_you') {
       if (titles.length > 0) {
         items = await fetchRecommendationsForTitles(apiKey, titles, language);

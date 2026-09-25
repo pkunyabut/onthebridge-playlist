@@ -616,13 +616,25 @@ export async function fetchTrendingRow(
   return (data.results ?? []).map((item) => toRowItem(item, 'movie'));
 }
 
-/** คะแนนสูงสุด — /movie/top_rated (TMDb's own top-rated list). */
+/**
+ * คะแนนสูงสุด — highest-rated movies that at least TOP_RATED_MIN_VOTES people rated,
+ * so brand-new titles with a handful of votes (e.g. a 9.2 from 20 votes) stay out.
+ * No `region` param: with region=TH TMDb swaps in Thai re-release dates
+ * (The Godfather showed as 2022).
+ */
+const TOP_RATED_MIN_VOTES = '1000';
+
 export async function fetchTopRatedRow(
   apiKey: string,
   language: string = DEFAULT_LANGUAGE,
-  region: WatchRegion = DEFAULT_WATCH_REGION,
 ): Promise<TmdbRowItem[]> {
-  const data = await fetchTmdb('/movie/top_rated', { language, region, page: '1' }, apiKey) as { results?: TmdbRowRaw[] };
+  const data = await fetchTmdb('/discover/movie', {
+    language,
+    sort_by: 'vote_average.desc',
+    'vote_count.gte': TOP_RATED_MIN_VOTES,
+    include_adult: 'false',
+    page: '1',
+  }, apiKey) as { results?: TmdbRowRaw[] };
   return (data.results ?? []).map((item) => toRowItem(item, 'movie'));
 }
 

@@ -10,6 +10,7 @@ import CardSkeleton from '@/components/CardSkeleton';
 import MediaModal from '@/components/MediaModal';
 import ServicePicker from '@/components/ServicePicker';
 import SuggestionRow from '@/components/SuggestionRow';
+import LangSwitch from '@/components/LangSwitch';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, PlatformType } from '@/lib/types';
 import { toMediaType } from '@/lib/types';
@@ -75,7 +76,7 @@ function toResult(item: TmdbRowItem): TmdbResult {
 export default function LandingPage() {
   const router = useRouter();
   const requestIdRef = useRef(0);
-  const { t, lang, setLang } = useLanguage();
+  const { t } = useLanguage();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -98,13 +99,11 @@ export default function LandingPage() {
   const [trendingRow, setTrendingRow] = useState<TmdbRowItem[]>([]);
   const [topRatedRow, setTopRatedRow] = useState<TmdbRowItem[]>([]);
   const [forYouRow, setForYouRow] = useState<TmdbRowItem[]>([]);
-  const [forYouSource, setForYouSource] = useState('');
   const [rowsLoading, setRowsLoading] = useState(true);
   // Item 7 — Thai / Asian section
   const [originRegion, setOriginRegion] = useState('TH');
   const [originMedia, setOriginMedia] = useState<'movie' | 'tv'>('movie');
   const [originItems, setOriginItems] = useState<TmdbRowItem[]>([]);
-  const [originSource, setOriginSource] = useState('');
   const [originLoading, setOriginLoading] = useState(true);
 
   const [results, setResults] = useState<TmdbResult[]>([]);
@@ -308,7 +307,6 @@ export default function LandingPage() {
       .then((data: { items?: TmdbRowItem[]; source?: string } | null) => {
         if (cancelled || !data) return;
         setForYouRow(data.items ?? []);
-        setForYouSource(data.source ?? '');
       })
       .catch(() => {});
     return () => {
@@ -327,7 +325,6 @@ export default function LandingPage() {
       .then((data: { items?: TmdbRowItem[]; source?: string } | null) => {
         if (cancelled || !data) return;
         setOriginItems(data.items ?? []);
-        setOriginSource(data.source ?? '');
       })
       .catch(() => {})
       .finally(() => {
@@ -414,12 +411,7 @@ export default function LandingPage() {
             </span>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 ml-auto">
-            <button
-              onClick={() => setLang(lang === 'th' ? 'en' : 'th')}
-              className="px-3 py-2 rounded-lg text-sm font-bold border border-cinema-border text-cinema-text-muted hover:bg-cinema-700 transition-colors"
-            >
-              {lang === 'th' ? 'EN' : 'TH'}
-            </button>
+            <LangSwitch />
             <Link
               href="/search"
               className="px-3 py-2 text-cinema-text hover:bg-cinema-800 rounded-lg font-medium text-base transition-colors"
@@ -509,7 +501,6 @@ export default function LandingPage() {
       <section className="max-w-7xl mx-auto px-4 pb-10">
         <div className="imdb-section-header">
           <h2>🌏 ไทยและเอเชีย</h2>
-          {originSource && <span className="count">{originSource}</span>}
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mb-3">
