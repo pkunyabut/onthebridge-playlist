@@ -58,6 +58,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 | 0004, 0005 | ขยายรายการ platform/type (wetv, viu, iqiyi, youku) |
 | **0006_fix_save_permissions** | ✅ รันแล้ว 25 ก.ย. 69 — GRANT สิทธิ์ให้ role `authenticated` + trigger สร้าง `profiles` อัตโนมัติ (ผล: users 2 = profiles 2) |
 | **0007_media_items_music_and_tmdb** | ✅ พี่แอ้รันแล้ว 25 ก.ย. 69 — เพิ่มคอลัมน์ `artist`, `album`, `cover_url`, `itunes_track_id`, `external_url`, `tmdb_id`, `tmdb_media` (ทั้งหมดไม่บังคับ) |
+| **0008_thai_platforms** | ⏳ ยังไม่ได้รัน (25 ก.ย. 69) — เพิ่มค่า platform: `ch3plus`, `ch7`, `oned`, `gmm25`, `workpoint`, `vipa`, `amarin`, `monomax`, `ais_play`, `trueid` · **ห้าม deploy โค้ดที่บันทึกค่าเหล่านี้ก่อนรัน** |
 
 `tmdb_music` (0003) เป็น cache "หนังแนวดนตรี" ของ TMDb ไม่ใช่เพลงจริง — เพลงจริงมาจาก iTunes และเก็บใน `media_items` (type `music`)
 
@@ -138,6 +139,14 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - `MediaModal`: "ข้อมูลช่องทางรับชมโดย JustWatch" ใต้หัวข้อดูได้ที่ไหน · `MusicModal`: ป้าย "Listen on Apple Music" ทางการจาก `toolbox.marketingtools.apple.com/api/badges/...` (th-th/en-us) + "Provided courtesy of iTunes" ใต้เครื่องเล่น
 - `app/terms/page.tsx` (/terms, ไม่ต้องล็อกอิน, ไทย/อังกฤษ): 10 หัวข้อ — ทำอะไร, ไม่ใช่เจ้าของเนื้อหา, แหล่งข้อมูล/เครดิต, ความถูกต้อง, บัญชี/ข้อมูลส่วนตัว, AI (ส่งชื่อ/ประเภท/แนว/แพลตฟอร์มของรายการให้ Gemini ไม่ส่งชื่อ/อีเมล), การลบข้อมูล, ค่าใช้จ่าย, ลิงก์ภายนอก, การเปลี่ยนแปลง · ลบข้อความ terms_* เก่าที่ไม่ได้ใช้และผิด (อ้างว่ามี "แจ้งเตือน" และรุ่น "Gemini 2.5 Archive")
 - ⚠️ ข้อความเงื่อนไขเขียนโดย Claude ไม่ใช่นักกฎหมาย — ถ้าจะใช้จริงจัง/หารายได้ ควรให้ผู้รู้ PDPA ตรวจ · ถ้าเพิ่มการเก็บข้อมูลใหม่ ต้องแก้หน้า /terms และวันที่ "ปรับปรุงล่าสุด"
+
+## 📺 ละครและซีรีส์ตามช่อง (25 ก.ย. 69) — ✅ deploy และทดสอบบนเว็บจริงแล้ว (commit `c244105` … `babf8ae`)
+- อุดช่องว่าง JustWatch ด้วยข้อมูล network ของ TMDB: `lib/networks.ts` (13 ช่อง/แพลตฟอร์ม + รหัส TMDB + แอปของช่อง), `components/NetworkRow.tsx` (แถวใหม่ในหน้าแรกหลัง "ไทยและเอเชีย"), API `/api/tmdb/rows?kind=network&network=ch3`, `fetchNetworkRow` ใน `lib/tmdb.ts`
+- แถว: เรื่องที่มีตอนออกอากาศใน 12 เดือนล่าสุดขึ้นก่อน (`air_date.gte`) แล้วเติมด้วยยอดนิยมตลอดกาล · ตัดการ์ตูนเด็ก (`without_genres=10762,16`) · ตัดเรื่องที่ไม่มีชื่อไทย/อังกฤษ (รายการจีนแผ่นดินใหญ่ที่ไม่ได้ฉายในไทย) · ดึง 4 หน้า (recent×2 + all-time×2)
+- Preview ซีรีส์: `/api/tmdb/details` คืน `networks` → กล่อง "📺 ออกอากาศทาง [โลโก้] ช่อง 3" + ปุ่ม "ไปที่ CH3Plus ↗" + หมายเหตุว่าเป็นช่องที่ออกอากาศครั้งแรก · ถ้า JustWatch ไม่มีข้อมูล ขึ้น "JustWatch ยังไม่มีข้อมูลเรื่องนี้ — ดูช่องที่ออกอากาศด้านล่าง"
+- ลิงก์แอป (เช็กแล้ว): Bugaboo ย้ายไป ch7.com/th แล้ว → ใช้ "CH7HD" · amarintv.com ตอบ 403 กับการเช็กอัตโนมัติ (น่าจะเปิดในเบราว์เซอร์ได้)
+- ผลทดสอบ: ครบ 13 ช่อง ช่องละ 20 เรื่อง · ช่อง 7 → ชาย, วิวาห์ปฐพี, เสน่หาวาโย · WeTV → หอมรักมิรู้เลือน, ล่าหยก · เปิด Preview "หอมรักมิรู้เลือน" → ออกอากาศทาง WeTV + ปุ่มไป wetv.vip · จอ 375px ไม่ล้น
+- ⏳ ขั้นต่อไป: รัน SQL 0008 แล้วเพิ่มแพลตฟอร์มไทยใน `PlatformType`/`PLATFORM_TYPES`/`PLATFORM_ICONS` (`lib/types.ts`), ตัวเลือกในฟอร์ม `/dashboard/add`, ข้อความ error ใน `/api/media`, และให้ปุ่มบันทึกจากแถวตามช่องเก็บ platform ของช่องนั้น
 
 ## 📋 งานค้าง (เรียงตามความสำคัญ)
 > สถานะ git (25 ก.ย. 69): ทุกอย่าง commit + push ขึ้น `main` แล้ว เหลือ `FIXES_ROUND1.md`, `RLS_FIX.md` ที่ไม่ได้ track (ของรอบ Hermes ล้าสมัย — ตั้งใจไม่ commit)
