@@ -57,7 +57,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 | 0003_tmdb_cache | ตาราง cache ของ TMDb |
 | 0004, 0005 | ขยายรายการ platform/type (wetv, viu, iqiyi, youku) |
 | **0006_fix_save_permissions** | ✅ รันแล้ว 25 ก.ย. 69 — GRANT สิทธิ์ให้ role `authenticated` + trigger สร้าง `profiles` อัตโนมัติ (ผล: users 2 = profiles 2) |
-| **0007_media_items_music_and_tmdb** | ✅ พี่แอ้รันแล้ว 25 ก.ย. 69 — เพิ่มคอลัมน์ `artist`, `album`, `cover_url`, `itunes_track_id`, `external_url`, `tmdb_id`, `tmdb_media` (ทั้งหมดไม่บังคับ) |
+| **0007_media_items_music_and_tmdb** | ⚠️ **ยังไม่ได้เข้าฐานข้อมูลจริง** (26 ก.ย. 69 บันทึกแล้วได้ error "Could not find the 'cover_url' column" — รอบแรกที่แจ้งว่ารันแล้วน่าจะรันโค้ดเก่าที่ค้างใน SQL Editor) → ส่งให้พี่แอ้รันใหม่ใน New query · ระหว่างนี้ `/api/media` บันทึกซ้ำโดยตัดคอลัมน์ใหม่ออกเมื่อเจอ PGRST204 จึงบันทึกได้ แต่ยังไม่เก็บ artist/cover/tmdb_id — เพิ่มคอลัมน์ `artist`, `album`, `cover_url`, `itunes_track_id`, `external_url`, `tmdb_id`, `tmdb_media` (ทั้งหมดไม่บังคับ) |
 | **0008_thai_platforms** | ✅ พี่แอ้รันแล้ว 26 ก.ย. 69 (Success) — เพิ่มค่า platform: `ch3plus`, `ch7`, `oned`, `gmm25`, `workpoint`, `vipa`, `amarin`, `monomax`, `ais_play`, `trueid` · โค้ดจาก branch `thai-platforms` merge เข้า main แล้ว · ⚠️ ครั้งแรกพี่แอ้เผลอรันโค้ด 0002 ค้างใน SQL Editor (error policy already exists) — ให้กด New query ทุกครั้ง |
 
 `tmdb_music` (0003) เป็น cache "หนังแนวดนตรี" ของ TMDb ไม่ใช่เพลงจริง — เพลงจริงมาจาก iTunes และเก็บใน `media_items` (type `music`)
