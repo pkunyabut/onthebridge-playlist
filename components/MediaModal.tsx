@@ -214,7 +214,7 @@ export default function MediaModal({
                 {schedule.icon} {schedule.label}
               </p>
               {schedule.value && <p className="text-white/90 mt-0.5">{schedule.value}</p>}
-              <p className="text-sm text-cinema-text-muted/80 mt-1">{t('schedule_note')}</p>
+              {schedule.icon !== '✅' && <p className="text-sm text-cinema-text-muted/80 mt-1">{t('schedule_note')}</p>}
             </div>
           )}
 
