@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import MediaCard from '@/components/MediaCard';
+import MediaModal from '@/components/MediaModal';
 import CardSkeleton from '@/components/CardSkeleton';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, PlatformType } from '@/lib/types';
@@ -58,6 +59,8 @@ export default function SearchPage() {
 
   const [savedMap, setSavedMap] = useState<Record<string, string>>({});
   const [savingKeys, setSavingKeys] = useState<Set<string>>(new Set());
+  // card preview (same window as the home page)
+  const [modalResult, setModalResult] = useState<TmdbResult | null>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -344,13 +347,14 @@ export default function SearchPage() {
           <>
             <div className="imdb-grid stagger-grid">
               {filteredResults.map((result) => (
-                <MediaCard
-                  key={`${result.type}-${result.id}`}
-                  result={result}
-                  saved={!!savedMap[savedKey(result.title, result.year)]}
-                  saving={savingKeys.has(String(result.id))}
-                  onToggleSave={handleToggleSave}
-                />
+                <div key={`${result.type}-${result.id}`} onClick={() => setModalResult(result)} className="cursor-pointer">
+                  <MediaCard
+                    result={result}
+                    saved={!!savedMap[savedKey(result.title, result.year)]}
+                    saving={savingKeys.has(String(result.id))}
+                    onToggleSave={handleToggleSave}
+                  />
+                </div>
               ))}
             </div>
 
@@ -368,6 +372,17 @@ export default function SearchPage() {
           </>
         )}
       </div>
+
+      {modalResult && (
+        <MediaModal
+          result={modalResult}
+          isLoggedIn={isLoggedIn}
+          saved={!!savedMap[savedKey(modalResult.title, modalResult.year)]}
+          saving={savingKeys.has(String(modalResult.id))}
+          onClose={() => setModalResult(null)}
+          onToggleSave={handleToggleSave}
+        />
+      )}
     </AppShell>
   );
 }

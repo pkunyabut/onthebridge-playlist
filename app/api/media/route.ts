@@ -48,6 +48,15 @@ function extraColumns(body: Record<string, unknown>): Record<string, string | nu
   return Object.fromEntries(Object.entries(extra).filter(([, v]) => v !== null)) as Record<string, string | number>;
 }
 
+/**
+ * PostgREST error when a column doesn't exist yet (e.g. migration 0007 not run):
+ * "Could not find the 'cover_url' column of 'media_items' in the schema cache".
+ * Saving then retries with only the original columns, so users never see that error.
+ */
+function isMissingColumn(error: { code?: string; message?: string } | null): boolean {
+  return !!error && (error.code === 'PGRST204' || /Could not find the '.+' column/.test(error.message ?? ''));
+}
+
 // GET /api/media — list all media items for current user
 export async function GET() {
   const cookieStore = cookies();
@@ -89,20 +98,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  const { data, error } = await supabase
+  const baseRow = {
+    user_id: session.user.id,
+    title,
+    type,
+    platform,
+    genre: genre || null,
+    year: year || null,
+    notes: notes || null,
+  };
+  let { data, error } = await supabase
     .from('media_items')
-    .insert({
-      user_id: session.user.id,
-      title,
-      type,
-      platform,
-      genre: genre || null,
-      year: year || null,
-      notes: notes || null,
-      ...extraColumns(body),
-    })
+    .insert({ ...baseRow, ...extraColumns(body) })
     .select()
     .single();
+  if (isMissingColumn(error)) {
+    console.warn('media_items is missing optional columns (run migration 0007):', error?.message);
+    ({ data, error } = await supabase.from('media_items').insert(baseRow).select().single());
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -163,21 +176,30 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  const { data, error } = await supabase
+  const baseUpdate = {
+    title,
+    type,
+    platform,
+    genre: genre || null,
+    year: year || null,
+    notes: notes || null,
+  };
+  let { data, error } = await supabase
     .from('media_items')
-    .update({
-      title,
-      type,
-      platform,
-      genre: genre || null,
-      year: year || null,
-      notes: notes || null,
-      ...extraColumns(body),
-    })
+    .update({ ...baseUpdate, ...extraColumns(body) })
     .eq('id', id)
     .eq('user_id', session.user.id)
     .select()
     .single();
+  if (isMissingColumn(error)) {
+    ({ data, error } = await supabase
+      .from('media_items')
+      .update(baseUpdate)
+      .eq('id', id)
+      .eq('user_id', session.user.id)
+      .select()
+      .single());
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
