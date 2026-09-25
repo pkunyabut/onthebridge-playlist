@@ -233,7 +233,9 @@ export default function MediaModal({
                   ))}
                 </div>
               ) : (
-                <p className="text-base text-cinema-text-muted/80">{t('no_streaming_th')}</p>
+                <p className="text-base text-cinema-text-muted/80">
+                  {(details.networks ?? []).length > 0 ? t('no_streaming_th_see_network') : t('no_streaming_th')}
+                </p>
               )}
               {rentBuyProviders.length > 0 && (
                 <p className="text-sm text-cinema-text-muted mt-2">
