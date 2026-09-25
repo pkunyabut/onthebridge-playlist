@@ -1,6 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { generateGeminiText, getGeminiApiKey, parseJsonArray } from '@/lib/gemini';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,8 +30,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'placeholder' || apiKey === 'your_gemini_api_key') {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
     return NextResponse.json({ error: 'ยังไม่ได้ตั้งค่า GEMINI_API_KEY' }, { status: 500 });
   }
 
@@ -73,44 +74,27 @@ ${itemsList}
 ]`;
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2048,
-          },
-        }),
-      }
-    );
+    const result = await generateGeminiText(apiKey, prompt, {
+      temperature: 0.7,
+      // รุ่นใหม่ใช้ token ส่วนหนึ่งไป "คิด" ก่อนตอบ จึงเผื่อเพดานไว้สูงกว่าเดิม (เดิม 2048)
+      maxOutputTokens: 8192,
+      responseMimeType: 'application/json',
+    });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      console.error('Gemini API error:', response.status, errData);
+    if (!result.ok) {
+      console.error('Gemini API error:', result.model, result.status, result.error);
       return NextResponse.json(
-        { error: `Gemini API ขัดข้อง (${response.status})` },
+        { error: `Gemini API ขัดข้อง (${result.status})` },
         { status: 502 }
       );
     }
 
-    const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const text = result.text;
 
     // Parse JSON from response (handle markdown code blocks)
     let recommendations: Recommendation[] = [];
     try {
-      const cleaned = text
-        .replace(/```json\s*/g, '')
-        .replace(/```\s*/g, '')
-        .trim();
-      recommendations = JSON.parse(cleaned);
-      if (!Array.isArray(recommendations)) {
-        recommendations = [];
-      }
+      recommendations = parseJsonArray<Recommendation>(text);
     } catch (parseErr) {
       console.error('Failed to parse Gemini response:', parseErr, 'Raw:', text);
       return NextResponse.json({ error: 'ไม่สามารถอ่านผลลัพธ์จาก AI ได้' }, { status: 500 });
@@ -125,31 +109,20 @@ ${itemsList}
 
 // GET /api/ai/test — simple test to verify Gemini API key works
 export async function GET() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'placeholder' || apiKey === 'your_gemini_api_key') {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
     return NextResponse.json({ working: false, reason: 'GEMINI_API_KEY not configured' });
   }
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: 'Say "OK" in one word.' }] }],
-          generationConfig: { maxOutputTokens: 10 },
-        }),
-      }
-    );
+    // เผื่อ token ให้รุ่นที่ "คิด" ก่อนตอบ (เดิม 10 ซึ่งจะหมดก่อนได้คำตอบ)
+    const result = await generateGeminiText(apiKey, 'Say "OK" in one word.', { maxOutputTokens: 1024 });
 
-    if (!response.ok) {
-      return NextResponse.json({ working: false, reason: `API returned ${response.status}` });
+    if (!result.ok) {
+      return NextResponse.json({ working: false, model: result.model, reason: `API returned ${result.status}` });
     }
 
-    const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    return NextResponse.json({ working: true, reply: text.trim() });
+    return NextResponse.json({ working: true, model: result.model, reply: result.text.trim() });
   } catch (err) {
     return NextResponse.json({ working: false, reason: String(err) });
   }
