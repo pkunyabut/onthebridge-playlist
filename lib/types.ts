@@ -1,10 +1,15 @@
 export type MediaType = 'movie' | 'series' | 'documentary' | 'talkshow' | 'music' | 'news';
-export type PlatformType = 'netflix' | 'disney' | 'hbo' | 'prime' | 'youtube' | 'spotify' | 'apple_music' | 'wetv' | 'viu' | 'iqiyi' | 'youku' | 'other';
+// Thai channel apps / platforms JustWatch lacks — allowed by migration 0008
+export type PlatformType = 'netflix' | 'disney' | 'hbo' | 'prime' | 'youtube' | 'spotify' | 'apple_music' | 'wetv' | 'viu' | 'iqiyi' | 'youku' | 'other'
+  | 'ch3plus' | 'ch7' | 'oned' | 'gmm25' | 'workpoint' | 'vipa' | 'amarin' | 'monomax' | 'ais_play' | 'trueid';
 
 // Must stay in sync with the CHECK constraints in supabase/migrations/0001_init.sql
 // and 0005_media_items_check_constraints.sql.
 export const MEDIA_TYPES: MediaType[] = ['movie', 'series', 'documentary', 'talkshow', 'music', 'news'];
-export const PLATFORM_TYPES: PlatformType[] = ['netflix', 'disney', 'hbo', 'prime', 'youtube', 'spotify', 'apple_music', 'wetv', 'viu', 'iqiyi', 'youku', 'other'];
+export const PLATFORM_TYPES: PlatformType[] = [
+  'netflix', 'disney', 'hbo', 'prime', 'youtube', 'spotify', 'apple_music', 'wetv', 'viu', 'iqiyi', 'youku', 'other',
+  'ch3plus', 'ch7', 'oned', 'gmm25', 'workpoint', 'vipa', 'amarin', 'monomax', 'ais_play', 'trueid',
+];
 
 export function isValidMediaType(value: unknown): value is MediaType {
   return typeof value === 'string' && (MEDIA_TYPES as string[]).includes(value);
@@ -90,6 +95,16 @@ export const PLATFORM_LABELS: Record<PlatformType, string> = {
   iqiyi: 'iQIYI',
   youku: 'Youku',
   other: 'อื่นๆ',
+  ch3plus: 'CH3Plus',
+  ch7: 'CH7HD',
+  oned: 'oneD',
+  gmm25: 'GMM25',
+  workpoint: 'Workpoint',
+  vipa: 'VIPA (Thai PBS)',
+  amarin: 'Amarin TV',
+  monomax: 'MONOMAX',
+  ais_play: 'AIS PLAY',
+  trueid: 'TrueID',
 };
 
 export const PLATFORM_ICONS: Record<PlatformType, string> = {
@@ -105,4 +120,14 @@ export const PLATFORM_ICONS: Record<PlatformType, string> = {
   iqiyi: '🟡',
   youku: '🟠',
   other: '📌',
+  ch3plus: '3️⃣',
+  ch7: '7️⃣',
+  oned: '📺',
+  gmm25: '📺',
+  workpoint: '📺',
+  vipa: '📺',
+  amarin: '📺',
+  monomax: '🎬',
+  ais_play: '📱',
+  trueid: '📱',
 };

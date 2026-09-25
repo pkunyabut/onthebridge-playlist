@@ -2,14 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
-import { NETWORKS, getNetwork } from '@/lib/networks';
+import { NETWORKS, getNetwork, type NetworkOption } from '@/lib/networks';
 import type { TmdbRowItem } from '@/lib/tmdb';
 import SuggestionRow from '@/components/SuggestionRow';
 
 interface NetworkRowProps {
   /** TMDB content language (th-TH / en-US) */
   language: string;
-  onSelect: (item: TmdbRowItem) => void;
+  onSelect: (item: TmdbRowItem, network: NetworkOption) => void;
 }
 
 /**
@@ -66,7 +66,7 @@ export default function NetworkRow({ language, onSelect }: NetworkRowProps) {
         hint={network ? t('network_watch_at', { app: network.app.name }) : undefined}
         items={items}
         loading={loading}
-        onSelect={onSelect}
+        onSelect={(item) => network && onSelect(item, network)}
       />
     </section>
   );

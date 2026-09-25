@@ -645,7 +645,13 @@ export default function LandingPage() {
       </section>
 
       {/* Thai channels & Asian platforms that JustWatch doesn't cover */}
-      <NetworkRow language={language} onSelect={(item) => setModalResult(toResult(item))} />
+      <NetworkRow
+        language={language}
+        onSelect={(item, network) =>
+          // saved with the channel's app as platform; the preview's own "aired on" box links to it
+          setModalResult({ ...toResult(item), providers: [network.platform], has_th_providers: true })
+        }
+      />
 
       {/* Browse — IMDb-style grid */}
       <section id="browse" className="max-w-7xl mx-auto px-4 pb-16 md:pb-24">

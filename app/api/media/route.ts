@@ -1,7 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { isValidMediaType, isValidPlatform } from '@/lib/types';
+import { isValidMediaType, isValidPlatform, PLATFORM_TYPES } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +17,7 @@ function validateMediaPayload(body: { title?: unknown; type?: unknown; platform?
     return `ประเภทรายการไม่ถูกต้อง (รองรับ: movie, series, documentary, talkshow, music, news)`;
   }
   if (!isValidPlatform(body.platform)) {
-    return `แพลตฟอร์มไม่ถูกต้อง (รองรับ: netflix, disney, hbo, prime, youtube, spotify, apple_music, wetv, viu, iqiyi, youku, other)`;
+    return `แพลตฟอร์มไม่ถูกต้อง (รองรับ: ${PLATFORM_TYPES.join(', ')})`;
   }
   return null;
 }
