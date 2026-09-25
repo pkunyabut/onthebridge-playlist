@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchThaiTopSongs, lookupTracks, searchTracks, type MusicTrack } from '@/lib/itunes';
+import { fetchTopSongs, lookupTracks, searchTracks, MUSIC_CHARTS, type MusicChartKey, type MusicTrack } from '@/lib/itunes';
 import { LruCache } from '@/lib/tmdb-cache';
 
 export const dynamic = 'force-dynamic';
 
 const musicCache = new LruCache<MusicTrack[]>(60 * 60 * 1000, 200);
 
-// GET /api/music?kind=top          — Thai top songs (Apple Music chart)
+// GET /api/music?kind=top&chart=kr — top songs chart (th | kr | jp | us | cn | tw, default th)
 // GET /api/music?q=bodyslam        — search songs
 // GET /api/music?ids=123,456       — look up saved songs (fresh 30s preview links)
 export async function GET(request: NextRequest) {
@@ -28,8 +28,10 @@ export async function GET(request: NextRequest) {
     cacheKey = `q:${q.toLowerCase()}`;
     load = () => searchTracks(q);
   } else {
-    cacheKey = 'top';
-    load = () => fetchThaiTopSongs(50);
+    const requested = params.get('chart') ?? 'th';
+    const chart = (MUSIC_CHARTS.some((c) => c.key === requested) ? requested : 'th') as MusicChartKey;
+    cacheKey = `top:${chart}`;
+    load = () => fetchTopSongs(chart, 50);
   }
 
   const cached = musicCache.get(cacheKey);

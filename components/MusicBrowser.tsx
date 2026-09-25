@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
-import type { MusicTrack } from '@/lib/itunes';
+import { MUSIC_CHARTS, type MusicChartKey, type MusicTrack } from '@/lib/itunes';
 import CardSkeleton from '@/components/CardSkeleton';
 
 interface MusicBrowserProps {
@@ -15,6 +15,7 @@ export default function MusicBrowser({ isSaved, onSelect }: MusicBrowserProps) {
   const { t } = useLanguage();
   const [query, setQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
+  const [chart, setChart] = useState<MusicChartKey>('th');
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -24,7 +25,7 @@ export default function MusicBrowser({ isSaved, onSelect }: MusicBrowserProps) {
     const requestId = ++requestRef.current;
     setLoading(true);
     setError(false);
-    const url = activeQuery ? `/api/music?q=${encodeURIComponent(activeQuery)}` : '/api/music?kind=top';
+    const url = activeQuery ? `/api/music?q=${encodeURIComponent(activeQuery)}` : `/api/music?kind=top&chart=${chart}`;
     fetch(url)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data: { tracks?: MusicTrack[] }) => {
@@ -39,7 +40,7 @@ export default function MusicBrowser({ isSaved, onSelect }: MusicBrowserProps) {
       .finally(() => {
         if (requestId === requestRef.current) setLoading(false);
       });
-  }, [activeQuery]);
+  }, [activeQuery, chart]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,9 +65,25 @@ export default function MusicBrowser({ isSaved, onSelect }: MusicBrowserProps) {
         </button>
       </form>
 
+      {!activeQuery && (
+        <div className="chip-row scrollbar-hide mb-3">
+          {MUSIC_CHARTS.map((c) => (
+            <button
+              key={c.key}
+              onClick={() => setChart(c.key)}
+              className={`chip ${chart === c.key ? 'active' : ''}`}
+            >
+              {c.flag} {t(`music_chart_${c.key}`)}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <h3 className="text-lg font-semibold text-white">
-          {activeQuery ? t('music_results_for', { q: activeQuery }) : `🔥 ${t('music_top_title')}`}
+          {activeQuery
+            ? t('music_results_for', { q: activeQuery })
+            : `🔥 ${t('music_top_title', { chart: t(`music_chart_${chart}`) })}`}
         </h3>
         {activeQuery ? (
           <button
