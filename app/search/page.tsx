@@ -280,7 +280,7 @@ export default function SearchPage() {
         <div className="flex gap-1.5 overflow-x-auto pb-2 mb-5 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
           <button
             onClick={() => setProviderFilter(new Set())}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               providerFilter.size === 0
                 ? 'bg-brand-600 text-white'
                 : 'bg-white/5 text-cinema-text-muted hover:bg-white/10 border border-white/5'
@@ -292,7 +292,7 @@ export default function SearchPage() {
             <button
               key={platform}
               onClick={() => toggleProvider(platform)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                 providerFilter.has(platform)
                   ? 'bg-brand-600 text-white'
                   : 'bg-white/5 text-cinema-text-muted hover:bg-white/10 border border-white/5'

@@ -12,7 +12,7 @@
   --cinema-gold-light: #fbbf24;
   --cinema-gold-dark: #b45309;
   --cinema-text: #f1f5f9;
-  --cinema-text-muted: #94a3b8;
+  --cinema-text-muted: #cbd5e1;
   --cinema-glow: rgba(245, 158, 11, 0.15);
   --cinema-rating: #f5c518;
   --imdb-yellow: #f5c518;
@@ -22,14 +22,21 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Item 2 — bigger base type for a 62-year-old reader. 17px root means every Tailwind
+   rem step grows with it (text-sm = 15px, text-base = 17px, text-lg = 19px). */
+html {
+  scroll-behavior: smooth;
+  font-size: 17px;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background: var(--cinema-bg);
   color: var(--cinema-text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
-}
-
-html {
-  scroll-behavior: smooth;
+  font-size: 1rem;
+  line-height: 1.65;
+  overflow-x: hidden;
 }
 
 button, a, input, select, textarea {
@@ -66,12 +73,12 @@ button, a, input, select, textarea {
   gap: 4px;
   color: var(--imdb-yellow);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 1rem;
 }
 
 .imdb-rating .star {
   color: var(--imdb-yellow);
-  font-size: 1rem;
+  font-size: 1.125rem;
   line-height: 1;
 }
 
@@ -128,27 +135,27 @@ button, a, input, select, textarea {
 }
 
 .imdb-card .card-info {
-  padding: 10px 12px 12px;
+  padding: 12px 14px 14px;
 }
 
 .imdb-card .card-title {
   color: #fff;
   font-weight: 600;
-  font-size: 0.875rem;
-  line-height: 1.3;
+  font-size: 1.0625rem; /* 18px at 17px root — was 0.875rem */
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .imdb-card .card-metadata {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   color: var(--cinema-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.9375rem; /* 16px — was 0.75rem */
   flex-wrap: wrap;
 }
 
@@ -163,9 +170,9 @@ button, a, input, select, textarea {
 .imdb-card .card-metadata .genre-tag {
   color: var(--cinema-text-muted);
   border: 1px solid rgba(255,255,255,0.1);
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 0.65rem;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 0.875rem; /* 15px — was 0.65rem */
 }
 
 /* Save button on card */
@@ -174,8 +181,8 @@ button, a, input, select, textarea {
   top: 8px;
   right: 8px;
   z-index: 10;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(0,0,0,0.7);
   backdrop-filter: blur(4px);
@@ -204,14 +211,37 @@ button, a, input, select, textarea {
   top: 8px;
   left: 8px;
   z-index: 10;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 3px 9px;
+  border-radius: 5px;
   background: rgba(0,0,0,0.7);
   backdrop-filter: blur(4px);
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.875rem; /* 15px — was 0.65rem */
   font-weight: 600;
   border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* === Item 4: "available on my services" highlight === */
+.imdb-card.on-my-service {
+  border-color: rgba(34, 197, 94, 0.55);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.35), 0 10px 30px -12px rgba(34, 197, 94, 0.35);
+}
+
+.imdb-card .my-service-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.9);
+  color: #f0fdf4;
+  font-size: 0.875rem; /* 15px */
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.25);
 }
 
 /* IMDb-style Grid */
@@ -248,14 +278,15 @@ button, a, input, select, textarea {
 }
 
 .imdb-section-header h2 {
-  font-size: 1.25rem;
+  font-size: 1.5rem; /* 25.5px */
   font-weight: 700;
   color: #fff;
+  line-height: 1.35;
 }
 
 .imdb-section-header .count {
   color: var(--cinema-text-muted);
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 400;
 }
 
@@ -263,10 +294,10 @@ button, a, input, select, textarea {
 .imdb-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 0.7rem;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 0.875rem; /* 15px — was 0.7rem */
   font-weight: 600;
   background: rgba(245, 158, 11, 0.1);
   color: var(--cinema-gold-light);
@@ -364,11 +395,12 @@ button, a, input, select, textarea {
 }
 
 .imdb-modal .modal-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem; /* 25.5px */
   font-weight: 700;
   color: #fff;
   margin-bottom: 8px;
   padding-right: 32px;
+  line-height: 1.35;
 }
 
 .imdb-modal .modal-meta {
@@ -377,14 +409,14 @@ button, a, input, select, textarea {
   gap: 10px;
   flex-wrap: wrap;
   margin-bottom: 12px;
-  font-size: 0.8rem;
+  font-size: 1rem; /* 17px — was 0.8rem */
   color: var(--cinema-text-muted);
 }
 
 .imdb-modal .modal-overview {
   color: var(--cinema-text-muted);
-  font-size: 0.85rem;
-  line-height: 1.6;
+  font-size: 1.0625rem; /* 18px — was 0.85rem */
+  line-height: 1.7;
   margin-bottom: 16px;
 }
 
@@ -443,10 +475,10 @@ button, a, input, select, textarea {
 .platform-badge {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.65rem;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 5px;
+  font-size: 0.875rem; /* 15px — was 0.65rem */
   font-weight: 500;
   background: rgba(255,255,255,0.05);
   color: var(--cinema-text-muted);
@@ -462,4 +494,217 @@ button, a, input, select, textarea {
 
 .platform-badge.link {
   cursor: pointer;
+}
+
+/* ==========================================================================
+   Items 3-7: filter chips, segmented control, suggestion rows, service chips
+   ========================================================================== */
+
+/* Segmented control (item 5) — ที่สตรีมมิ่ง / ในโรงภาพยนตร์ */
+.segmented {
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  max-width: 100%;
+}
+
+.segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: 9px;
+  font-size: 1rem; /* 17px */
+  font-weight: 600;
+  color: var(--cinema-text-muted);
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.segmented button.active {
+  background: var(--cinema-gold, #f59e0b);
+  color: #1a1f2e;
+  box-shadow: 0 4px 20px -2px rgba(245, 158, 11, 0.25);
+}
+
+/* 360px phones: the two segmented options must share the row without clipping, so they
+   stretch evenly and drop a little padding instead of overflowing the 328px content box. */
+@media (max-width: 400px) {
+  .segmented {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .segmented button {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 10px 10px;
+    font-size: 0.9375rem;
+  }
+}
+
+/* Genre / region chips (items 3 & 7) */
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  min-height: 44px;
+  border-radius: 999px;
+  font-size: 0.9375rem; /* 16px */
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--cinema-text);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.15s ease;
+}
+
+.chip:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.chip.active {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: var(--cinema-gold);
+  color: var(--cinema-gold-light);
+}
+
+.chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Service picker chips (item 4) */
+.service-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--cinema-text);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.15s ease;
+}
+
+.service-chip img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.service-chip .icon-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.35);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.service-chip.selected {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.service-chip .check {
+  margin-left: auto;
+  font-size: 1.125rem;
+  color: #4ade80;
+}
+
+/* Recommendation rows (item 6) — horizontal scroll with real posters */
+.suggest-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  scroll-snap-type: x proximity;
+}
+
+.suggest-card {
+  flex: 0 0 auto;
+  width: 132px;
+  scroll-snap-align: start;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(17, 24, 39, 0.85);
+  border: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .suggest-card { width: 152px; }
+}
+
+.suggest-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(245, 197, 24, 0.4);
+}
+
+.suggest-card .poster {
+  position: relative;
+  aspect-ratio: 2/3;
+  background: #1a1f2e;
+  overflow: hidden;
+}
+
+.suggest-card .poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.suggest-card .info {
+  padding: 8px 10px 10px;
+}
+
+.suggest-card .title {
+  color: #fff;
+  font-size: 0.9375rem; /* 16px */
+  font-weight: 600;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.suggest-card .meta {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem; /* 15px */
+  color: var(--cinema-text-muted);
+}
+
+/* Panel used by the service picker */
+.panel {
+  background: #1a1f2e;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
 }

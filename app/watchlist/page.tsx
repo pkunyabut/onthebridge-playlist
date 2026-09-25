@@ -125,14 +125,14 @@ export default function WatchlistPage() {
                 <button
                   key={tab.key}
                   onClick={() => setSelectedFilter(tab.key)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     isActive
                       ? 'bg-brand-600 text-white'
                       : 'bg-white/5 text-cinema-text-muted hover:bg-white/10 border border-white/5'
                   }`}
                 >
                   {tab.icon} {tab.label}
-                  <span className={`ml-1 text-[10px] ${isActive ? 'text-brand-100' : 'text-cinema-text-muted/60'}`}>
+                  <span className={`ml-1 text-sm ${isActive ? 'text-brand-100' : 'text-cinema-text-muted/60'}`}>
                     ({count})
                   </span>
                 </button>
@@ -167,7 +167,7 @@ export default function WatchlistPage() {
                 <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
                   <span className="text-base">{PLATFORM_ICONS[platform as PlatformType]}</span>
                   {platform}
-                  <span className="text-xs font-normal text-cinema-text-muted">
+                  <span className="text-sm font-normal text-cinema-text-muted">
                     ({items.length})
                   </span>
                 </h2>
@@ -200,7 +200,7 @@ export default function WatchlistPage() {
                           <span className="genre-tag">{t(`type_${item.type}`)}</span>
                         </div>
                         {item.genre && (
-                          <p className="text-[11px] text-cinema-text-muted mt-0.5 line-clamp-1">{item.genre}</p>
+                          <p className="text-sm text-cinema-text-muted mt-0.5 line-clamp-1">{item.genre}</p>
                         )}
                       </div>
                     </div>

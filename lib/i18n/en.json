@@ -140,5 +140,6 @@
   "login_required_save": "Please sign in before saving",
   "save_success": "Saved \"{title}\" to your watchlist!",
   "save_failed": "Could not save: {error}",
-  "unknown_error": "Unknown error"
+  "unknown_error": "Unknown error",
+  "on_my_services": "On your services"
 }

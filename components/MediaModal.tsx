@@ -107,7 +107,7 @@ export default function MediaModal({
                 <span className="text-cinema-text-muted font-normal">/10</span>
               </span>
             )}
-            <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-white/5 text-cinema-text-muted border border-white/10">
+            <span className="px-2 py-0.5 rounded text-sm font-medium bg-white/5 text-cinema-text-muted border border-white/10">
               {t(`type_${result.type}`)}
             </span>
           </div>
@@ -127,7 +127,7 @@ export default function MediaModal({
           {/* Providers */}
           {result.providers.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs text-cinema-text-muted mb-2 font-medium">{t('watch_on')}:</p>
+              <p className="text-sm text-cinema-text-muted mb-2 font-medium">{t('watch_on')}:</p>
               <div className="flex flex-wrap gap-1.5">
                 {result.providers.map((platform) => (
                   <span
@@ -143,7 +143,7 @@ export default function MediaModal({
 
           {/* No TH providers notice */}
           {!result.has_th_providers && result.providers.length > 0 && (
-            <p className="text-[11px] text-cinema-text-muted/60 italic mb-3">
+            <p className="text-sm text-cinema-text-muted/60 italic mb-3">
               {t('no_th_providers')}
             </p>
           )}

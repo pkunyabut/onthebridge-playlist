@@ -46,7 +46,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <button
               onClick={toggleLang}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold border border-cinema-border text-cinema-text-muted hover:bg-cinema-700 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm font-bold border border-cinema-border text-cinema-text-muted hover:bg-cinema-700 transition-colors"
             >
               {lang === 'th' ? 'EN' : 'TH'}
             </button>
@@ -154,7 +154,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-all min-h-[44px] justify-center ${
+              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-all min-h-[44px] justify-center ${
                 isActive(item.href)
                   ? 'text-brand-400'
                   : 'text-cinema-text-muted'

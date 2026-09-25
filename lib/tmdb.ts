@@ -178,6 +178,27 @@ export function collectProvidersFromRegions(
   };
 }
 
+/**
+ * Collect the raw streaming provider ids (flatrate/free/ads) that TMDb reports for an
+ * item across the given regions. Kept separate from the PlatformType mapping because
+ * Apple TV+ (350) and the music services have no PlatformType of their own — the
+ * "available on my services" highlight needs the exact ids, not a coarse platform.
+ */
+export function collectStreamingProviderIds(
+  provData: TmdbWatchProvidersResponse,
+  regions: WatchRegion[] = [...WATCH_REGIONS]
+): number[] {
+  const ids = new Set<number>();
+  for (const region of regions) {
+    const regional = provData.results?.[region];
+    if (!regional) continue;
+    for (const tier of [regional.flatrate, regional.free, regional.ads]) {
+      for (const p of tier ?? []) ids.add(p.provider_id);
+    }
+  }
+  return Array.from(ids);
+}
+
 export interface TmdbResult {
   id: number | string;
   title: string;
@@ -189,6 +210,10 @@ export interface TmdbResult {
   providers: PlatformType[];
   has_th_providers: boolean;
   origin_country: string | null;
+  /** Raw TMDb streaming provider ids (flatrate/free/ads) — used for exact
+   *  "available on my services" matching (Apple TV+ / music services have no
+   *  PlatformType of their own). */
+  provider_ids?: number[];
   // Optional metadata (populated from cache layer)
   overview?: string | null;
   cast?: string | null;
@@ -233,7 +258,7 @@ async function fetchProvidersForItem(
   type: TmdbMediaType,
   id: number,
   apiKey: string,
-): Promise<{ providers: PlatformType[]; has_th_providers: boolean }> {
+): Promise<{ providers: PlatformType[]; has_th_providers: boolean; provider_ids: number[] }> {
   const endpointType = type === 'documentary' || type === 'music' ? 'movie' : type;
   try {
     const data = await fetchTmdb(`/${endpointType}/${id}`, {
@@ -241,15 +266,19 @@ async function fetchProvidersForItem(
       language: DEFAULT_LANGUAGE,
     }, apiKey);
     const provData = (data as { 'watch/providers'?: TmdbWatchProvidersResponse })['watch/providers'];
-    if (!provData) return { providers: [], has_th_providers: false };
+    if (!provData) return { providers: [], has_th_providers: false, provider_ids: [] };
     const collected = collectProvidersFromRegions(provData, WATCH_REGIONS);
-    return { providers: collected.providers, has_th_providers: collected.has_th_providers };
+    return {
+      providers: collected.providers,
+      has_th_providers: collected.has_th_providers,
+      provider_ids: collectStreamingProviderIds(provData, WATCH_REGIONS),
+    };
   } catch (error) {
     // Log non-retryable errors for monitoring
     if (error instanceof TmdbApiError && error.status !== 429) {
       console.warn(`[TMDb] Provider fetch failed for ${type}/${id}: ${error.status}`);
     }
-    return { providers: [], has_th_providers: false };
+    return { providers: [], has_th_providers: false, provider_ids: [] };
   }
 }
 
@@ -261,7 +290,13 @@ export async function fetchPopularTmdb(
   language: string = DEFAULT_LANGUAGE,
   watchRegion: WatchRegion = DEFAULT_WATCH_REGION,
   country: string = DEFAULT_COUNTRY,
+  options: BrowseOptions = {},
 ): Promise<TmdbPopularResponse> {
+  const mode: BrowseMode = options.mode === 'theaters' ? 'theaters' : 'streaming';
+  // TMDb only publishes theatrical listings for movies (/movie/now_playing), so a TV or
+  // music type can never be honestly reported as "in theaters" — those keep the
+  // streaming path instead of faking a cinema flag.
+  const theatersMode = mode === 'theaters' && type !== 'tv' && type !== 'music';
   const isGenreFiltered = type === 'documentary' || type === 'music';
   const endpointType = type === 'documentary' || type === 'music' ? 'movie' : type;
   const genreParam = type === 'documentary' ? '99' : type === 'music' ? '10402' : '';
@@ -270,26 +305,58 @@ export async function fetchPopularTmdb(
 
   const sortBy = category === 'top_rated' ? 'vote_average.desc' : 'popularity.desc';
   const params = new URLSearchParams({
-    sort_by: sortBy,
     page: String(page),
     language,
-    'vote_count.gte': '10',
-    // Only return titles that are actually watchable in the selected region, otherwise
-    // the browse grid fills up with cinema-only releases that have no provider data.
-    watch_region: watchRegion,
-    with_watch_monetization_types: 'flatrate|free|ads',
   });
 
-  if (isGenreFiltered && genreParam) {
-    params.set('with_genres', genreParam);
+  let path: string;
+  if (theatersMode) {
+    // Authoritative "in Thai cinemas right now" list — TMDb maintains now_playing per
+    // region, so this is never guessed from release dates. now_playing only accepts
+    // region/language/page: genre and popular/top_rated refinements simply do not exist
+    // there, and the UI tells the user that instead of pretending they applied.
+    path = '/movie/now_playing';
+    params.set('region', watchRegion);
+  } else {
+    path = `/discover/${endpointType}`;
+    params.set('sort_by', sortBy);
+    params.set('vote_count.gte', '10');
+    // Only return titles that are actually watchable in the selected region, otherwise
+    // the browse grid fills up with cinema-only releases that have no provider data.
+    params.set('watch_region', watchRegion);
+    params.set('with_watch_monetization_types', STREAMING_MONETIZATION);
+
+    // Genre: the type tab's own genre (สารคดี / เพลง) AND the user's pick — comma is
+    // TMDb's AND separator, a pipe would silently OR two unrelated genres together.
+    const genreIds: string[] = [];
+    if (isGenreFiltered && genreParam) genreIds.push(genreParam);
+    if (options.genreId) genreIds.push(options.genreId);
+    if (genreIds.length > 0) {
+      params.set('with_genres', genreIds.join(','));
+    }
+
+    // "เฉพาะบริการของฉัน" — restrict to the TMDb provider ids of the user's services.
+    const providerIds = (options.providerIds ?? []).filter((id) => Number.isFinite(id) && id > 0);
+    if (providerIds.length > 0) {
+      params.set('with_watch_providers', providerIds.join('|'));
+    }
+
+    // Country / origin filter works on discover for both movies and TV; TMDb ORs
+    // pipe-separated country codes inside with_origin_country.
+    const origins =
+      options.originCountries && options.originCountries.length > 0
+        ? options.originCountries
+        : country !== DEFAULT_COUNTRY
+        ? [country]
+        : [];
+    if (origins.length > 0) {
+      params.set('with_origin_country', origins.join('|'));
+    }
+    if (options.originalLanguages && options.originalLanguages.length > 0) {
+      params.set('with_original_language', options.originalLanguages.join('|'));
+    }
   }
 
-  // Country-of-origin filter works on discover for both movies and TV.
-  if (country !== DEFAULT_COUNTRY) {
-    params.set('with_origin_country', country);
-  }
-
-  const path = `/discover/${endpointType}`;
   const query: Record<string, string> = {};
   params.forEach((value, key) => {
     query[key] = value;
@@ -318,7 +385,7 @@ export async function fetchPopularTmdb(
       }
 
       // Use append_to_response to fetch providers in the same call
-      const { providers, has_th_providers } = await fetchProvidersForItem(
+      const { providers, has_th_providers, provider_ids } = await fetchProvidersForItem(
         type,
         item.id,
         apiKey,
@@ -334,6 +401,7 @@ export async function fetchPopularTmdb(
         providers,
         has_th_providers,
         origin_country: originCountry,
+        provider_ids,
       };
     })
   );
@@ -343,4 +411,326 @@ export async function fetchPopularTmdb(
     total_pages: data.total_pages || 0,
     page: data.page || page,
   };
+}
+
+// ============================================================================
+// Items 3-7: browse modes, genres, my-services, curated rows, origin rows
+// ============================================================================
+
+export type BrowseMode = 'streaming' | 'theaters';
+
+/**
+ * "ที่สตรีมมิ่ง" means the title is included in a subscription in watchRegion.
+ * TMDb calls that monetization type `flatrate` (ad-supported and free tiers are
+ * separate types), and it is the only type that pairs meaningfully with
+ * `with_watch_providers` for "เฉพาะบริการของฉัน".
+ */
+export const STREAMING_MONETIZATION = 'flatrate';
+
+export interface BrowseOptions {
+  /** 'streaming' (default) = discover + watch_region; 'theaters' = /movie/now_playing?region= */
+  mode?: BrowseMode;
+  /** Extra TMDb genre id AND-ed onto the type tab's own genre. */
+  genreId?: string | null;
+  /** TMDb provider ids for the "only my services" filter. */
+  providerIds?: number[];
+  /** Origin countries (OR-combined with a pipe) — Thai/Asia section. */
+  originCountries?: string[] | null;
+  /** Original languages (OR-combined) — used only if a country filter returns nothing. */
+  originalLanguages?: string[] | null;
+}
+
+export interface TmdbGenre {
+  id: number;
+  name: string;
+}
+
+/**
+ * Genre lists in Thai. /genre/movie/list and /genre/tv/list are the authoritative
+ * source: TMDb's ids for the same genre word differ between movie and TV, so the two
+ * lists must never be merged or the filter would return wrong results.
+ */
+export async function fetchGenres(
+  apiKey: string,
+  language: string = DEFAULT_LANGUAGE,
+): Promise<{ movie: TmdbGenre[]; tv: TmdbGenre[] }> {
+  const [movieData, tvData] = await Promise.all([
+    fetchTmdb('/genre/movie/list', { language }, apiKey) as Promise<{ genres?: TmdbGenre[] }>,
+    fetchTmdb('/genre/tv/list', { language }, apiKey) as Promise<{ genres?: TmdbGenre[] }>,
+  ]);
+  return { movie: movieData.genres ?? [], tv: tvData.genres ?? [] };
+}
+
+// ---------------------------------------------------------------------------
+// Item 4: streaming services the user subscribes to
+// ---------------------------------------------------------------------------
+
+export interface ServiceOption {
+  key: string;
+  label: string;
+  platform: PlatformType;
+  /** TMDb watch-provider ids that identify this service in TH. */
+  providerIds: number[];
+  /** Honest note when TMDb cannot back this service for film/TV in TH. */
+  note?: string;
+  /**
+   * True only when TMDb's own TH catalog (/watch/providers/movie|tv?watch_region=TH,
+   * merged) actually lists one of providerIds. Services that are not backed still show
+   * in the picker, but they are excluded from the "only my services" filter — sending
+   * an unknown provider id would silently behave like "no filter for this service".
+   */
+  thBacked: boolean;
+}
+
+/**
+ * The 11 services the user asked for. Verified against
+ * /watch/providers/movie|tv?watch_region=TH on 2026-09-25: TMDb lists
+ * Netflix 8/175, Prime Video 119/10, Apple TV+ 350, Disney+ 122, Viu 158 and HBO Max
+ * 1899 for Thailand. WeTV (623/509), iQIYI (581) and YouTube Premium (188/192/235) are
+ * NOT in TMDb's TH catalog, and Spotify/Apple Music have no film/TV provider entry at
+ * all, so those five are selectable but cannot drive filters or highlights.
+ */
+export const SERVICE_OPTIONS: ServiceOption[] = [
+  { key: 'netflix', label: 'Netflix', platform: 'netflix', providerIds: [8, 175, 1796], thBacked: true },
+  { key: 'disney', label: 'Disney+', platform: 'disney', providerIds: [122, 337], thBacked: true },
+  { key: 'hbo', label: 'HBO Max', platform: 'hbo', providerIds: [1899, 384], thBacked: true },
+  { key: 'prime', label: 'Prime Video', platform: 'prime', providerIds: [119, 10, 9], thBacked: true },
+  { key: 'apple_tv', label: 'Apple TV+', platform: 'other', providerIds: [350], thBacked: true },
+  { key: 'viu', label: 'Viu', platform: 'viu', providerIds: [158], thBacked: true },
+  {
+    key: 'wetv',
+    label: 'WeTV',
+    platform: 'wetv',
+    providerIds: [],
+    thBacked: false,
+    note: 'TMDb ยังไม่มีข้อมูลผู้ให้บริการนี้ในไทย',
+  },
+  {
+    key: 'iqiyi',
+    label: 'iQIYI',
+    platform: 'iqiyi',
+    providerIds: [],
+    thBacked: false,
+    note: 'TMDb ยังไม่มีข้อมูลผู้ให้บริการนี้ในไทย',
+  },
+  {
+    key: 'youtube',
+    label: 'YouTube Premium',
+    platform: 'youtube',
+    providerIds: [],
+    thBacked: false,
+    note: 'TMDb ยังไม่มีข้อมูลผู้ให้บริการนี้ในไทย',
+  },
+  {
+    key: 'spotify',
+    label: 'Spotify',
+    platform: 'spotify',
+    providerIds: [],
+    thBacked: false,
+    note: 'TMDb ไม่มีข้อมูลผู้ให้บริการเพลง',
+  },
+  {
+    key: 'apple_music',
+    label: 'Apple Music',
+    platform: 'apple_music',
+    providerIds: [],
+    thBacked: false,
+    note: 'TMDb ไม่มีข้อมูลผู้ให้บริการเพลง',
+  },
+];
+
+export function getService(key: string): ServiceOption | undefined {
+  return SERVICE_OPTIONS.find((s) => s.key === key);
+}
+
+/** Flatten the selected service keys into TMDb provider ids (music services are skipped). */
+export function serviceProviderIds(serviceKeys: string[]): number[] {
+  const ids = new Set<number>();
+  for (const key of serviceKeys) {
+    const service = getService(key);
+    if (!service) continue;
+    service.providerIds.forEach((id) => ids.add(id));
+  }
+  return Array.from(ids);
+}
+
+/** True when an item is available on at least one of the selected services. */
+export function isOnMyServices(item: TmdbResult, serviceKeys: string[]): boolean {
+  if (serviceKeys.length === 0) return false;
+  const wanted = new Set(serviceProviderIds(serviceKeys));
+  if (wanted.size === 0) return false;
+  if (item.provider_ids && item.provider_ids.length > 0) {
+    return item.provider_ids.some((id) => wanted.has(id));
+  }
+  // Fall back to the coarse platform match when raw ids are unavailable.
+  const platforms = new Set(serviceKeys.map((k) => getService(k)?.platform).filter(Boolean));
+  return item.providers.some((p) => platforms.has(p));
+}
+
+// ---------------------------------------------------------------------------
+// Items 6 & 7: curated rows and origin (Thai/Asia) rows
+// ---------------------------------------------------------------------------
+
+export interface TmdbRowItem {
+  id: number;
+  title: string;
+  year: number | null;
+  poster: string | null;
+  rating: number;
+  type: TmdbMediaType;
+}
+
+export type RowKind = 'trending' | 'top_rated' | 'for_you' | 'origin';
+
+interface TmdbRowRaw {
+  id: number;
+  title?: string;
+  name?: string;
+  release_date?: string;
+  first_air_date?: string;
+  poster_path?: string | null;
+  vote_average?: number;
+  media_type?: string;
+  popularity?: number;
+}
+
+function toRowItem(item: TmdbRowRaw, fallbackType: TmdbMediaType): TmdbRowItem {
+  const isTv = fallbackType === 'tv' || item.media_type === 'tv';
+  const dateStr = isTv ? item.first_air_date : item.release_date;
+  return {
+    id: item.id,
+    title: (isTv ? item.name : item.title) || item.title || item.name || 'ไม่ทราบชื่อ',
+    year: dateStr ? parseInt(dateStr.slice(0, 4), 10) || null : null,
+    poster: item.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : null,
+    rating: Math.round((item.vote_average || 0) * 10) / 10,
+    type: isTv ? 'tv' : fallbackType,
+  };
+}
+
+/** กำลังมาแรง — /trending/movie/week (TMDb's own weekly trending list). */
+export async function fetchTrendingRow(
+  apiKey: string,
+  language: string = DEFAULT_LANGUAGE,
+): Promise<TmdbRowItem[]> {
+  const data = await fetchTmdb('/trending/movie/week', { language }, apiKey) as { results?: TmdbRowRaw[] };
+  return (data.results ?? []).map((item) => toRowItem(item, 'movie'));
+}
+
+/** คะแนนสูงสุด — /movie/top_rated (TMDb's own top-rated list). */
+export async function fetchTopRatedRow(
+  apiKey: string,
+  language: string = DEFAULT_LANGUAGE,
+  region: WatchRegion = DEFAULT_WATCH_REGION,
+): Promise<TmdbRowItem[]> {
+  const data = await fetchTmdb('/movie/top_rated', { language, region, page: '1' }, apiKey) as { results?: TmdbRowRaw[] };
+  return (data.results ?? []).map((item) => toRowItem(item, 'movie'));
+}
+
+/**
+ * แนะนำสำหรับคุณ — the watchlist stores titles (no TMDb id column), so each saved
+ * title is resolved through /search/multi first, then /{movie|tv}/{id}/recommendations
+ * is used. Only real TMDb recommendation results are returned.
+ */
+export async function fetchRecommendationsForTitles(
+  apiKey: string,
+  titles: string[],
+  language: string = DEFAULT_LANGUAGE,
+  limit: number = 18,
+): Promise<TmdbRowItem[]> {
+  const seeds: { id: number; type: 'movie' | 'tv' }[] = [];
+
+  for (const title of titles.slice(0, 3)) {
+    const query = title.trim();
+    if (!query) continue;
+    try {
+      const search = await fetchTmdb('/search/multi', {
+        query,
+        language,
+        include_adult: 'false',
+        page: '1',
+      }, apiKey) as { results?: (TmdbRowRaw & { media_type?: string })[] };
+      const match = (search.results ?? []).find(
+        (r) => r.media_type === 'movie' || r.media_type === 'tv'
+      );
+      if (match) {
+        seeds.push({ id: match.id, type: match.media_type === 'tv' ? 'tv' : 'movie' });
+      }
+    } catch {
+      // A single unresolvable title must not break the whole row.
+    }
+  }
+
+  const merged = new Map<string, { item: TmdbRowItem; popularity: number }>();
+  for (const seed of seeds) {
+    try {
+      const data = await fetchTmdb(`/${seed.type}/${seed.id}/recommendations`, {
+        language,
+        page: '1',
+      }, apiKey) as { results?: TmdbRowRaw[] };
+      for (const raw of data.results ?? []) {
+        const item = toRowItem(raw, seed.type);
+        const key = `${item.type}-${item.id}`;
+        if (item.id === seed.id) continue;
+        const existing = merged.get(key);
+        if (!existing || (raw.popularity ?? 0) > existing.popularity) {
+          merged.set(key, { item, popularity: raw.popularity ?? 0 });
+        }
+      }
+    } catch {
+      // Ignore an individual seed failure and keep whatever the other seeds returned.
+    }
+  }
+
+  return Array.from(merged.values())
+    .sort((a, b) => b.popularity - a.popularity)
+    .slice(0, limit)
+    .map((entry) => entry.item);
+}
+
+/**
+ * Item 7 — Thai / Asian titles from /discover with with_origin_country (pipe = OR),
+ * sort_by=popularity.desc, language=th-TH. TMDb has no watch_region requirement for
+ * this filter, so a title does not need a Thai streaming listing to be surfaced.
+ */
+export async function fetchOriginRow(
+  apiKey: string,
+  countries: string[],
+  language: string = DEFAULT_LANGUAGE,
+  mediaType: 'movie' | 'tv' = 'movie',
+  limit: number = 18,
+): Promise<TmdbRowItem[]> {
+  const params: Record<string, string> = {
+    sort_by: 'popularity.desc',
+    with_origin_country: countries.join('|'),
+    language,
+    page: '1',
+    'vote_count.gte': '5',
+    include_adult: 'false',
+  };
+  const data = await fetchTmdb(`/discover/${mediaType}`, params, apiKey) as { results?: TmdbRowRaw[] };
+  return (data.results ?? []).slice(0, limit).map((item) => toRowItem(item, mediaType));
+}
+
+export interface OriginRegionOption {
+  key: string;
+  label: string;
+  flag: string;
+  countries: string[];
+  languages: string[];
+}
+
+/** Item 7 region chips — country codes verified against /discover before wiring. */
+export const ORIGIN_REGIONS: OriginRegionOption[] = [
+  { key: 'TH', label: 'ไทย', flag: '🇹🇭', countries: ['TH'], languages: ['th'] },
+  { key: 'KR', label: 'เกาหลี', flag: '🇰🇷', countries: ['KR'], languages: ['ko'] },
+  { key: 'JP', label: 'ญี่ปุ่น', flag: '🇯🇵', countries: ['JP'], languages: ['ja'] },
+  { key: 'CN', label: 'จีน', flag: '🇨🇳', countries: ['CN'], languages: ['zh'] },
+  { key: 'HK', label: 'ฮ่องกง', flag: '🇭🇰', countries: ['HK'], languages: ['zh'] },
+  { key: 'TW', label: 'ไต้หวัน', flag: '🇹🇼', countries: ['TW'], languages: ['zh'] },
+  { key: 'IN', label: 'อินเดีย', flag: '🇮🇳', countries: ['IN'], languages: ['hi'] },
+  { key: 'ASIA', label: 'เอเชียทั้งหมด', flag: '🌏', countries: ['TH', 'KR', 'JP', 'CN', 'HK', 'TW', 'IN'], languages: ['th', 'ko', 'ja', 'zh', 'hi'] },
+];
+
+export function getOriginRegion(key: string): OriginRegionOption | undefined {
+  return ORIGIN_REGIONS.find((r) => r.key === key);
 }

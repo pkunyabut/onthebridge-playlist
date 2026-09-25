@@ -61,7 +61,7 @@ export default function LoginPage() {
             {loading ? t('logging_in') : t('login_with_google')}
           </button>
 
-          <p className="mt-6 text-xs text-gray-400 dark:text-gray-500">
+          <p className="mt-6 text-sm text-gray-400 dark:text-gray-500">
             {t('login_free_note')}
           </p>
         </div>

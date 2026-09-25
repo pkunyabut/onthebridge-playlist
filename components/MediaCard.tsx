@@ -22,13 +22,15 @@ interface MediaCardProps {
   saved: boolean;
   saving: boolean;
   onToggleSave: (result: TmdbResult) => void;
+  /** True when the title is on one of the services the user selected (item 4). */
+  onMyService?: boolean;
 }
 
-export default function MediaCard({ result, saved, saving, onToggleSave }: MediaCardProps) {
+export default function MediaCard({ result, saved, saving, onToggleSave, onMyService = false }: MediaCardProps) {
   const { t } = useLanguage();
 
   return (
-    <div className="imdb-card group">
+    <div className={`imdb-card group ${onMyService ? 'on-my-service' : ''}`}>
       {/* Poster */}
       <div className="poster-container">
         {result.poster ? (
@@ -67,13 +69,13 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
           className={`save-btn ${saved ? 'saved' : ''}`}
         >
           {saving ? (
-            <div className="w-3.5 h-3.5 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
           ) : saved ? (
-            <svg className="w-4 h-4 text-brand-400" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-brand-400" fill="currentColor" viewBox="0 0 24 24">
               <path d="M6 4a2 2 0 012-2h8a2 2 0 012 2v16l-6-3.5L6 20V4z" />
             </svg>
           ) : (
-            <svg className="w-4 h-4 text-white/70 group-hover:text-brand-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-white/70 group-hover:text-brand-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 4a2 2 0 012-2h8a2 2 0 012 2v16l-6-3.5L6 20V4z" />
             </svg>
           )}
@@ -81,9 +83,17 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
 
         {/* IMDb-style rating badge */}
         {result.rating > 0 && (
-          <div className="absolute bottom-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-sm text-[11px] font-bold border border-white/10">
+          <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded bg-black/75 backdrop-blur-sm text-sm font-bold border border-white/10">
             <span className="text-imdb-yellow">★</span>
             <span className="text-imdb-yellow">{result.rating.toFixed(1)}</span>
+          </div>
+        )}
+
+        {/* Item 4 — available on the user's own services */}
+        {onMyService && (
+          <div className="my-service-badge">
+            <span>✓</span>
+            <span>{t('on_my_services')}</span>
           </div>
         )}
       </div>
@@ -101,14 +111,14 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
 
         {/* Artist for music */}
         {result.artist && (
-          <p className="text-[11px] text-cinema-text-muted mt-0.5 line-clamp-1">
+          <p className="text-sm text-cinema-text-muted mt-1 line-clamp-1">
             {result.artist}
           </p>
         )}
 
         {/* Platform badges */}
         {result.providers.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
+          <div className="flex flex-wrap gap-1.5 mt-2">
             {result.providers.slice(0, 3).map((platform: PlatformType) => {
               const url = PLATFORM_URLS[platform];
               if (!url || url === '#') {
@@ -135,7 +145,7 @@ export default function MediaCard({ result, saved, saving, onToggleSave }: Media
         )}
 
         {!result.has_th_providers && result.providers.length > 0 && (
-          <p className="text-[10px] text-cinema-text-muted/50 mt-1 italic">
+          <p className="text-sm text-cinema-text-muted/70 mt-1 italic">
             {t('no_th_providers')}
           </p>
         )}

@@ -235,7 +235,7 @@ export default function DashboardPage() {
               >
                 <div className="text-xl mb-1">{typeIcons[type]}</div>
                 <div className="text-lg font-bold text-white">{count}</div>
-                <div className="text-[11px] text-cinema-text-muted">{label}</div>
+                <div className="text-sm text-cinema-text-muted">{label}</div>
               </button>
             );
           })}
@@ -246,7 +246,7 @@ export default function DashboardPage() {
       <div className="flex gap-1.5 overflow-x-auto pb-2 mb-5 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
         <button
           onClick={() => setFilter('all')}
-          className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+          className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
             filter === 'all'
               ? 'bg-brand-600 text-white'
               : 'glass text-cinema-text-muted hover:text-white border border-cinema-border'
@@ -258,7 +258,7 @@ export default function DashboardPage() {
           <button
             key={type}
             onClick={() => setFilter(type)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               filter === type
                 ? 'bg-brand-600 text-white'
                 : 'glass text-cinema-text-muted hover:text-white border border-cinema-border'
@@ -327,7 +327,7 @@ export default function DashboardPage() {
                   <span className="genre-tag">{typeLabels[item.type] || item.type}</span>
                 </div>
                 {item.genre && (
-                  <p className="text-[11px] text-cinema-text-muted mt-0.5 line-clamp-1">{item.genre}</p>
+                  <p className="text-sm text-cinema-text-muted mt-0.5 line-clamp-1">{item.genre}</p>
                 )}
                 {item.platform && (
                   <div className="mt-1.5">
@@ -403,16 +403,16 @@ export default function DashboardPage() {
                             <h3 className="font-semibold text-white text-sm leading-tight">
                               {rec.title}
                             </h3>
-                            <span className="text-[10px] text-cinema-text-muted bg-white/5 px-1.5 py-0.5 rounded">
+                            <span className="text-sm text-cinema-text-muted bg-white/5 px-1.5 py-0.5 rounded">
                               {aiTypeLabels[rec.type] || rec.type}
                             </span>
                             {rec.suggestedPlatform && (
-                              <span className="text-[10px]">
+                              <span className="text-sm">
                                 {aiPlatformIcons[rec.suggestedPlatform] || '📌'} {rec.suggestedPlatform}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-cinema-text-muted leading-relaxed">
+                          <p className="text-sm text-cinema-text-muted leading-relaxed">
                             <span className="text-purple-300 font-medium">{t('ai_reason')}</span>{' '}
                             {rec.reason}
                           </p>

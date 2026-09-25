@@ -8,6 +8,7 @@ import {
   DEFAULT_COUNTRY,
   WATCH_REGIONS,
   collectProvidersFromRegions,
+  collectStreamingProviderIds,
   type WatchRegion,
   type TmdbMediaType,
   type TmdbResult,
@@ -55,7 +56,7 @@ async function fetchProviders(
   id: number,
   apiKey: string,
   watchRegion: WatchRegion = DEFAULT_WATCH_REGION,
-): Promise<{ providers: TmdbResult['providers']; has_th_providers: boolean }> {
+): Promise<{ providers: TmdbResult['providers']; has_th_providers: boolean; provider_ids: number[] }> {
   const endpointType = type === 'documentary' || type === 'music' ? 'movie' : type;
   try {
     const data = await fetchTmdb(`/${endpointType}/${id}`, {
@@ -63,14 +64,18 @@ async function fetchProviders(
       language: DEFAULT_LANGUAGE,
     }, apiKey);
     const provData = (data as { 'watch/providers'?: TmdbSearchItem['watch/providers'] })['watch/providers'];
-    if (!provData) return { providers: [], has_th_providers: false };
+    if (!provData) return { providers: [], has_th_providers: false, provider_ids: [] };
     const collected = collectProvidersFromRegions(provData, WATCH_REGIONS);
-    return { providers: collected.providers, has_th_providers: collected.has_th_providers };
+    return {
+      providers: collected.providers,
+      has_th_providers: collected.has_th_providers,
+      provider_ids: collectStreamingProviderIds(provData, WATCH_REGIONS),
+    };
   } catch (error) {
     if (error instanceof TmdbApiError && error.status !== 429) {
       console.warn(`[TMDb] Provider fetch failed for ${type}/${id}: ${error.status}`);
     }
-    return { providers: [], has_th_providers: false };
+    return { providers: [], has_th_providers: false, provider_ids: [] };
   }
 }
 
@@ -128,7 +133,7 @@ export async function GET(request: NextRequest) {
         const title = (type === 'movie' ? item.title : item.name) || 'ไม่ทราบชื่อ';
         const dateStr = type === 'movie' ? item.release_date : item.first_air_date;
         const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) || null : null;
-        const { providers, has_th_providers } = await fetchProviders(
+        const { providers, has_th_providers, provider_ids } = await fetchProviders(
           type,
           item.id,
           apiKey,
@@ -145,6 +150,7 @@ export async function GET(request: NextRequest) {
           providers,
           has_th_providers,
           origin_country: getOriginCountry(item, type) ?? (countryLanguage ? country : null),
+          provider_ids,
         };
       })
     );
