@@ -727,6 +727,12 @@ export async function fetchOriginRow(
 const NETWORK_ROW_WITHOUT_GENRES = '10762,16';
 
 /**
+ * Title readable in Thai or Latin script. A mainland show with no Thai/English title on TMDB
+ * (e.g. 哈哈哈哈哈) is almost never distributed in Thailand, so it is left out of the row.
+ */
+const READABLE_TITLE = /^[฀-๿ -ɏḀ-ỿ -⁯]+$/;
+
+/**
  * Series by the channel/platform they aired on (TMDB networks, pipe = OR) — covers Thai
  * channels and Asian platforms that JustWatch has no data for. Shows with an episode aired in
  * the last 12 months come first (what's on now, not "เป็นต่อ 2004"), topped up with the
@@ -749,18 +755,23 @@ export async function fetchNetworkRow(
     page: '1',
     include_adult: 'false',
   };
-  const [recent, allTime] = await Promise.all([
-    fetchTmdb('/discover/tv', { ...base, 'air_date.gte': yearAgo.toISOString().slice(0, 10) }, apiKey) as Promise<{ results?: TmdbRowRaw[] }>,
-    fetchTmdb('/discover/tv', base, apiKey) as Promise<{ results?: TmdbRowRaw[] }>,
-  ]);
+  const recentParams = { ...base, 'air_date.gte': yearAgo.toISOString().slice(0, 10) };
+  // two pages each: the readable-title filter can drop half of a Chinese platform's page
+  const pages = await Promise.all([
+    fetchTmdb('/discover/tv', recentParams, apiKey),
+    fetchTmdb('/discover/tv', { ...recentParams, page: '2' }, apiKey),
+    fetchTmdb('/discover/tv', base, apiKey),
+    fetchTmdb('/discover/tv', { ...base, page: '2' }, apiKey),
+  ]) as { results?: TmdbRowRaw[] }[];
   const seen = new Set<number>();
-  const merged: TmdbRowRaw[] = [];
-  for (const item of [...(recent.results ?? []), ...(allTime.results ?? [])]) {
-    if (seen.has(item.id)) continue;
-    seen.add(item.id);
-    merged.push(item);
+  const rows: TmdbRowItem[] = [];
+  for (const raw of pages.flatMap((p) => p.results ?? [])) {
+    if (seen.has(raw.id)) continue;
+    seen.add(raw.id);
+    const item = toRowItem(raw, 'tv');
+    if (READABLE_TITLE.test(item.title)) rows.push(item);
   }
-  return merged.slice(0, limit).map((item) => toRowItem(item, 'tv'));
+  return rows.slice(0, limit);
 }
 
 export interface OriginRegionOption {
