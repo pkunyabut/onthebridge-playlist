@@ -13,6 +13,7 @@ import SuggestionRow from '@/components/SuggestionRow';
 import LangSwitch from '@/components/LangSwitch';
 import ScrollRow from '@/components/ScrollRow';
 import Flag from '@/components/Flag';
+import SiteFooter from '@/components/SiteFooter';
 import MusicBrowser from '@/components/MusicBrowser';
 import MusicModal from '@/components/MusicModal';
 import type { MusicTrack } from '@/lib/itunes';
@@ -887,15 +888,7 @@ export default function LandingPage() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-cinema-border py-6 mb-16 md:mb-0">
-        <div className="max-w-6xl mx-auto px-4 text-center text-sm text-cinema-text-muted">
-          <p>{t('footer_copyright')}</p>
-          <p className="mt-1">{t('footer_made_with')}</p>
-          <a href="mailto:thonglorproduction@gmail.com" className="mt-2 inline-block text-brand-400 hover:text-brand-300 transition-colors">
-            ✉️ thonglorproduction@gmail.com
-          </a>
-        </div>
-      </footer>
+      <SiteFooter className="mb-16 md:mb-0" />
 
       {/* Item 4 — service picker */}
       <ServicePicker

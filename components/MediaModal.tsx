@@ -239,6 +239,7 @@ export default function MediaModal({
                   {t('rent_or_buy')}: {rentBuyProviders.map((p) => p.provider_name).join(', ')}
                 </p>
               )}
+              <p className="mt-2 text-sm text-cinema-text-muted/80">{t('justwatch_credit')}</p>
               {details.watch_link && (streamProviders.length > 0 || rentBuyProviders.length > 0) && (
                 <a
                   href={details.watch_link}

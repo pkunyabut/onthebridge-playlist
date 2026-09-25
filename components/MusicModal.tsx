@@ -17,7 +17,7 @@ interface MusicModalProps {
 /** Song preview: cover, details, a 30-second preview clip and a link to Apple Music. */
 export default function MusicModal({ track, isLoggedIn, saved, saving, onClose, onToggleSave }: MusicModalProps) {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   // Saved songs only store the iTunes id — fetch a fresh preview link when it's missing.
   const [previewUrl, setPreviewUrl] = useState<string | null>(track.previewUrl);
@@ -98,17 +98,25 @@ export default function MusicModal({ track, isLoggedIn, saved, saving, onClose, 
             ) : (
               <p className="text-base text-cinema-text-muted">{t('music_no_preview')}</p>
             )}
+            <p className="mt-2 text-sm text-cinema-text-muted/80">{t('music_preview_courtesy')}</p>
           </div>
 
           <div className="flex flex-col gap-2">
+            {/* Apple requires previews to sit next to its official store badge */}
             {track.url && (
               <a
                 href={track.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium text-base transition-colors min-h-[48px]"
+                className="self-center"
+                aria-label={t('music_open_apple')}
               >
-                🎵 {t('music_open_apple')} ↗
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://toolbox.marketingtools.apple.com/api/badges/listen-on-apple-music/badge/${lang === 'th' ? 'th-th' : 'en-us'}?size=250x83`}
+                  alt={t('music_open_apple')}
+                  className="h-12 w-auto"
+                />
               </a>
             )}
             <button

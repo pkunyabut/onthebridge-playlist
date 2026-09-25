@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import LangSwitch from '@/components/LangSwitch';
+import SiteFooter from '@/components/SiteFooter';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -133,7 +134,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 p-4 md:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 min-w-0 p-4 md:p-6 lg:p-8">
+          {children}
+          <SiteFooter className="mt-12 mb-16 md:mb-0" />
+        </main>
       </div>
 
       {/* Mobile Bottom Nav */}

@@ -3,8 +3,8 @@ import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
 
 export const metadata: Metadata = {
-  title: 'OnTheBridge Playlist',
-  description: 'จัดรายการภาพยนตร์ ซีส์ สารคดี และเพลง ข้ามแพลตฟอร์ม — ฟรี',
+  title: 'OnTheBridge Watchlist',
+  description: 'บันทึกหนัง ซีรีส์ สารคดี และเพลงที่อยากดู-อยากฟังไว้ในที่เดียว แล้วตามไปดูที่แพลตฟอร์มของแต่ละค่าย — ฟรี',
 };
 
 export default function RootLayout({
