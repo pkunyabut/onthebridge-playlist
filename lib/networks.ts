@@ -7,7 +7,10 @@
  * ช่อง 7 180 (505), one31 1784 (341), GMM25 1974 (270), Thai PBS 1018 (45),
  * Workpoint 2937 (40), Amarin 3281 (37), Mono29 2660 (22), AIS Play 3489 (27),
  * TrueID 5319 (38), WeTV 3732 (186) + Tencent Video 2007 (2,705),
- * iQIYI 1330 (2,651) + iQIYI International 6316 (118), Youku 1419 (1,659).
+ * iQIYI 1330 (2,651) + iQIYI International 6316 (118), Youku 1419 (1,659),
+ * Viu Thailand 2980 (64) + Viu Korea 8922 + Viu Hong Kong 9261 (other Viu regions — IN, JO,
+ * PK, PH — don't stream in Thailand). JustWatch does list Viu, but only for its catalogue;
+ * Viu Originals are grouped here with the other Asian platforms users expect to find.
  *
  * Note: a network is where a show FIRST aired, not necessarily where it streams today.
  */
@@ -30,6 +33,7 @@ export const NETWORKS: NetworkOption[] = [
   { key: 'mono29', tmdbIds: [2660], app: { name: 'MONOMAX', url: 'https://www.monomax.me/' } },
   { key: 'ais_play', tmdbIds: [3489], app: { name: 'AIS PLAY', url: 'https://aisplay.ais.th/' } },
   { key: 'trueid', tmdbIds: [5319], app: { name: 'TrueID', url: 'https://www.trueid.net/' } },
+  { key: 'viu', tmdbIds: [2980, 8922, 9261], app: { name: 'Viu', url: 'https://www.viu.com/ott/th' } },
   { key: 'wetv', tmdbIds: [3732, 2007], app: { name: 'WeTV', url: 'https://wetv.vip/th' } },
   { key: 'iqiyi', tmdbIds: [1330, 6316], app: { name: 'iQIYI', url: 'https://www.iq.com/' } },
   { key: 'youku', tmdbIds: [1419], app: { name: 'Youku', url: 'https://youku.tv/' } },

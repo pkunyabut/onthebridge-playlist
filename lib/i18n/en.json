@@ -248,5 +248,6 @@
   "network_wetv": "WeTV",
   "network_iqiyi": "iQIYI",
   "network_youku": "Youku",
-  "no_streaming_th_see_network": "JustWatch has no data for this title yet — see the channel it aired on below"
+  "no_streaming_th_see_network": "JustWatch has no data for this title yet — see the channel it aired on below",
+  "network_viu": "Viu"
 }
