@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaType, PlatformType } from '@/lib/types';
+import { PLATFORM_TYPES, PLATFORM_LABELS } from '@/lib/types';
 
 export default function AddItemPage() {
   const { t } = useLanguage();
@@ -32,18 +33,9 @@ export default function AddItemPage() {
     { value: 'news', label: t('type_news') },
   ];
 
+  // Shared list (lib/types) incl. Thai channel apps; "other" last.
   const platformOptions: { value: PlatformType; label: string }[] = [
-    { value: 'netflix', label: 'Netflix' },
-    { value: 'disney', label: 'Disney+' },
-    { value: 'hbo', label: 'HBO Max' },
-    { value: 'prime', label: 'Prime Video' },
-    { value: 'youtube', label: 'YouTube' },
-    { value: 'spotify', label: 'Spotify' },
-    { value: 'apple_music', label: 'Apple Music' },
-    { value: 'wetv', label: 'WeTV' },
-    { value: 'viu', label: 'VIU' },
-    { value: 'iqiyi', label: 'iQIYI' },
-    { value: 'youku', label: 'Youku' },
+    ...PLATFORM_TYPES.filter((p) => p !== 'other').map((p) => ({ value: p, label: PLATFORM_LABELS[p] })),
     { value: 'other', label: t('type_other') },
   ];
 

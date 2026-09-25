@@ -135,20 +135,7 @@ export default function DashboardPage() {
     music: t('ai_type_music'),
   };
 
-  const aiPlatformIcons: Record<string, string> = {
-    netflix: '🔴',
-    disney: '✨',
-    hbo: '🟣',
-    prime: '📦',
-    youtube: '▶️',
-    spotify: '🎧',
-    apple_music: '🍎',
-    wetv: '🟢',
-    viu: '🔵',
-    iqiyi: '🟡',
-    youku: '🟠',
-    other: '📌',
-  };
+  const aiPlatformIcons: Record<string, string> = PLATFORM_ICONS;
 
   // Stats by type
   const statsByType = mediaItems.reduce<Record<string, number>>((acc, item) => {
