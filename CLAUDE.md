@@ -63,18 +63,19 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 7. แถวหนังไทยและเอเชีย (ไทย เกาหลี ญี่ปุ่น จีน ฮ่องกง ไต้หวัน อินเดีย)
 8. หลัก Critical Thinking → กลายเป็น "กติกาการทำงาน" ด้านบน
 
-## 🤖 ปุ่ม AI (Gemini) — แก้โค้ดแล้ว รอ deploy
+## 🤖 ปุ่ม AI (Gemini) — ✅ deploy และทดสอบบนเว็บจริงแล้ว
 - 25 ก.ย. 69: พี่แอ้เลือกใช้ Gemini ต่อ ใส่คีย์ใหม่ใน Vercel แล้ว (Secret, All Environments) และมีสำเนาใน `.env.local`
 - โค้ดเดิมเรียก `gemini-2.0-flash` ที่ Google ปิดแล้ว (1 มิ.ย. 2026) → 404
 - แก้แล้ว: ทุกจุดเรียกผ่าน `lib/gemini.ts` ที่เดียว ใช้ `gemini-flash-latest` สำรองด้วย `gemini-flash-lite-latest` (สลับเองเมื่อ 404/429/5xx) ส่งคีย์ทาง header, เพิ่ม maxOutputTokens เผื่อรุ่นที่ "คิด" ก่อนตอบ, ขอคำตอบเป็น JSON
 - เปลี่ยนรุ่นได้โดยตั้ง env `GEMINI_MODEL` ใน Vercel ไม่ต้องแก้โค้ด
-- `npm run build` ผ่านแล้ว แต่ **ยังไม่ได้ทดสอบกับ Google จริง** — หลัง deploy ให้เปิด `/api/ai/recommend` (GET) ต้องได้ `"working": true` แล้วลองปุ่ม AI ในหน้า dashboard
+- ✅ ทดสอบแล้ว 25 ก.ย. 69 (commit `e084c13`): `/api/ai/recommend` (GET) ได้ `"working": true, "model": "gemini-flash-latest"` และพี่แอ้กดปุ่ม AI ใน Dashboard ได้คำแนะนำภาษาไทย 6 เรื่องพร้อมเหตุผล
+- ข้อจำกัด: แพลตฟอร์มที่ AI บอก (เช่น "hbo", "disney") เป็นการเดาของ AI ไม่ได้เช็กกับข้อมูลจริงของไทย
 
-## 🐞 แก้หน้า Dashboard (25 ก.ย. 69) — รอ commit + deploy
+## 🐞 แก้หน้า Dashboard (25 ก.ย. 69) — ✅ deploy แล้ว (commit `6c70d59`)
 - อาการ: กดปุ่ม AI ขึ้น "Add items to your watchlist…" ทั้งที่บันทึกรายการไว้แล้ว
 - สาเหตุ: `app/dashboard/page.tsx` และ `app/dashboard/add/page.tsx` เช็ก session ด้วย `lib/supabase-browser` (client ธรรมดา อ่าน localStorage) แต่ระบบล็อกอินเก็บ session ใน cookie → ได้ null เสมอ ฟังก์ชันจบก่อนเรียก API รายการใน Dashboard จึงว่าง และฟอร์มเพิ่มรายการเองก็บันทึกไม่ได้
 - แก้: เรียก `/api/media` ตรงๆ (API อ่าน cookie เอง) เหมือนหน้า watchlist — build ผ่านแล้ว
-- ทดสอบหลัง deploy: หน้า Dashboard ต้องเห็นรายการที่บันทึก, ปุ่ม AI ต้องได้คำแนะนำภาษาไทย, ฟอร์ม /dashboard/add ต้องบันทึกได้
+- ผลทดสอบ (พี่แอ้ทดสอบเองเพราะต้องล็อกอิน): ✅ Dashboard เห็นรายการที่บันทึก ("1 items total") · ✅ ปุ่ม AI ได้คำแนะนำภาษาไทย · ⏳ ฟอร์ม `/dashboard/add` ยังไม่มีผลยืนยันว่าบันทึกได้
 - ข้อควรระวัง: ห้ามใช้ `supabase.auth.getSession()` จาก `lib/supabase-browser` เพื่อเช็กการล็อกอินในหน้าเว็บ
 
 ## 🎬 หน้าต่าง Preview ของการ์ด (25 ก.ย. 69) — ✅ deploy และทดสอบบนเว็บจริงแล้ว
@@ -91,12 +92,18 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - ยังไม่ได้ทำ: หน้า `/search` ยังดึงผลค้นหาจาก TMDb เป็นภาษาไทยเสมอ (`language` คงที่ `th-TH`) — เมนูแปลแล้ว แต่ชื่อเรื่องในผลค้นหายังเป็นไทยในโหมด EN
 
 ## 📋 งานค้าง (เรียงตามความสำคัญ)
-1. **commit + push ขึ้น GitHub + deploy Vercel production** — commit `b891b8f` ยังไม่ push; ไฟล์ใหม่/แก้ที่ยังไม่ commit: `0006_fix_save_permissions.sql`, `CLAUDE.md`, `lib/gemini.ts`, `app/api/ai/route.ts`, `app/api/ai/recommend/route.ts` (อย่า commit `.env.local`) (ไฟล์ .tsx ที่ขึ้นว่า modified 7 ไฟล์ ต่างแค่ line ending CRLF/LF ไม่ใช่งานจริง)
+> สถานะ git (25 ก.ย. 69): ทุกอย่าง commit + push ขึ้น `main` แล้ว เหลือ `FIXES_ROUND1.md`, `RLS_FIX.md` ที่ไม่ได้ track (ของรอบ Hermes ล้าสมัย — ตั้งใจไม่ commit)
+> Deploy: Vercel **ไม่ deploy อัตโนมัติ** เมื่อ push → ต้องสั่ง `vercel deploy --prod --yes` เองทุกครั้ง
+
+1. **ยืนยันฟอร์ม `/dashboard/add`** — ให้พี่แอ้ลองเพิ่มรายการ 1 เรื่อง แล้วดูว่าจำนวนใน Dashboard เพิ่มขึ้น
 2. **แท็บเพลง** — ตอนนี้แสดง "หนังแนวดนตรี" จาก TMDb (genre 10402) ไม่ใช่เพลงจริง → ถามพี่แอ้ว่าจะทำเพลงจริง (เช่น MusicBrainz) หรือตัดแท็บ
 3. **ระบบเพลย์ลิสต์** — มีตาราง playlists/playlist_items แล้ว แต่ยังไม่มีหน้าเว็บ/API
-4. **จำกัด `/api/sync`** — ตอนนี้ผู้ใช้ที่ล็อกอินคนไหนก็สั่ง sync ได้ ควรจำกัดเฉพาะแอดมิน
-5. **ระบบล็อกอิน** — `@supabase/auth-helpers-nextjs` เลิกพัฒนาแล้ว ควรย้ายไป `@supabase/ssr` (ต้องขออนุญาตพี่แอ้ก่อนเพราะเพิ่ม dependency)
-6. `.gitignore` มี `.env*` ทำให้ `.env.local.example` ไม่ถูก commit — แก้เป็น `.env*.local` + `.env`
+4. **สถานะ "ดูแล้ว / กำลังดู"** — ตอนนี้บันทึกได้แค่ "รอดู" ยังให้คะแนน/จดโน้ตไม่ได้
+5. **จำกัด `/api/sync`** — ตอนนี้ผู้ใช้ที่ล็อกอินคนไหนก็สั่ง sync ได้ ควรจำกัดเฉพาะแอดมิน
+6. **หน้า `/search` โหมด EN** — ผลค้นหายังดึงจาก TMDb เป็นภาษาไทยเสมอ
+7. **ระบบล็อกอิน** — `@supabase/auth-helpers-nextjs` เลิกพัฒนาแล้ว ควรย้ายไป `@supabase/ssr` (ต้องขออนุญาตพี่แอ้ก่อนเพราะเพิ่ม dependency)
+8. **ความเรียบร้อย (ผู้ใช้ 25–65+)** — หน้า "ไม่พบหน้านี้"/"เกิดข้อผิดพลาด" ภาษาไทย (`app/not-found.tsx`, `app/error.tsx`), ชื่อเรื่องภาษาอื่นที่ไม่มีชื่อไทย (เช่น ฝรั่งเศส) ให้ใช้ชื่ออังกฤษ, ผู้ใช้ใหม่เห็นแถว "แนะนำสำหรับคุณ" ซ้ำกับ "กำลังมาแรง", ไอคอนแอปบนมือถือ (manifest), รูป/คำอธิบายตอนแชร์ลิงก์ (OG), ทางติดต่ออื่นนอกจาก mailto (เช่น LINE OA), หน้านโยบายความเป็นส่วนตัว (PDPA)
+9. `.gitignore` มี `.env*` ทำให้ `.env.local.example` ไม่ถูก commit — แก้เป็น `.env*.local` + `.env`
 
 ## คำสั่งที่ใช้บ่อย
 ```bash
