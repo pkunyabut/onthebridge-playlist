@@ -86,7 +86,9 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - **โควตา AI:** GET `/api/ai` และ `/api/ai/recommend` (ใครก็เปิดได้) ใช้ `checkGeminiHealth()` ใน `lib/gemini.ts` ที่จำผล 10 นาที (ถ้าล้มเหลวจำ 1 นาที) → ไม่ถาม Google ทุกครั้ง; ผลมี `checked_at` บอกเวลาที่ถามจริง
 - **หน้าแรก:** ลบข้อความ `discover/movie?with_origin_country=…` ที่หลุดใต้ "ไทยและเอเชีย"; แถว "คะแนนสูงสุด" เปลี่ยนเป็น discover เรียงคะแนน + ต้องมีคนโหวต ≥1000 และไม่ส่ง region (เดิม region=TH ทำให้ปีเป็นปีฉายซ้ำในไทย เช่น Godfather 2022)
 - **ภาษา:** คำแปลไทยครบอยู่แล้ว — ที่เห็นเมนูอังกฤษเพราะเบราว์เซอร์จำโหมด EN ไว้ และปุ่มเดิมแสดง "ภาษาที่จะเปลี่ยนไป" ทำให้สับสน → เปลี่ยนเป็น `components/LangSwitch.tsx` ปุ่มคู่ "ไทย | EN" ไฮไลต์ภาษาปัจจุบัน
-- ยังเหลือ: หัวข้อแถวในหน้าแรก ("กำลังมาแรง", "คะแนนสูงสุด", "แนะนำสำหรับคุณ", "ไทยและเอเชีย") เขียนเป็นภาษาไทยตรงๆ ใน `app/page.tsx` ไม่ผ่าน `t()` → โหมด EN ยังเป็นไทย
+- ✅ แปลหน้าแรกครบแล้ว: หัวข้อแถว, ปุ่มสตรีมมิ่ง/ในโรง, เลือกบริการ (ServicePicker), ชื่อประเทศ (`country_XX`), โน้ตบริการ (`SERVICE_OPTIONS[].noteKey`) ผ่าน `t()` ทั้งหมด และ **ข้อมูลจาก TMDb (ชื่อเรื่อง แนว เรื่องย่อใน Preview) เปลี่ยนภาษาตามปุ่ม ไทย | EN** (`language = lang === 'en' ? 'en-US' : 'th-TH'` ใน `app/page.tsx`)
+- กติกา: ห้ามเขียนข้อความที่ผู้ใช้เห็นเป็นภาษาไทย/อังกฤษตรงๆ ใน JSX — เพิ่ม key ทั้งใน `lib/i18n/th.json` และ `en.json` แล้วใช้ `t()`
+- ยังไม่ได้ทำ: หน้า `/search` ยังดึงผลค้นหาจาก TMDb เป็นภาษาไทยเสมอ (`language` คงที่ `th-TH`) — เมนูแปลแล้ว แต่ชื่อเรื่องในผลค้นหายังเป็นไทยในโหมด EN
 
 ## 📋 งานค้าง (เรียงตามความสำคัญ)
 1. **commit + push ขึ้น GitHub + deploy Vercel production** — commit `b891b8f` ยังไม่ push; ไฟล์ใหม่/แก้ที่ยังไม่ commit: `0006_fix_save_permissions.sql`, `CLAUDE.md`, `lib/gemini.ts`, `app/api/ai/route.ts`, `app/api/ai/recommend/route.ts` (อย่า commit `.env.local`) (ไฟล์ .tsx ที่ขึ้นว่า modified 7 ไฟล์ ต่างแค่ line ending CRLF/LF ไม่ใช่งานจริง)
