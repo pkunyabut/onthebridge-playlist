@@ -4,11 +4,13 @@ import {
   fetchTopRatedRow,
   fetchRecommendationsForTitles,
   fetchOriginRow,
+  fetchNetworkRow,
   getOriginRegion,
   DEFAULT_LANGUAGE,
   type TmdbRowItem,
 } from '@/lib/tmdb';
 import { LruCache } from '@/lib/tmdb-cache';
+import { getNetwork } from '@/lib/networks';
 import { TmdbApiError } from '@/lib/tmdb-client';
 
 export const dynamic = 'force-dynamic';
@@ -20,6 +22,7 @@ export const dynamic = 'force-dynamic';
 // kind=for_you&titles=A,B,C         → แนะนำสำหรับคุณ (/search/multi → /movie|tv/{id}/recommendations,
 //                                                       falls back to trending when the watchlist is empty)
 // kind=origin&region=TH|KR|...|ASIA → item 7 Thai/Asian rows (/discover with_origin_country)
+// kind=network&network=ch3|wetv|…  → series by channel/platform JustWatch lacks (/discover/tv with_networks)
 const rowCache = new LruCache<{ kind: string; items: TmdbRowItem[]; source: string }>();
 
 export async function GET(request: NextRequest) {
@@ -39,8 +42,9 @@ export async function GET(request: NextRequest) {
     .slice(0, 3);
   const regionKey = (searchParams.get('region') || 'TH').toUpperCase();
   const mediaParam = searchParams.get('media') === 'tv' ? 'tv' : 'movie';
+  const networkKey = searchParams.get('network') || '';
 
-  const cacheKey = [kind, language, mediaParam, regionKey, titles.join('~')].join(':');
+  const cacheKey = [kind, language, mediaParam, regionKey, networkKey, titles.join('~')].join(':');
   const cached = rowCache.get(cacheKey);
   if (cached !== null) {
     return NextResponse.json(cached);
@@ -73,6 +77,13 @@ export async function GET(request: NextRequest) {
       }
       items = await fetchOriginRow(apiKey, region.countries, language, mediaParam);
       source = `discover/${mediaParam}?with_origin_country=${region.countries.join('|')}`;
+    } else if (kind === 'network') {
+      const network = getNetwork(networkKey);
+      if (!network) {
+        return NextResponse.json({ error: 'ไม่รู้จักช่องนี้' }, { status: 400 });
+      }
+      items = await fetchNetworkRow(apiKey, network.tmdbIds, language);
+      source = `discover/tv?with_networks=${network.tmdbIds.join('|')}`;
     } else {
       return NextResponse.json({ error: 'ไม่รู้จักชนิดแถวแนะนำ' }, { status: 400 });
     }

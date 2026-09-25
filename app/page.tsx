@@ -14,6 +14,7 @@ import LangSwitch from '@/components/LangSwitch';
 import ScrollRow from '@/components/ScrollRow';
 import Flag from '@/components/Flag';
 import SiteFooter from '@/components/SiteFooter';
+import NetworkRow from '@/components/NetworkRow';
 import MusicBrowser from '@/components/MusicBrowser';
 import MusicModal from '@/components/MusicModal';
 import type { MusicTrack } from '@/lib/itunes';
@@ -642,6 +643,9 @@ export default function LandingPage() {
               ))}
         </ScrollRow>
       </section>
+
+      {/* Thai channels & Asian platforms that JustWatch doesn't cover */}
+      <NetworkRow language={language} onSelect={(item) => setModalResult(toResult(item))} />
 
       {/* Browse — IMDb-style grid */}
       <section id="browse" className="max-w-7xl mx-auto px-4 pb-16 md:pb-24">

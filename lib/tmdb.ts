@@ -723,6 +723,29 @@ export async function fetchOriginRow(
   return (data.results ?? []).slice(0, limit).map((item) => toRowItem(item, mediaType));
 }
 
+/**
+ * Series by the channel/platform they aired on (TMDB networks, pipe = OR) — covers Thai
+ * channels and Asian platforms that JustWatch has no data for. Popular first; shows that
+ * have not started airing yet are left out.
+ */
+export async function fetchNetworkRow(
+  apiKey: string,
+  networkIds: number[],
+  language: string = DEFAULT_LANGUAGE,
+  limit: number = 20,
+): Promise<TmdbRowItem[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  const data = await fetchTmdb('/discover/tv', {
+    with_networks: networkIds.join('|'),
+    sort_by: 'popularity.desc',
+    'first_air_date.lte': today,
+    language,
+    page: '1',
+    include_adult: 'false',
+  }, apiKey) as { results?: TmdbRowRaw[] };
+  return (data.results ?? []).slice(0, limit).map((item) => toRowItem(item, 'tv'));
+}
+
 export interface OriginRegionOption {
   key: string;
   label: string;

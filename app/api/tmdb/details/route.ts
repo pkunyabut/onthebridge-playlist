@@ -27,6 +27,8 @@ export interface TmdbDetails {
   providers: { stream: DetailProvider[]; rent: DetailProvider[]; buy: DetailProvider[] };
   /** TMDb's per-title "where to watch in Thailand" page. */
   watch_link: string | null;
+  /** Series only: channels/platforms it first aired on (TMDB networks). */
+  networks: { id: number; name: string; logo: string | null }[];
 }
 
 interface RawProvider { provider_id: number; provider_name: string; logo_path: string | null }
@@ -40,6 +42,7 @@ interface RawDetails {
   number_of_episodes?: number;
   genres?: { name: string }[];
   created_by?: { id: number; name: string }[];
+  networks?: { id: number; name: string; logo_path?: string | null }[];
   credits?: {
     cast?: { id: number; name: string; order?: number }[];
     crew?: { id: number; name: string; job?: string }[];
@@ -161,6 +164,11 @@ export async function GET(request: NextRequest) {
       trailer: pickTrailer(data.videos?.results ?? []),
       providers: { stream, rent, buy },
       watch_link: region?.link ?? null,
+      networks: (data.networks ?? []).map((n) => ({
+        id: n.id,
+        name: n.name,
+        logo: n.logo_path ? `${LOGO_BASE}${n.logo_path}` : null,
+      })),
     };
 
     detailsCache.set(cacheKey, details);

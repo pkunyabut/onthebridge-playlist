@@ -6,6 +6,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import type { TmdbResult } from '@/lib/tmdb';
 import { PLATFORM_URLS } from '@/lib/tmdb';
 import type { TmdbDetails } from '@/app/api/tmdb/details/route';
+import { networkForTmdbId } from '@/lib/networks';
 
 interface MediaModalProps {
   result: TmdbResult;
@@ -240,6 +241,36 @@ export default function MediaModal({
                 </p>
               )}
               <p className="mt-2 text-sm text-cinema-text-muted/80">{t('justwatch_credit')}</p>
+
+              {/* Channel/platform it aired on — fills the gap for Thai channels & Asian platforms */}
+              {(details.networks ?? []).length > 0 && (
+                <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10">
+                  <p className="text-base text-cinema-text-muted mb-2 font-medium">📺 {t('aired_on_label')}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(details.networks ?? []).map((n) => (
+                      <span key={n.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white text-gray-900 text-base font-medium">
+                        {n.logo && <img src={n.logo} alt="" className="h-5 w-auto max-w-[64px] object-contain" />}
+                        {n.name}
+                      </span>
+                    ))}
+                  </div>
+                  {(details.networks ?? [])
+                    .map((n) => networkForTmdbId(n.id))
+                    .filter((net, i, arr): net is NonNullable<typeof net> => !!net && arr.findIndex((x) => x?.key === net.key) === i)
+                    .map((net) => (
+                      <a
+                        key={net.key}
+                        href={net.app.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-base font-medium transition-colors"
+                      >
+                        {t('network_go_app', { app: net.app.name })} ↗
+                      </a>
+                    ))}
+                  <p className="mt-2 text-sm text-cinema-text-muted/80">{t('aired_on_note')}</p>
+                </div>
+              )}
               {details.watch_link && (streamProviders.length > 0 || rentBuyProviders.length > 0) && (
                 <a
                   href={details.watch_link}
