@@ -8,6 +8,9 @@ import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import type { PlatformType } from '@/lib/types';
 import { PLATFORM_ICONS } from '@/lib/types';
+import MediaModal from '@/components/MediaModal';
+import { useTmdbMatches, savedItemToResult } from '@/lib/useTmdbMatches';
+import type { TmdbResult } from '@/lib/tmdb';
 
 interface Recommendation {
   title: string;
@@ -28,6 +31,10 @@ export default function DashboardPage() {
   const [aiRecommendations, setAiRecommendations] = useState<Recommendation[] | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
   const [showAiModal, setShowAiModal] = useState(false);
+
+  // Poster + preview for saved items
+  const matches = useTmdbMatches(mediaItems);
+  const [preview, setPreview] = useState<TmdbResult | null>(null);
 
   useEffect(() => {
     fetchMedia();
@@ -282,15 +289,31 @@ export default function DashboardPage() {
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className="imdb-card !cursor-default"
+              className={`imdb-card ${matches[item.id] ? 'cursor-pointer' : '!cursor-default'}`}
+              onClick={() => {
+                const match = matches[item.id];
+                if (match) setPreview(savedItemToResult(item, match));
+              }}
             >
               {/* Poster placeholder for saved items */}
               <div className="poster-container flex items-center justify-center bg-cinema-800">
-                <span className="text-4xl">{typeIcons[item.type]}</span>
+                {matches[item.id]?.poster ? (
+                  <img
+                    src={matches[item.id]!.poster!}
+                    alt={item.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl">{typeIcons[item.type]}</span>
+                )}
                 <div className="poster-overlay" />
                 {/* Delete button */}
                 <button
-                  onClick={() => handleDelete(item.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(item.id);
+                  }}
                   disabled={deleting === item.id}
                   className="save-btn"
                   aria-label={t('delete')}
@@ -325,6 +348,18 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Preview of a saved item (poster/details looked up on TMDb by title + year) */}
+      {preview && (
+        <MediaModal
+          result={preview}
+          isLoggedIn
+          saved
+          saving={false}
+          onClose={() => setPreview(null)}
+          onToggleSave={() => setPreview(null)}
+        />
       )}
 
       {/* AI Recommendations Modal */}
