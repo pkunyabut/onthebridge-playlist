@@ -12,7 +12,9 @@ export default function Flag({ code, className = '' }: { code: string; className
       alt=""
       aria-hidden
       loading="lazy"
-      className={`inline-block w-5 h-auto rounded-[2px] shrink-0 ${className}`}
+      // inline size: card CSS stretches every poster <img> to 100% (.poster-container img)
+      style={{ width: 20, height: 'auto', transform: 'none' }}
+      className={`inline-block rounded-[2px] shrink-0 ${className}`}
     />
   );
 }
