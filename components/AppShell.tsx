@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
+import LangSwitch from '@/components/LangSwitch';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
-  const { t, lang, setLang } = useLanguage();
+  const { t } = useLanguage();
 
   const navItems = [
     { href: '/dashboard', label: t('nav_home'), icon: '🏠' },
@@ -21,10 +22,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
-  };
-
-  const toggleLang = () => {
-    setLang(lang === 'th' ? 'en' : 'th');
   };
 
   const isActive = (href: string) => {
@@ -44,12 +41,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </Link>
           <div className="flex items-center gap-2">
-            <button
-              onClick={toggleLang}
-              className="px-3 py-1.5 rounded-lg text-sm font-bold border border-cinema-border text-cinema-text-muted hover:bg-cinema-700 transition-colors"
-            >
-              {lang === 'th' ? 'EN' : 'TH'}
-            </button>
+            <LangSwitch />
             <button
               onClick={() => setShowMenu(!showMenu)}
               className="p-2 rounded-lg hover:bg-cinema-700 transition-colors"
@@ -126,13 +118,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <span className="text-base">✉️</span>
               {t('contact_title')}
             </a>
-            <button
-              onClick={toggleLang}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-cinema-text-muted hover:bg-cinema-700 transition-colors"
-            >
+            <div className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-cinema-text-muted">
               <span className="text-base">🌐</span>
-              {lang === 'th' ? 'English' : 'ไทย'}
-            </button>
+              <LangSwitch />
+            </div>
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors"
