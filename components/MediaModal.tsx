@@ -250,7 +250,10 @@ export default function MediaModal({
                     {(details.networks ?? []).map((n) => (
                       <span key={n.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white text-gray-900 text-base font-medium">
                         {n.logo && <img src={n.logo} alt="" className="h-5 w-auto max-w-[64px] object-contain" />}
-                        {n.name}
+                        {(() => {
+                          const known = networkForTmdbId(n.id);
+                          return known ? t(`network_${known.key}`) : n.name;
+                        })()}
                       </span>
                     ))}
                   </div>
