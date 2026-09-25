@@ -6,6 +6,10 @@ export const dynamic = 'force-dynamic';
 
 const musicCache = new LruCache<MusicTrack[]>(60 * 60 * 1000, 200);
 
+// Share results through Vercel's CDN: fresh for 1 hour, then served stale while it refreshes,
+// so nobody waits on Apple's slow chart feed (KR once took 26 s with retries).
+const CDN_CACHE = { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' };
+
 // GET /api/music?kind=top&chart=kr — top songs chart (th | kr | jp | us | cn | tw, default th)
 // GET /api/music?q=bodyslam        — search songs
 // GET /api/music?ids=123,456       — look up saved songs (fresh 30s preview links)
@@ -35,12 +39,12 @@ export async function GET(request: NextRequest) {
   }
 
   const cached = musicCache.get(cacheKey);
-  if (cached !== null) return NextResponse.json({ tracks: cached });
+  if (cached !== null) return NextResponse.json({ tracks: cached }, { headers: CDN_CACHE });
 
   try {
     const tracks = await load();
     musicCache.set(cacheKey, tracks);
-    return NextResponse.json({ tracks });
+    return NextResponse.json({ tracks }, { headers: CDN_CACHE });
   } catch (err) {
     console.error('music route error:', err);
     return NextResponse.json({ error: 'ดึงข้อมูลเพลงไม่สำเร็จ' }, { status: 502 });
