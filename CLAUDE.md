@@ -141,7 +141,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - ⚠️ ข้อความเงื่อนไขเขียนโดย Claude ไม่ใช่นักกฎหมาย — ถ้าจะใช้จริงจัง/หารายได้ ควรให้ผู้รู้ PDPA ตรวจ · ถ้าเพิ่มการเก็บข้อมูลใหม่ ต้องแก้หน้า /terms และวันที่ "ปรับปรุงล่าสุด"
 
 ## 📺 ละครและซีรีส์ตามช่อง (25 ก.ย. 69) — ✅ deploy และทดสอบบนเว็บจริงแล้ว (commit `c244105` … `babf8ae`)
-- อุดช่องว่าง JustWatch ด้วยข้อมูล network ของ TMDB: `lib/networks.ts` (13 ช่อง/แพลตฟอร์ม + รหัส TMDB + แอปของช่อง), `components/NetworkRow.tsx` (แถวใหม่ในหน้าแรกหลัง "ไทยและเอเชีย"), API `/api/tmdb/rows?kind=network&network=ch3`, `fetchNetworkRow` ใน `lib/tmdb.ts`
+- อุดช่องว่าง JustWatch ด้วยข้อมูล network ของ TMDB: `lib/networks.ts` (14 ช่อง/แพลตฟอร์ม + รหัส TMDB + แอปของช่อง — เพิ่ม Viu 26 ก.ย. 69: Viu TH `2980` + KR `8922` + HK `9261`; Viu IN/JO/PK/PH ไม่ได้ฉายในไทยจึงไม่ใส่), `components/NetworkRow.tsx` (แถวใหม่ในหน้าแรกหลัง "ไทยและเอเชีย"), API `/api/tmdb/rows?kind=network&network=ch3`, `fetchNetworkRow` ใน `lib/tmdb.ts`
 - แถว: เรื่องที่มีตอนออกอากาศใน 12 เดือนล่าสุดขึ้นก่อน (`air_date.gte`) แล้วเติมด้วยยอดนิยมตลอดกาล · ตัดการ์ตูนเด็ก (`without_genres=10762,16`) · ตัดเรื่องที่ไม่มีชื่อไทย/อังกฤษ (รายการจีนแผ่นดินใหญ่ที่ไม่ได้ฉายในไทย) · ดึง 4 หน้า (recent×2 + all-time×2)
 - Preview ซีรีส์: `/api/tmdb/details` คืน `networks` → กล่อง "📺 ออกอากาศทาง [โลโก้] ช่อง 3" + ปุ่ม "ไปที่ CH3Plus ↗" + หมายเหตุว่าเป็นช่องที่ออกอากาศครั้งแรก · ถ้า JustWatch ไม่มีข้อมูล ขึ้น "JustWatch ยังไม่มีข้อมูลเรื่องนี้ — ดูช่องที่ออกอากาศด้านล่าง"
 - ลิงก์แอป (เช็กแล้ว): Bugaboo ย้ายไป ch7.com/th แล้ว → ใช้ "CH7HD" · amarintv.com ตอบ 403 กับการเช็กอัตโนมัติ (น่าจะเปิดในเบราว์เซอร์ได้)
@@ -150,7 +150,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 
 ## 📋 งานค้าง (เรียงตามความสำคัญ)
 > สถานะ git (25 ก.ย. 69): ทุกอย่าง commit + push ขึ้น `main` แล้ว เหลือ `FIXES_ROUND1.md`, `RLS_FIX.md` ที่ไม่ได้ track (ของรอบ Hermes ล้าสมัย — ตั้งใจไม่ commit)
-> Deploy: Vercel **ไม่ deploy อัตโนมัติ** เมื่อ push → ต้องสั่ง `vercel deploy --prod --yes` เองทุกครั้ง
+> Deploy: Vercel **ไม่ deploy อัตโนมัติ** เมื่อ push → ต้องสั่ง `vercel deploy --prod --yes` เองทุกครั้ง · ⚠️ อย่าซ่อนผลลัพธ์ของคำสั่ง deploy (เคยล้มเหลวเงียบๆ 26 ก.ย. 69) — เช็กด้วย `vercel ls onthebridge-playlist` ว่าแถวบนสุดอายุไม่กี่วินาทีและเป็น Ready ก่อนทดสอบ
 
 1. **ทดสอบการบันทึกหลัง 0007 (ต้องล็อกอิน)** — ให้พี่แอ้: บันทึกหนัง 1 เรื่องจากหน้าแรก, บันทึกเพลง 1 เพลงจากแท็บเพลง, เปิด Dashboard ดูว่าการ์ดเพลงมีปก + ศิลปิน และกดฟังตัวอย่างได้
 2. **ระบบเพลย์ลิสต์** — มีตาราง playlists/playlist_items แล้ว แต่ยังไม่มีหน้าเว็บ/API
