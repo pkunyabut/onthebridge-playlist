@@ -39,10 +39,10 @@ interface RawDetails {
   number_of_seasons?: number;
   number_of_episodes?: number;
   genres?: { name: string }[];
-  created_by?: { name: string }[];
+  created_by?: { id: number; name: string }[];
   credits?: {
-    cast?: { name: string; order?: number }[];
-    crew?: { name: string; job?: string }[];
+    cast?: { id: number; name: string; order?: number }[];
+    crew?: { id: number; name: string; job?: string }[];
   };
   videos?: { results?: RawVideo[] };
   'watch/providers'?: {
@@ -53,6 +53,9 @@ interface RawDetails {
 const detailsCache = new LruCache<TmdbDetails>(6 * 60 * 60 * 1000, 300);
 
 const LOGO_BASE = 'https://image.tmdb.org/t/p/w92';
+
+/** Thai or Latin script — anything else (e.g. 甄子丹) is swapped for the English name. */
+const READABLE_NAME = /^[฀-๿ -ɏḀ-ỿ\s.'’-]+$/;
 
 function toProviders(list: RawProvider[] | undefined, seen: Set<number>): DetailProvider[] {
   const out: DetailProvider[] = [];
@@ -108,23 +111,35 @@ export async function GET(request: NextRequest) {
       apiKey,
     )) as RawDetails;
 
+    const directorPeople =
+      endpoint === 'tv'
+        ? data.created_by ?? []
+        : (data.credits?.crew ?? []).filter((c) => c.job === 'Director');
+    const castPeople = [...(data.credits?.cast ?? [])]
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+      .slice(0, 5);
+
     let overview = data.overview?.trim() || null;
     let overviewIsEnglish = false;
-    if (!overview) {
-      const en = (await fetchTmdb(`/${endpoint}/${id}`, { language: 'en-US' }, apiKey)) as RawDetails;
-      overview = en.overview?.trim() || null;
-      overviewIsEnglish = !!overview;
+    const needsEnglishNames = [...directorPeople, ...castPeople].some((p) => !READABLE_NAME.test(p.name));
+
+    // One English request covers both a missing Thai synopsis and unreadable names.
+    const englishNames = new Map<number, string>();
+    if (!overview || needsEnglishNames) {
+      const en = (await fetchTmdb(`/${endpoint}/${id}`, { language: 'en-US', append_to_response: 'credits' }, apiKey)) as RawDetails;
+      if (!overview) {
+        overview = en.overview?.trim() || null;
+        overviewIsEnglish = !!overview;
+      }
+      for (const p of [...(en.created_by ?? []), ...(en.credits?.cast ?? []), ...(en.credits?.crew ?? [])]) {
+        englishNames.set(p.id, p.name);
+      }
     }
+    const displayName = (p: { id: number; name: string }) =>
+      READABLE_NAME.test(p.name) ? p.name : englishNames.get(p.id) ?? p.name;
 
-    const directors =
-      endpoint === 'tv'
-        ? (data.created_by ?? []).map((c) => c.name)
-        : (data.credits?.crew ?? []).filter((c) => c.job === 'Director').map((c) => c.name);
-
-    const cast = [...(data.credits?.cast ?? [])]
-      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
-      .slice(0, 5)
-      .map((c) => c.name);
+    const directors = directorPeople.map(displayName);
+    const cast = castPeople.map(displayName);
 
     const region = data['watch/providers']?.results?.[DEFAULT_WATCH_REGION];
     const seen = new Set<number>();
