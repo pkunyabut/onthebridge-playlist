@@ -50,7 +50,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 | 0003_tmdb_cache | ตาราง cache ของ TMDb |
 | 0004, 0005 | ขยายรายการ platform/type (wetv, viu, iqiyi, youku) |
 | **0006_fix_save_permissions** | ✅ รันแล้ว 25 ก.ย. 69 — GRANT สิทธิ์ให้ role `authenticated` + trigger สร้าง `profiles` อัตโนมัติ (ผล: users 2 = profiles 2) |
-| **0007_media_items_music_and_tmdb** | ⏳ ส่งให้พี่แอ้รันแล้ว 25 ก.ย. 69 รอยืนยัน — เพิ่มคอลัมน์ `artist`, `album`, `cover_url`, `itunes_track_id`, `external_url`, `tmdb_id`, `tmdb_media` (ทั้งหมดไม่บังคับ) · **ห้าม deploy โค้ดที่ส่งคอลัมน์เหล่านี้ก่อนรัน** ไม่งั้นบันทึกหนังจากหน้าแรกจะ error |
+| **0007_media_items_music_and_tmdb** | ✅ พี่แอ้รันแล้ว 25 ก.ย. 69 — เพิ่มคอลัมน์ `artist`, `album`, `cover_url`, `itunes_track_id`, `external_url`, `tmdb_id`, `tmdb_media` (ทั้งหมดไม่บังคับ) |
 
 `tmdb_music` (0003) เป็น cache "หนังแนวดนตรี" ของ TMDb ไม่ใช่เพลงจริง — เพลงจริงมาจาก iTunes และเก็บใน `media_items` (type `music`)
 
@@ -102,7 +102,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - ข้อจำกัด: ชื่อที่พิมพ์เองไม่ตรง TMDb อาจไม่เจอโปสเตอร์ · ทางที่ถูกกว่าในอนาคต = เพิ่มคอลัมน์ `tmdb_id`, `tmdb_media`, `poster_url` (migration ใหม่ ให้พี่แอ้รัน SQL) แล้วเก็บตอนกดบันทึกจากหน้าแรก
 - ⚠️ ทดสอบด้วย curl บน Windows (Git Bash) ส่งภาษาไทยเพี้ยน → ใช้ `fetch` ในเบราว์เซอร์แทน
 
-## 🎵 แท็บเพลงจริง (25 ก.ย. 69) — โค้ดพร้อม + ทดสอบในเครื่องผ่าน · ⏳ รอพี่แอ้รัน SQL 0007 ก่อน deploy
+## 🎵 แท็บเพลงจริง (25 ก.ย. 69) — ✅ deploy แล้ว (commit `f012609`) หลังพี่แอ้รัน SQL 0007
 - พี่แอ้เลือก: เพิ่มคอลัมน์ในฐานข้อมูล (ทาง ข.), แสดงเท่าที่ทำได้, **ฟังได้แค่ตัวอย่าง 30 วินาทีเท่านั้น** (ห้ามเล่นเต็มเพลง/วิดีโอ)
 - แหล่งข้อมูล (ฟรี ไม่ต้องใช้คีย์): เพลงฮิตไทย = Apple Music chart `rss.applemarketingtools.com/api/v2/th/music/most-played/50/songs.json` · ค้นหา/lookup = `itunes.apple.com/search|lookup?country=TH` (มี `previewUrl` 30 วิ)
 - โค้ด: `lib/itunes.ts`, `app/api/music` (`?kind=top` | `?q=` | `?ids=`, cache 1 ชม.), `components/MusicBrowser.tsx` (แท็บ 🎵 เพลง ในหน้าแรก: ช่องค้นหา + อันดับเพลงฮิต), `components/MusicModal.tsx` (ปก, ศิลปิน, อัลบั้ม, `<audio>` ตัวอย่าง 30 วิ, ปุ่มเปิด Apple Music, ปุ่มบันทึก)
@@ -110,13 +110,14 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - หนัง/ซีรีส์ที่บันทึกจากหน้าแรก/ค้นหา จะเก็บ `tmdb_id`, `tmdb_media`, `cover_url` ด้วย → `useTmdbMatches` ใช้ค่าตรงนี้ ไม่ต้องค้นจากชื่อ (รายการเก่ายังค้นจากชื่อเหมือนเดิม)
 - ระบบจับคู่โปสเตอร์ TMDb **ข้ามรายการเพลงเสมอ** (deploy แล้ว commit `a3ba053`)
 - ผลทดสอบในเครื่อง (จอ 375px): เพลงฮิต 50 เพลง มีเสียงตัวอย่างครบ 50 · ค้น "บอดี้สแลม" → Bodyslam · เสียงตัวอย่างโหลดได้ ยาว 30.01 วินาที · ไม่ล้นจอ
+- ผลทดสอบบนเว็บจริง (จอ 375px, ไม่ล็อกอิน): แท็บเพลงขึ้น 50 เพลง, หน้าต่างเพลงเปิดได้, เสียงตัวอย่าง 30.01 วินาที, ไม่ล้นจอ · ยังไม่ได้ทดสอบ (ต้องล็อกอิน): บันทึกเพลง/หนัง และการ์ดเพลงใน Dashboard
 - ⚠️ `TaskStop` ของ `npx next start` ไม่ปิด node ลูก → เช็ก/ปิดพอร์ตด้วย PowerShell `Get-NetTCPConnection -LocalPort 3100`
 
 ## 📋 งานค้าง (เรียงตามความสำคัญ)
 > สถานะ git (25 ก.ย. 69): ทุกอย่าง commit + push ขึ้น `main` แล้ว เหลือ `FIXES_ROUND1.md`, `RLS_FIX.md` ที่ไม่ได้ track (ของรอบ Hermes ล้าสมัย — ตั้งใจไม่ commit)
 > Deploy: Vercel **ไม่ deploy อัตโนมัติ** เมื่อ push → ต้องสั่ง `vercel deploy --prod --yes` เองทุกครั้ง
 
-1. **แท็บเพลง** — รอพี่แอ้ยืนยันว่ารัน SQL 0007 แล้ว → deploy → ทดสอบบนเว็บจริง: บันทึกหนังจากหน้าแรก, บันทึกเพลง, การ์ดเพลงใน Dashboard เปิดฟังตัวอย่างได้
+1. **ทดสอบการบันทึกหลัง 0007 (ต้องล็อกอิน)** — ให้พี่แอ้: บันทึกหนัง 1 เรื่องจากหน้าแรก, บันทึกเพลง 1 เพลงจากแท็บเพลง, เปิด Dashboard ดูว่าการ์ดเพลงมีปก + ศิลปิน และกดฟังตัวอย่างได้
 2. **ระบบเพลย์ลิสต์** — มีตาราง playlists/playlist_items แล้ว แต่ยังไม่มีหน้าเว็บ/API
 3. **สถานะ "ดูแล้ว / กำลังดู"** — ตอนนี้บันทึกได้แค่ "รอดู" ยังให้คะแนน/จดโน้ตไม่ได้
 4. **จำกัด `/api/sync`** — ตอนนี้ผู้ใช้ที่ล็อกอินคนไหนก็สั่ง sync ได้ ควรจำกัดเฉพาะแอดมิน
