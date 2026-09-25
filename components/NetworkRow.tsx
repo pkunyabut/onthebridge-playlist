@@ -45,8 +45,9 @@ export default function NetworkRow({ language, onSelect }: NetworkRowProps) {
     <section className="max-w-7xl mx-auto px-4 pb-10">
       <div className="imdb-section-header">
         <h2>📺 {t('row_network_title')}</h2>
-        <span className="count">{t('row_network_hint')}</span>
       </div>
+      {/* own line: next to the heading it squeezed the title to 3 lines on phones */}
+      <p className="-mt-2 mb-3 text-base text-cinema-text-muted">{t('row_network_hint')}</p>
 
       <div className="chip-row scrollbar-hide mb-4">
         {NETWORKS.map((n) => (
