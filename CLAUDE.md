@@ -173,7 +173,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - ทดสอบ: `MSYS_NO_PATHCONV=1 vercel crons run /api/cron/keepalive` (Git Bash แปลง /api เป็นพาธ Windows ถ้าไม่ใส่) → log ระดับ info · `vercel crons list` เห็น 1 งาน
 - สำรองข้อมูล: พี่แอ้ export `media_items` เป็น CSV แล้ว 26 ก.ย. 69 (6 แถว) เก็บที่ `C:\Claude Cowork\media_items_rows.csv` (นอก repo) · ทำเดือนละครั้ง · **repo เป็นสาธารณะ ห้าม commit ไฟล์ข้อมูลผู้ใช้**
 
-## 🗂️ คอลเลกชัน (26 ก.ย. 69) — ✅ deploy แล้ว (commit `073a6b3`) · ⏳ รอพี่แอ้ทดสอบ (ต้องล็อกอิน)
+## 🗂️ คอลเลกชัน (26 ก.ย. 69) — ✅ deploy แล้ว (commit `073a6b3`) + SQL 0010 · ✅ พี่แอ้ทดสอบผ่าน (สร้างคอลเลกชัน + เพิ่มรายการลงคอลเลกชัน)
 - ใช้ตารางเดิม `playlists` / `playlist_items` · ⚠️ ตอนแรกคิดว่ากฎ RLS จาก 0002 มีแล้ว (เช็กแค่ไฟล์) แต่ในฐานข้อมูลไม่มี → สร้างคอลเลกชัน 500 → ต้องรัน 0010 · **บทเรียน: ก่อนบอกว่า "ไม่ต้องรัน SQL" ให้เช็กฐานข้อมูลจริงด้วย pg_policies / information_schema**
 - API: `/api/collections` GET (พร้อม `item_ids`) / POST {name} / PATCH {id,name} / DELETE ?id= (ลบลิงก์รายการก่อน รายการยังอยู่ในรอดู) · `/api/collections/items` POST {collection_id, media_item_id} (เช็กว่าเป็นของผู้ใช้ทั้งคู่; ซ้ำ 23505 = สำเร็จ) / DELETE
 - `lib/useCollections.ts` (โหลด/สร้าง/เปลี่ยนชื่อ/ลบ/เพิ่ม-เอาออกแบบ optimistic) · `components/CollectionPicker.tsx` กล่อง "🗂️ เพิ่มลงคอลเลกชัน" ใน `MediaModal` (เมื่อมี `savedItem`) และ `MusicModal` (prop `savedItemId`) · `components/SavedItemCard.tsx` การ์ดรายการที่บันทึก (ใช้ในหน้าคอลเลกชัน — Dashboard/รอดู ยังมีโค้ดการ์ดของตัวเอง ควรย้ายมาใช้ตัวนี้ภายหลัง)
