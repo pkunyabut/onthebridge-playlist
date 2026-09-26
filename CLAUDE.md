@@ -33,7 +33,8 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 | ตัวแปร | ใช้ทำอะไร |
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | เชื่อม Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | เขียนตาราง cache ของ TMDb (ฝั่งเซิร์ฟเวอร์เท่านั้น) |
+| `SUPABASE_SERVICE_ROLE_KEY` | ⚠️ **ยังไม่ได้ตั้งใน Vercel** (เช็ก 26 ก.ย. 69) — ใช้เขียนตาราง cache ของ TMDb (`lib/tmdb-cache-layer.ts`, `lib/tmdb-sync.ts`) ซึ่งจึงยังไม่ทำงาน และตาราง `tmdb_*` จาก 0003 ก็ไม่มีในฐานข้อมูล (Table Editor มีแค่ media_items, playlists, playlist_items, profiles) — เว็บทำงานได้เพราะดึง TMDb สดแทน |
+| `CRON_SECRET` | ตั้งแล้ว 26 ก.ย. 69 (Production, สุ่มโดย Claude ไม่ได้บันทึกค่าไว้ที่ไหน) — Vercel Cron ส่งเป็น Bearer token ให้ `/api/cron/keepalive` |
 | `TMDB_API_KEY` | ดึงข้อมูลหนัง |
 | `NEXT_PUBLIC_SITE_URL` | URL สำหรับ redirect หลังล็อกอิน Google |
 | `GEMINI_API_KEY` | ปุ่ม AI |
@@ -162,6 +163,13 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - ป้ายแพลตฟอร์มใน Dashboard ใช้ `PLATFORM_LABELS` (CH3Plus, Prime Video) แทนค่าระบบ
 - ถ้ายังไม่เคยบันทึกซีซัน ตัวนับเริ่มที่ซีซันล่าสุดที่ออกอากาศแล้ว (commit `7383587`)
 - ยังไม่มี: สถานะสำหรับเพลง, ตัวกรองตามสถานะ (เช่น ดูเฉพาะ "กำลังดู") · "ยังไม่ได้ดู N ตอน" นับเฉพาะในซีซันเดียวกับตอนล่าสุด (ข้ามซีซันยังไม่นับ)
+
+## ⏰ กัน Supabase หยุดโปรเจกต์ + สำรองข้อมูล (26 ก.ย. 69) — ✅ deploy และทดสอบแล้ว
+- เงื่อนไข (อ่านจากเว็บ Supabase): แพ็กเกจ Free **ไม่มี backup อัตโนมัติ** (มีแค่ Pro ขึ้นไป — Supabase แนะนำให้ export เอง) และ **"Free projects are paused after 1 week of inactivity"** (ข้อมูลไม่หาย แต่ล็อกอิน/บันทึกไม่ได้จนกด Restore)
+- `vercel.json` → `crons`: `/api/cron/keepalive` ทุกวัน `0 3 * * *` (10:00 เวลาไทย, Hobby รันวันละครั้ง คลาดเคลื่อนได้ในชั่วโมงนั้น) · ต้องมี `CRON_SECRET` (คนนอกเรียก → 401)
+- keepalive ใช้ anon key → Postgres ตอบ 42501 permission denied (ตาราง profiles ยังเป็นส่วนตัว) = คำขอถึงฐานข้อมูลแล้ว นับเป็น activity → ตอบ ok · error แบบอื่นตอบ 502
+- ทดสอบ: `MSYS_NO_PATHCONV=1 vercel crons run /api/cron/keepalive` (Git Bash แปลง /api เป็นพาธ Windows ถ้าไม่ใส่) → log ระดับ info · `vercel crons list` เห็น 1 งาน
+- สำรองข้อมูล: พี่แอ้ export `media_items` เป็น CSV แล้ว 26 ก.ย. 69 (6 แถว) เก็บที่ `C:\Claude Cowork\media_items_rows.csv` (นอก repo) · ทำเดือนละครั้ง · **repo เป็นสาธารณะ ห้าม commit ไฟล์ข้อมูลผู้ใช้**
 
 ## 📋 งานค้าง (เรียงตามความสำคัญ)
 > ✅ 26 ก.ย. 69 พี่แอ้ทดสอบหลัง 0007 + 0008 ผ่านครบ: บันทึกเพลง (การ์ดมีปก + ศิลปิน + ฟังตัวอย่างได้), บันทึกละครจากแถวตามช่อง (โปสเตอร์ + ป้าย ch3plus), บันทึกหนังจากหน้าแรก (โปสเตอร์ตรง + Preview)
