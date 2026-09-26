@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import LangSwitch from '@/components/LangSwitch';
-import SiteFooter from '@/components/SiteFooter';
+import SiteFooter, { MAGAZINE_URL } from '@/components/SiteFooter';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -74,6 +74,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 {item.label}
               </Link>
             ))}
+            <a
+              href={MAGAZINE_URL}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-cinema-text-muted hover:bg-cinema-700 transition-colors"
+            >
+              <span className="text-base">📖</span>
+              {t('nav_magazine')}
+            </a>
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors"
@@ -113,6 +120,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex flex-col gap-1 pt-4 border-t border-cinema-border">
+            <a
+              href={MAGAZINE_URL}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-cinema-text-muted hover:bg-cinema-700 transition-colors"
+            >
+              <span className="text-base">📖</span>
+              {t('nav_magazine')}
+            </a>
             <a
               href="mailto:thonglorproduction@gmail.com"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-cinema-text-muted hover:bg-cinema-700 transition-colors"

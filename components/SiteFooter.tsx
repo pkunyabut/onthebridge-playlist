@@ -5,6 +5,9 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export const CONTACT_EMAIL = 'thonglorproduction@gmail.com';
 
+/** Sister site: the OnTheBridge magazine (static site on Cloudflare Pages). Change here when the domain changes. */
+export const MAGAZINE_URL = 'https://onthebridge.pages.dev/';
+
 /** Official TMDB logo (themoviedb.org/about/logos-attribution) — must stay smaller than our own logo. */
 export const TMDB_LOGO =
   'https://www.themoviedb.org/assets/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg';
@@ -50,6 +53,9 @@ export default function SiteFooter({ className = '' }: { className?: string }) {
         </ul>
 
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-white/5 pt-4 text-center">
+          <a href={MAGAZINE_URL} className="text-brand-400 hover:text-brand-300 underline underline-offset-2">
+            📖 {t('nav_magazine')}
+          </a>
           <Link href="/terms" className="text-brand-400 hover:text-brand-300 underline underline-offset-2">
             {t('footer_terms_link')}
           </Link>
