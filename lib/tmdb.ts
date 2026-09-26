@@ -803,7 +803,11 @@ export async function fetchNetworkRow(
   const pages = await Promise.all(
     pageParams.map(async (params) => {
       const data = await fetchTmdb('/discover/tv', params, apiKey) as { results?: TmdbRowRaw[] };
-      return applyEnglishTitles(data.results ?? [], '/discover/tv', params, apiKey);
+      // Filter on the th-TH title BEFORE the English swap — otherwise every mainland show with an
+      // English name (哈哈哈哈哈 → "HaHaHaHaHa") gets back in. Only Latin-script originals
+      // (Spanish, French…) reach applyEnglishTitles.
+      const readable = (data.results ?? []).filter((r) => READABLE_TITLE.test(r.name ?? r.title ?? ''));
+      return applyEnglishTitles(readable, '/discover/tv', params, apiKey);
     }),
   );
   const seen = new Set<number>();
@@ -811,8 +815,7 @@ export async function fetchNetworkRow(
   for (const raw of pages.flat()) {
     if (seen.has(raw.id)) continue;
     seen.add(raw.id);
-    const item = toRowItem(raw, 'tv');
-    if (READABLE_TITLE.test(item.title)) rows.push(item);
+    rows.push(toRowItem(raw, 'tv'));
   }
   return rows.slice(0, limit);
 }
