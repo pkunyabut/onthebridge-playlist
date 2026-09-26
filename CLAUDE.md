@@ -62,6 +62,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 | **0007_media_items_music_and_tmdb** | ✅ พี่แอ้รันแล้ว 26 ก.ย. 69 + **ยืนยันด้วย information_schema: มี `artist`, `album`, `cover_url`, `itunes_track_id`, `external_url`, `tmdb_id`, `tmdb_media` ครบ** (รอบแรกที่แจ้งว่ารันแล้วไม่เข้า เพราะในแท็บ SQL Editor มีโค้ดเก่า 0002/0004/0005 ค้าง — ลบแท็บนั้นแล้ว) · `/api/media` ยังมีทางสำรอง: ถ้าเจอ PGRST204 (คอลัมน์ไม่มี) จะบันทึกซ้ำเฉพาะคอลัมน์เดิม |
 | **0008_thai_platforms** | ✅ พี่แอ้รันแล้ว 26 ก.ย. 69 (Success) + **ยืนยันด้วย `pg_get_constraintdef`: มี ch3plus…trueid ครบ** — เพิ่มค่า platform: `ch3plus`, `ch7`, `oned`, `gmm25`, `workpoint`, `vipa`, `amarin`, `monomax`, `ais_play`, `trueid` · โค้ดจาก branch `thai-platforms` merge เข้า main แล้ว · ⚠️ ครั้งแรกพี่แอ้เผลอรันโค้ด 0002 ค้างใน SQL Editor (error policy already exists) — ให้กด New query ทุกครั้ง |
 | **0009_watch_status** | ✅ พี่แอ้รันแล้ว 26 ก.ย. 69 + ยืนยันด้วย information_schema — `status` (want/watching/watched, ค่าเริ่มต้น 'want'), `progress_season`, `progress_episode` · โน้ตใช้คอลัมน์ `notes` เดิม |
+| **0010_collections_policies** | ⏳ ส่งให้พี่แอ้รัน 26 ก.ย. 69 — สร้างกฎ RLS ของ `playlists`/`playlist_items` (เช็กแล้ว pg_policies ไม่มีสักแถว → สร้างคอลเลกชันได้ 500) · รันซ้ำได้ (DROP POLICY IF EXISTS ก่อน CREATE) · เช็กผล: pg_policies ต้องได้ 8 แถว |
 
 `tmdb_music` (0003) เป็น cache "หนังแนวดนตรี" ของ TMDb ไม่ใช่เพลงจริง — เพลงจริงมาจาก iTunes และเก็บใน `media_items` (type `music`)
 
@@ -173,7 +174,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - สำรองข้อมูล: พี่แอ้ export `media_items` เป็น CSV แล้ว 26 ก.ย. 69 (6 แถว) เก็บที่ `C:\Claude Cowork\media_items_rows.csv` (นอก repo) · ทำเดือนละครั้ง · **repo เป็นสาธารณะ ห้าม commit ไฟล์ข้อมูลผู้ใช้**
 
 ## 🗂️ คอลเลกชัน (26 ก.ย. 69) — ✅ deploy แล้ว (commit `073a6b3`) · ⏳ รอพี่แอ้ทดสอบ (ต้องล็อกอิน)
-- ใช้ตารางเดิม `playlists` / `playlist_items` (RLS จาก 0002 + GRANT จาก 0006) → **ไม่ต้องรัน SQL**
+- ใช้ตารางเดิม `playlists` / `playlist_items` · ⚠️ ตอนแรกคิดว่ากฎ RLS จาก 0002 มีแล้ว (เช็กแค่ไฟล์) แต่ในฐานข้อมูลไม่มี → สร้างคอลเลกชัน 500 → ต้องรัน 0010 · **บทเรียน: ก่อนบอกว่า "ไม่ต้องรัน SQL" ให้เช็กฐานข้อมูลจริงด้วย pg_policies / information_schema**
 - API: `/api/collections` GET (พร้อม `item_ids`) / POST {name} / PATCH {id,name} / DELETE ?id= (ลบลิงก์รายการก่อน รายการยังอยู่ในรอดู) · `/api/collections/items` POST {collection_id, media_item_id} (เช็กว่าเป็นของผู้ใช้ทั้งคู่; ซ้ำ 23505 = สำเร็จ) / DELETE
 - `lib/useCollections.ts` (โหลด/สร้าง/เปลี่ยนชื่อ/ลบ/เพิ่ม-เอาออกแบบ optimistic) · `components/CollectionPicker.tsx` กล่อง "🗂️ เพิ่มลงคอลเลกชัน" ใน `MediaModal` (เมื่อมี `savedItem`) และ `MusicModal` (prop `savedItemId`) · `components/SavedItemCard.tsx` การ์ดรายการที่บันทึก (ใช้ในหน้าคอลเลกชัน — Dashboard/รอดู ยังมีโค้ดการ์ดของตัวเอง ควรย้ายมาใช้ตัวนี้ภายหลัง)
 - หน้า `/collections` (middleware บังคับล็อกอิน): สร้าง, การ์ดโมเสก 2×2 จากปก, เปิดดูรายการ, เปลี่ยนชื่อ (prompt), ลบ (confirm), เอารายการออก (✕), เปิด Preview/หน้าต่างเพลงได้ · ปิดหน้าต่างแล้ว reload คอลเลกชัน
