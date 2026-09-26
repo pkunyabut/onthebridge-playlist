@@ -7,6 +7,8 @@ import type { TmdbResult } from '@/lib/tmdb';
 import { PLATFORM_URLS } from '@/lib/tmdb';
 import type { TmdbDetails } from '@/app/api/tmdb/details/route';
 import { networkForTmdbId } from '@/lib/networks';
+import type { MediaItem } from '@/lib/types';
+import ProgressPanel, { type ProgressPatch } from '@/components/ProgressPanel';
 
 interface MediaModalProps {
   result: TmdbResult;
@@ -15,6 +17,9 @@ interface MediaModalProps {
   saving: boolean;
   onClose: () => void;
   onToggleSave: (result: TmdbResult) => void;
+  /** Saved item (dashboard / watchlist): shows "My progress" — status, episode, note. */
+  savedItem?: MediaItem;
+  onUpdateSaved?: (patch: ProgressPatch) => Promise<void>;
 }
 
 export default function MediaModal({
@@ -24,6 +29,8 @@ export default function MediaModal({
   saving,
   onClose,
   onToggleSave,
+  savedItem,
+  onUpdateSaved,
 }: MediaModalProps) {
   const router = useRouter();
   const { t, lang } = useLanguage();
@@ -216,6 +223,17 @@ export default function MediaModal({
               {schedule.value && <p className="text-white/90 mt-0.5">{schedule.value}</p>}
               {schedule.icon !== '✅' && <p className="text-sm text-cinema-text-muted/80 mt-1">{t('schedule_note')}</p>}
             </div>
+          )}
+
+          {/* My progress (saved items only) */}
+          {savedItem && onUpdateSaved && (
+            <ProgressPanel
+              item={savedItem}
+              isSeries={result.type === 'tv'}
+              seasons={details?.seasons ?? null}
+              lastAired={details?.last_episode ?? null}
+              onChange={onUpdateSaved}
+            />
           )}
 
           {/* Trailer button */}
