@@ -214,6 +214,13 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 9. ปุ่ม "ดาวน์โหลดรายการของฉัน" (CSV) ให้ผู้ใช้แต่ละคน — ตรงหลัก PDPA
 10. `.gitignore` มี `.env*` ทำให้ `.env.local.example` ไม่ถูก commit — แก้เป็น `.env*.local` + `.env`
 
+### 🧭 รอวางแผนทั้งเว็บพร้อมกัน (พี่แอ้ขอพักไว้ 26 ก.ย. 69 — จะวางแผนนิตยสาร + Watchlist ทีเดียว)
+- **โดเมน:** นิตยสาร OnTheBridge อยู่ที่ https://onthebridge.pages.dev/ (Cloudflare Pages) · แผนที่คุยไว้: จดโดเมนผ่าน Cloudflare Registrar (ราคาทุน ~350–400 บาท/ปี — ขัดกติกา "ฟรีเท่านั้น" ต้องให้พี่แอ้อนุมัติเป็นข้อยกเว้น) → นิตยสาร = `onthebridge.xxx`, Watchlist = `watchlist.onthebridge.xxx` (CNAME → `cname.vercel-dns.com`, DNS only/เมฆเทา) · ต้องแก้ Supabase Site URL + Redirect URLs, `NEXT_PUBLIC_SITE_URL`, และ redirect จาก vercel.app เดิม
+- **SEO:** ไม่บังคับมีโดเมน แต่ควรจดก่อนทำจริงจัง · สิ่งที่สำคัญกว่า: หน้าแยกของแต่ละเรื่องที่ Google อ่านได้ (server-rendered), sitemap, OG image — ตอนนี้หน้าเว็บสร้างเนื้อหาฝั่งเบราว์เซอร์เป็นหลัก
+- **รีวิว:** ดึงรีวิวผู้ใช้จาก TMDB (`/movie|tv/{id}/reviews`) แสดง 2–3 รีวิวในหน้าต่าง Preview (ข้อความสั้น + ชื่อผู้เขียน + ลิงก์อ่านต่อบน TMDB) · ข้อจำกัด: ส่วนใหญ่ภาษาอังกฤษ ละครไทยแทบไม่มี · ต่อยอด: Gemini สรุปเป็นไทย ติดป้าย "สรุปโดย AI" · ❌ ไม่นำรีวิวไปลงนิตยสาร (duplicate content + ลิขสิทธิ์ผู้เขียน)
+- **เรื่องที่ TMDB ไม่มี:** ทางแรก = เพิ่มเข้า TMDB เอง (ฟรี แล้วเว็บเห็นอัตโนมัติ) · ทางสอง = ตารางของเราเอง (ปานกลาง ~1–2 รอบ + ต้องดูแลเอง, ระวังลิขสิทธิ์รูป/เรื่องย่อ)
+- **YouTube:** ใช้ได้เฉพาะคลิปจากช่องทางการผ่านเครื่องเล่น YouTube (ห้ามดาวน์โหลด) · แนะนำปุ่ม "ดูตอนย้อนหลังบน YouTube ↗" แทนฝังเต็มตอน (ถ้าฝังเต็มตอนต้องแก้หน้าเงื่อนไข เพราะจุดยืนคือไม่เล่นเนื้อหาเต็ม)
+
 ### 🗓️ งานประจำของพี่แอ้
 - **Export CSV เดือนละครั้ง** จาก Supabase → Table Editor: `media_items`, `playlists`, `playlist_items` (เก็บในเครื่อง/Google Drive ส่วนตัว — ห้ามขึ้น GitHub เพราะ repo เป็นสาธารณะ) · ครั้งล่าสุด: `media_items` 26 ก.ย. 69
 - ถ้าเจอ error "policy … already exists" ใน SQL Editor = มีโค้ด SQL เก่าโผล่มา → อย่ารัน ลบทิ้ง
