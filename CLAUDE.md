@@ -181,4 +181,4 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 npm run dev      # รันในเครื่อง http://localhost:3000
 npm run build    # ต้องผ่านก่อนรายงานว่าเสร็จทุกครั้ง
 ```
-SQL ใดๆ ให้พี่แอ้รันเองใน Supabase → SQL Editor โดยส่งโค้ดทั้งก้อนที่รันซ้ำได้ (ใช้ IF EXISTS / ON CONFLICT) · **ให้กด New query ทุกครั้ง และส่งคำสั่งเช็กผล (อ่านอย่างเดียว) ไปด้วยเสมอ** — "Success" อย่างเดียวไม่พอ เคยรันโค้ดผิดแท็บมาแล้ว
+SQL ใดๆ ให้พี่แอ้รันเองใน Supabase → SQL Editor โดยส่งโค้ดทั้งก้อนที่รันซ้ำได้ (ใช้ IF EXISTS / ON CONFLICT) · **ให้กด New query ทุกครั้ง และส่งคำสั่งเช็กผล (อ่านอย่างเดียว) ไปด้วยเสมอ** — "Success" อย่างเดียวไม่พอ เคยรันโค้ดผิดแท็บมาแล้ว · 26 ก.ย. 69 พี่แอ้ลบ query เก่า (0002/0004/0005 ที่ตั้งรายชื่อ platform กลับเป็นแบบเก่า + CREATE POLICY ซ้ำ) ออกจาก SQL Editor แล้ว ถ้าเจอ error "policy … already exists" อีก = มีโค้ดเก่าโผล่มาอีก
