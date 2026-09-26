@@ -214,6 +214,12 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 9. ปุ่ม "ดาวน์โหลดรายการของฉัน" (CSV) ให้ผู้ใช้แต่ละคน — ตรงหลัก PDPA
 10. `.gitignore` มี `.env*` ทำให้ `.env.local.example` ไม่ถูก commit — แก้เป็น `.env*.local` + `.env`
 
+### 🔗 เชื่อมนิตยสาร ↔ Watchlist ระยะ 1 (26 ก.ย. 69) — ✅ deploy และทดสอบบนเว็บจริงแล้ว (commit `18a62c8` + Cloudflare)
+- นิตยสาร (โปรเจกต์ `C:\Claude Cowork\OnTheBridge_Website`, กติกาอยู่ใน CLAUDE.md ของที่นั่น — ห้าม git commit/push ที่นั่น): ปุ่ม "Watchlist" ข้างปุ่มสลับธีม + ลิงก์ใน footer ทั้ง 27 หน้า (`WATCHLIST_URL` ใน `สร้างโครงหน้า.py`) · `sitemap.xml` (27 หน้า, ที่อยู่แบบไม่มี .html เพราะ Cloudflare redirect 308) + `robots.txt` สร้างโดย `สร้างหน้ารวม.py`
+- Watchlist: ลิงก์ "📖 นิตยสาร OnTheBridge" ใน `SiteFooter` (ค่าคงที่ `MAGAZINE_URL`) + เมนูข้างบนจอคอม + เมนู ☰ มือถือใน `AppShell` — เมนูใน AppShell ต้องล็อกอิน พี่แอ้ยังไม่ได้ยืนยัน
+- deploy นิตยสาร: `wrangler pages deploy <โฟลเดอร์ที่คัดแล้ว> --project-name onthebridge --branch main` (wrangler ล็อกอินไว้แล้วในเครื่อง) — คัด `*.py`, `*.pyc`, `_*`, `__pycache__` ออกด้วย robocopy ก่อน · ถ้าเปลี่ยนโดเมน ต้องแก้ `WATCHLIST_URL`, `SITE_URL` (2 ไฟล์ฝั่งนิตยสาร) และ `MAGAZINE_URL`
+- ระยะถัดไป (รอพี่แอ้ตัดสิน): หน้าตา Watchlist เป็น navy/ครีม/ทอง? · จดโดเมน? · ปุ่มจากบทความ → หน้าเรื่องใน Watchlist (ต้องมีหน้าแยกของแต่ละเรื่องก่อน)
+
 ### 🧭 รอวางแผนทั้งเว็บพร้อมกัน (พี่แอ้ขอพักไว้ 26 ก.ย. 69 — จะวางแผนนิตยสาร + Watchlist ทีเดียว)
 - **โดเมน:** นิตยสาร OnTheBridge อยู่ที่ https://onthebridge.pages.dev/ (Cloudflare Pages) · แผนที่คุยไว้: จดโดเมนผ่าน Cloudflare Registrar (ราคาทุน ~350–400 บาท/ปี — ขัดกติกา "ฟรีเท่านั้น" ต้องให้พี่แอ้อนุมัติเป็นข้อยกเว้น) → นิตยสาร = `onthebridge.xxx`, Watchlist = `watchlist.onthebridge.xxx` (CNAME → `cname.vercel-dns.com`, DNS only/เมฆเทา) · ต้องแก้ Supabase Site URL + Redirect URLs, `NEXT_PUBLIC_SITE_URL`, และ redirect จาก vercel.app เดิม
 - **SEO:** ไม่บังคับมีโดเมน แต่ควรจดก่อนทำจริงจัง · สิ่งที่สำคัญกว่า: หน้าแยกของแต่ละเรื่องที่ Google อ่านได้ (server-rendered), sitemap, OG image — ตอนนี้หน้าเว็บสร้างเนื้อหาฝั่งเบราว์เซอร์เป็นหลัก
