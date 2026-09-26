@@ -172,12 +172,20 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - ทดสอบ: `MSYS_NO_PATHCONV=1 vercel crons run /api/cron/keepalive` (Git Bash แปลง /api เป็นพาธ Windows ถ้าไม่ใส่) → log ระดับ info · `vercel crons list` เห็น 1 งาน
 - สำรองข้อมูล: พี่แอ้ export `media_items` เป็น CSV แล้ว 26 ก.ย. 69 (6 แถว) เก็บที่ `C:\Claude Cowork\media_items_rows.csv` (นอก repo) · ทำเดือนละครั้ง · **repo เป็นสาธารณะ ห้าม commit ไฟล์ข้อมูลผู้ใช้**
 
+## 🗂️ คอลเลกชัน (26 ก.ย. 69) — ✅ deploy แล้ว (commit `073a6b3`) · ⏳ รอพี่แอ้ทดสอบ (ต้องล็อกอิน)
+- ใช้ตารางเดิม `playlists` / `playlist_items` (RLS จาก 0002 + GRANT จาก 0006) → **ไม่ต้องรัน SQL**
+- API: `/api/collections` GET (พร้อม `item_ids`) / POST {name} / PATCH {id,name} / DELETE ?id= (ลบลิงก์รายการก่อน รายการยังอยู่ในรอดู) · `/api/collections/items` POST {collection_id, media_item_id} (เช็กว่าเป็นของผู้ใช้ทั้งคู่; ซ้ำ 23505 = สำเร็จ) / DELETE
+- `lib/useCollections.ts` (โหลด/สร้าง/เปลี่ยนชื่อ/ลบ/เพิ่ม-เอาออกแบบ optimistic) · `components/CollectionPicker.tsx` กล่อง "🗂️ เพิ่มลงคอลเลกชัน" ใน `MediaModal` (เมื่อมี `savedItem`) และ `MusicModal` (prop `savedItemId`) · `components/SavedItemCard.tsx` การ์ดรายการที่บันทึก (ใช้ในหน้าคอลเลกชัน — Dashboard/รอดู ยังมีโค้ดการ์ดของตัวเอง ควรย้ายมาใช้ตัวนี้ภายหลัง)
+- หน้า `/collections` (middleware บังคับล็อกอิน): สร้าง, การ์ดโมเสก 2×2 จากปก, เปิดดูรายการ, เปลี่ยนชื่อ (prompt), ลบ (confirm), เอารายการออก (✕), เปิด Preview/หน้าต่างเพลงได้ · ปิดหน้าต่างแล้ว reload คอลเลกชัน
+- เมนู 🗂️ คอลเลกชัน ใน AppShell · เมนูล่างมือถือ 5 ปุ่มแบ่งความกว้างเท่ากัน ตัวอักษร 0.8rem (คำยาวสุด 68px ≤ ปุ่ม 72px ที่จอ 360px)
+- เช็กจากภายนอก: API ทั้งสองตอบ 401 เมื่อไม่ล็อกอิน · /collections redirect ไป /login
+
 ## 📋 งานค้าง (เรียงตามความสำคัญ)
 > ✅ 26 ก.ย. 69 พี่แอ้ทดสอบหลัง 0007 + 0008 ผ่านครบ: บันทึกเพลง (การ์ดมีปก + ศิลปิน + ฟังตัวอย่างได้), บันทึกละครจากแถวตามช่อง (โปสเตอร์ + ป้าย ch3plus), บันทึกหนังจากหน้าแรก (โปสเตอร์ตรง + Preview)
 > สถานะ git (25 ก.ย. 69): ทุกอย่าง commit + push ขึ้น `main` แล้ว เหลือ `FIXES_ROUND1.md`, `RLS_FIX.md` ที่ไม่ได้ track (ของรอบ Hermes ล้าสมัย — ตั้งใจไม่ commit)
 > Deploy: Vercel **ไม่ deploy อัตโนมัติ** เมื่อ push → ต้องสั่ง `vercel deploy --prod --yes` เองทุกครั้ง · ⚠️ อย่าซ่อนผลลัพธ์ของคำสั่ง deploy (เคยล้มเหลวเงียบๆ 26 ก.ย. 69) — เช็กด้วย `vercel ls onthebridge-playlist` ว่าแถวบนสุดอายุไม่กี่วินาทีและเป็น Ready ก่อนทดสอบ
 
-1. **ระบบเพลย์ลิสต์** — มีตาราง playlists/playlist_items แล้ว แต่ยังไม่มีหน้าเว็บ/API
+1. ~~ระบบเพลย์ลิสต์~~ → ทำเป็น **คอลเลกชัน** แล้ว 26 ก.ย. 69 (ดูหัวข้อ 🗂️)
 2. ~~สถานะ "ดูแล้ว / กำลังดู"~~ ✅ ทำแล้ว 26 ก.ย. 69 — — ตอนนี้บันทึกได้แค่ "รอดู" ยังให้คะแนน/จดโน้ตไม่ได้
 3. **จำกัด `/api/sync`** — ตอนนี้ผู้ใช้ที่ล็อกอินคนไหนก็สั่ง sync ได้ ควรจำกัดเฉพาะแอดมิน
 4. **หน้า `/search` โหมด EN** — ผลค้นหายังดึงจาก TMDb เป็นภาษาไทยเสมอ
