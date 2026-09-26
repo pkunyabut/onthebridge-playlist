@@ -269,6 +269,8 @@ export default function CollectionsPage() {
           onClose={closePreview}
           onToggleSave={closePreview}
           savedItemId={songItemId ?? undefined}
+          savedStatus={mediaItems.find((m) => m.id === songItemId)?.status}
+          onUpdateStatus={songItemId ? (status) => updateSaved(songItemId, { status }) : undefined}
         />
       )}
       {preview && (

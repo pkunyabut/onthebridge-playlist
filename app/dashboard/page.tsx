@@ -10,6 +10,8 @@ import type { PlatformType } from '@/lib/types';
 import { PLATFORM_ICONS, PLATFORM_LABELS } from '@/lib/types';
 import MediaModal from '@/components/MediaModal';
 import StatusBadge from '@/components/StatusBadge';
+import StatusFilter from '@/components/StatusFilter';
+import type { WatchStatus } from '@/lib/types';
 import type { ProgressPatch } from '@/components/ProgressPanel';
 import MusicModal from '@/components/MusicModal';
 import { useTmdbMatches, useSeriesSchedules, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
@@ -29,6 +31,7 @@ export default function DashboardPage() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | WatchStatus>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
 
   // AI Recommendations state
@@ -167,9 +170,10 @@ export default function DashboardPage() {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 12);
 
-  const filteredItems = filter === 'all'
+  const filteredItems = (filter === 'all'
     ? recentItems
-    : recentItems.filter((item) => item.type === filter);
+    : recentItems.filter((item) => item.type === filter))
+    .filter((item) => statusFilter === 'all' || (item.status ?? 'want') === statusFilter);
 
   if (loading) {
     return (
@@ -269,6 +273,8 @@ export default function DashboardPage() {
           </button>
         ))}
       </div>
+
+      <StatusFilter value={statusFilter} onChange={setStatusFilter} />
 
       {/* Content */}
       {mediaItems.length === 0 ? (
@@ -384,6 +390,8 @@ export default function DashboardPage() {
           onClose={() => setSong(null)}
           onToggleSave={() => setSong(null)}
           savedItemId={songItemId ?? undefined}
+          savedStatus={mediaItems.find((m) => m.id === songItemId)?.status}
+          onUpdateStatus={songItemId ? (status) => updateSaved(songItemId, { status }) : undefined}
         />
       )}
 

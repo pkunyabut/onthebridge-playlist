@@ -10,6 +10,8 @@ import type { MediaItem, MediaType, PlatformType } from '@/lib/types';
 import { PLATFORM_ICONS } from '@/lib/types';
 import MediaModal from '@/components/MediaModal';
 import StatusBadge from '@/components/StatusBadge';
+import StatusFilter from '@/components/StatusFilter';
+import type { WatchStatus } from '@/lib/types';
 import type { ProgressPatch } from '@/components/ProgressPanel';
 import MusicModal from '@/components/MusicModal';
 import { useTmdbMatches, useSeriesSchedules, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
@@ -25,6 +27,7 @@ export default function WatchlistPage() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | WatchStatus>('all');
 
   // Poster + preview for saved items
   const matches = useTmdbMatches(mediaItems);
@@ -90,9 +93,10 @@ export default function WatchlistPage() {
     }
   };
 
-  const filteredItems = selectedFilter === 'all'
+  const filteredItems = (selectedFilter === 'all'
     ? mediaItems
-    : mediaItems.filter((item) => item.type === selectedFilter);
+    : mediaItems.filter((item) => item.type === selectedFilter))
+    .filter((item) => statusFilter === 'all' || (item.status ?? 'want') === statusFilter);
 
   const groupedItems = filteredItems.reduce<Record<string, MediaItem[]>>((acc, item) => {
     const platform = item.platform;
@@ -169,6 +173,8 @@ export default function WatchlistPage() {
             })}
           </div>
         </div>
+
+        <StatusFilter value={statusFilter} onChange={setStatusFilter} />
 
         {filteredItems.length === 0 ? (
           <div className="text-center py-20 glass rounded-xl border border-cinema-border animate-fade-up">
@@ -282,6 +288,8 @@ export default function WatchlistPage() {
           onClose={() => setSong(null)}
           onToggleSave={() => setSong(null)}
           savedItemId={songItemId ?? undefined}
+          savedStatus={mediaItems.find((m) => m.id === songItemId)?.status}
+          onUpdateStatus={songItemId ? (status) => updateSaved(songItemId, { status }) : undefined}
         />
       )}
 

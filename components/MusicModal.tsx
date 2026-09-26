@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MusicTrack } from '@/lib/itunes';
 import CollectionPicker from '@/components/CollectionPicker';
+import type { WatchStatus } from '@/lib/types';
 
 interface MusicModalProps {
   track: MusicTrack;
@@ -15,10 +16,27 @@ interface MusicModalProps {
   onToggleSave: (track: MusicTrack) => void;
   /** media_items id when the song is already saved — shows the collections box */
   savedItemId?: string;
+  /** saved songs: "want to listen" / "listened" */
+  savedStatus?: WatchStatus;
+  onUpdateStatus?: (status: WatchStatus) => Promise<void>;
 }
 
 /** Song preview: cover, details, a 30-second preview clip and a link to Apple Music. */
-export default function MusicModal({ track, isLoggedIn, saved, saving, onClose, onToggleSave, savedItemId }: MusicModalProps) {
+export default function MusicModal({ track, isLoggedIn, saved, saving, onClose, onToggleSave, savedItemId, savedStatus, onUpdateStatus }: MusicModalProps) {
+  const [listenStatus, setListenStatus] = useState<WatchStatus>(savedStatus ?? 'want');
+  const [statusError, setStatusError] = useState(false);
+  const pickListen = async (next: WatchStatus) => {
+    if (!onUpdateStatus) return;
+    const before = listenStatus;
+    setListenStatus(next);
+    setStatusError(false);
+    try {
+      await onUpdateStatus(next);
+    } catch {
+      setListenStatus(before);
+      setStatusError(true);
+    }
+  };
   const router = useRouter();
   const { t, lang } = useLanguage();
 
@@ -103,6 +121,26 @@ export default function MusicModal({ track, isLoggedIn, saved, saving, onClose, 
             )}
             <p className="mt-2 text-sm text-cinema-text-muted/80">{t('music_preview_courtesy')}</p>
           </div>
+
+          {/* want to listen / listened (saved songs) */}
+          {savedItemId && onUpdateStatus && (
+            <div className="mb-4 grid grid-cols-2 gap-1.5" role="group" aria-label={t('my_progress')}>
+              {(['want', 'watched'] as WatchStatus[]).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => pickListen(s)}
+                  aria-pressed={listenStatus === s}
+                  className={`min-h-[44px] rounded-xl text-base font-medium transition-colors ${
+                    listenStatus === s ? 'bg-brand-600 text-white' : 'bg-white/5 text-cinema-text-muted hover:bg-white/10 border border-white/10'
+                  }`}
+                >
+                  {t(s === 'want' ? 'status_want_listen' : 'status_listened')}
+                </button>
+              ))}
+              {statusError && <p className="col-span-2 text-base text-red-400">{t('progress_error')}</p>}
+            </div>
+          )}
 
           {savedItemId && <CollectionPicker mediaItemId={savedItemId} />}
 

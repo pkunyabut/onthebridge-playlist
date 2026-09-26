@@ -294,5 +294,9 @@
   "collections_items_empty": "This collection is empty — open an item in your watchlist and add it here",
   "collections_remove_item": "Remove from this collection",
   "collections_add_title": "Add to collection",
-  "collections_manage": "All collections"
+  "collections_manage": "All collections",
+  "status_filter_all": "Any status",
+  "status_want_listen": "Want to listen",
+  "status_listened": "Listened",
+  "progress_latest_season": "Aired up to season {s}, episode {ep}"
 }

@@ -3,6 +3,7 @@ import { fetchTmdb } from '@/lib/tmdb-client';
 import { DEFAULT_LANGUAGE } from '@/lib/tmdb';
 import { LruCache } from '@/lib/tmdb-cache';
 import type { EpisodeInfo } from '@/app/api/tmdb/details/route';
+import { seasonEpisodeMap } from '@/lib/episodes';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,8 @@ export interface SeriesSchedule {
   next: EpisodeInfo | null;
   last: EpisodeInfo | null;
   status: string | null;
+  /** episodes per season, for counting unwatched across seasons */
+  season_episodes: Record<number, number>;
 }
 
 interface RawEpisode {
@@ -54,11 +57,13 @@ export async function POST(request: NextRequest) {
           next_episode_to_air?: RawEpisode | null;
           last_episode_to_air?: RawEpisode | null;
           status?: string;
+          seasons?: { season_number?: number; episode_count?: number }[];
         };
         const schedule: SeriesSchedule = {
           next: toEpisode(data.next_episode_to_air),
           last: toEpisode(data.last_episode_to_air),
           status: data.status ?? null,
+          season_episodes: seasonEpisodeMap(data.seasons),
         };
         scheduleCache.set(String(id), schedule);
         schedules[id] = schedule;

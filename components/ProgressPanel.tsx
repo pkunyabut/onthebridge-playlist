@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, WatchStatus } from '@/lib/types';
 import type { EpisodeInfo } from '@/app/api/tmdb/details/route';
+import { countUnwatched } from '@/lib/episodes';
 
 export interface ProgressPatch {
   status?: WatchStatus;
@@ -19,6 +20,8 @@ interface ProgressPanelProps {
   seasons: number | null;
   /** latest aired episode (TMDB) — for "N episodes not watched yet" */
   lastAired: EpisodeInfo | null;
+  /** episodes per season (TMDB) — lets the unwatched count cross seasons */
+  seasonEpisodes?: Record<number, number>;
   onChange: (patch: ProgressPatch) => Promise<void>;
 }
 
@@ -28,7 +31,7 @@ const STATUSES: WatchStatus[] = ['want', 'watching', 'watched'];
  * "My progress" inside the preview of a saved item: status (want / watching / watched),
  * the episode the user watched up to (series), and a personal note.
  */
-export default function ProgressPanel({ item, isSeries, seasons, lastAired, onChange }: ProgressPanelProps) {
+export default function ProgressPanel({ item, isSeries, seasons, lastAired, seasonEpisodes, onChange }: ProgressPanelProps) {
   const { t } = useLanguage();
   const [status, setStatus] = useState<WatchStatus>(item.status ?? 'want');
   const [season, setSeason] = useState<number>(item.progress_season ?? 1);
@@ -87,11 +90,8 @@ export default function ProgressPanel({ item, isSeries, seasons, lastAired, onCh
     setNotesState('saved');
   };
 
-  // aired-but-not-watched count (only when we compare within the same season)
-  const unwatched =
-    isSeries && lastAired && (lastAired.season === season || (seasons ?? 1) <= 1)
-      ? Math.max(0, lastAired.episode - episode)
-      : null;
+  // aired-but-not-watched count, across seasons when TMDB gives the per-season episode counts
+  const unwatched = isSeries ? countUnwatched(season, episode, lastAired, seasonEpisodes) : null;
 
   const stepBtn =
     'w-11 h-11 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white text-2xl font-bold disabled:opacity-40';
@@ -134,7 +134,9 @@ export default function ProgressPanel({ item, isSeries, seasons, lastAired, onCh
           </div>
           {lastAired && unwatched !== null && (
             <p className="text-base text-cinema-text-muted">
-              {t('progress_latest', { ep: lastAired.episode })} ·{' '}
+              {(seasons ?? 1) > 1
+                ? t('progress_latest_season', { s: lastAired.season, ep: lastAired.episode })
+                : t('progress_latest', { ep: lastAired.episode })}{' '}·{' '}
               <span className={unwatched > 0 ? 'text-brand-400 font-semibold' : 'text-green-400 font-semibold'}>
                 {unwatched > 0 ? t('progress_unwatched', { n: unwatched }) : t('progress_caught_up')}
               </span>

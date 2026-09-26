@@ -10,7 +10,7 @@ export default function StatusBadge({ item }: { item: MediaItem }) {
 
   const watched = item.status === 'watched';
   const label = watched
-    ? `✓ ${t('status_watched')}`
+    ? `✓ ${t(item.type === 'music' ? 'status_listened' : 'status_watched')}`
     : item.progress_episode
       ? `▶ ${t('badge_watching_ep', { ep: item.progress_episode })}`
       : `▶ ${t('status_watching')}`;

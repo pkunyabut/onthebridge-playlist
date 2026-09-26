@@ -294,5 +294,9 @@
   "collections_items_empty": "คอลเลกชันนี้ยังไม่มีรายการ — เปิดรายการใน \"รอดู\" แล้วกด \"เพิ่มลงคอลเลกชัน\"",
   "collections_remove_item": "เอาออกจากคอลเลกชันนี้",
   "collections_add_title": "เพิ่มลงคอลเลกชัน",
-  "collections_manage": "ดูคอลเลกชันทั้งหมด"
+  "collections_manage": "ดูคอลเลกชันทั้งหมด",
+  "status_filter_all": "ทุกสถานะ",
+  "status_want_listen": "อยากฟัง",
+  "status_listened": "ฟังแล้ว",
+  "progress_latest_season": "ออกอากาศแล้วถึงซีซัน {s} ตอนที่ {ep}"
 }

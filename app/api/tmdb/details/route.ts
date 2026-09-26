@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchTmdb, TmdbApiError } from '@/lib/tmdb-client';
 import { DEFAULT_LANGUAGE, DEFAULT_WATCH_REGION } from '@/lib/tmdb';
 import { LruCache } from '@/lib/tmdb-cache';
+import { seasonEpisodeMap } from '@/lib/episodes';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,8 @@ export interface TmdbDetails {
   last_episode: EpisodeInfo | null;
   /** Series only — TMDB status, e.g. "Returning Series", "Ended", "Canceled". */
   status: string | null;
+  /** Series only — episodes per season { 1: 12, 2: 14 } for counting unwatched across seasons. */
+  season_episodes: Record<number, number>;
   genres: string[];
   /** Director for movies, creators for series. */
   directors: string[];
@@ -67,6 +70,7 @@ interface RawDetails {
   next_episode_to_air?: RawEpisode | null;
   last_episode_to_air?: RawEpisode | null;
   status?: string;
+  seasons?: { season_number?: number; episode_count?: number }[];
   genres?: { name: string }[];
   created_by?: { id: number; name: string }[];
   networks?: { id: number; name: string; logo_path?: string | null }[];
@@ -188,6 +192,7 @@ export async function GET(request: NextRequest) {
       next_episode: endpoint === 'tv' ? toEpisode(data.next_episode_to_air) : null,
       last_episode: endpoint === 'tv' ? toEpisode(data.last_episode_to_air) : null,
       status: endpoint === 'tv' ? data.status ?? null : null,
+      season_episodes: endpoint === 'tv' ? seasonEpisodeMap(data.seasons) : {},
       genres: (data.genres ?? []).map((g) => g.name),
       directors: Array.from(new Set(directors)).slice(0, 3),
       cast,

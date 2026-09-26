@@ -3,6 +3,7 @@
 import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem } from '@/lib/types';
 import type { SeriesSchedule } from '@/app/api/tmdb/schedule/route';
+import { countUnwatched } from '@/lib/episodes';
 
 /** viewer's local YYYY-MM-DD (toISOString() is UTC — before 07:00 in Thailand it's still yesterday) */
 function localToday(): string {
@@ -25,10 +26,9 @@ export default function ScheduleBadge({ item, schedule }: { item: MediaItem; sch
   let label: string | null = null;
   let tone = 'bg-sky-600/90';
 
-  // aired but not watched (same season as the saved progress)
-  if (item.status === 'watching' && item.progress_episode != null && last?.air_date && last.air_date <= today) {
-    const sameSeason = (item.progress_season ?? last.season) === last.season;
-    const behind = sameSeason ? last.episode - item.progress_episode : 0;
+  // aired but not watched (counted across seasons)
+  if (item.status === 'watching' && last?.air_date && last.air_date <= today) {
+    const behind = countUnwatched(item.progress_season, item.progress_episode, last, schedule.season_episodes) ?? 0;
     if (behind > 0) {
       label = `🔔 ${t('sched_unwatched', { n: behind })}`;
       tone = 'bg-red-600/90';

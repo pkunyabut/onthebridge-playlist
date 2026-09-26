@@ -233,6 +233,7 @@ export default function MediaModal({
               isSeries={result.type === 'tv'}
               seasons={details?.seasons ?? null}
               lastAired={details?.last_episode ?? null}
+              seasonEpisodes={details?.season_episodes}
               onChange={onUpdateSaved}
             />
           )}
