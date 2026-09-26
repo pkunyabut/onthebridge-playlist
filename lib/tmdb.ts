@@ -236,10 +236,51 @@ export interface TmdbPopularResponse {
   page: number;
 }
 
-interface TmdbListItem {
+/** Fields TMDb list endpoints return that tell whether a title was actually translated. */
+interface TitleFields {
   id: number;
   title?: string;
   name?: string;
+  original_title?: string;
+  original_name?: string;
+  original_language?: string;
+}
+
+/**
+ * In th-TH, TMDb falls back to the ORIGINAL title when nobody added a Thai one — so a Thai
+ * reader gets "Le Comte de Monte-Cristo" or "살인자ㅇ난감". For those (original language not
+ * Thai/English and title still equal to the original), re-fetch the same list in en-US — one
+ * extra call, only when needed — and use the English title. Mutates `results` in place.
+ */
+async function applyEnglishTitles<T extends TitleFields>(
+  results: T[],
+  path: string,
+  params: Record<string, string>,
+  apiKey: string,
+): Promise<T[]> {
+  if (!(params.language ?? '').startsWith('th')) return results;
+  const untranslated = (r: T) => {
+    const shown = r.title ?? r.name;
+    const original = r.original_title ?? r.original_name;
+    return !!shown && shown === original && !['th', 'en'].includes(r.original_language ?? '');
+  };
+  if (!results.some(untranslated)) return results;
+  try {
+    const en = await fetchTmdb(path, { ...params, language: 'en-US' }, apiKey) as { results?: T[] };
+    const english = new Map((en.results ?? []).map((r) => [r.id, r.title ?? r.name]));
+    for (const r of results) {
+      const name = english.get(r.id);
+      if (!name || !untranslated(r)) continue;
+      if (r.title !== undefined) r.title = name;
+      if (r.name !== undefined) r.name = name;
+    }
+  } catch {
+    // English lookup is a nicety — keep the original titles if it fails.
+  }
+  return results;
+}
+
+interface TmdbListItem extends TitleFields {
   release_date?: string;
   first_air_date?: string;
   poster_path?: string | null;
@@ -364,7 +405,7 @@ export async function fetchPopularTmdb(
 
   const data = await fetchTmdb(path, query, apiKey) as { results?: TmdbListItem[]; total_pages?: number; page?: number };
 
-  const rawResults = data.results || [];
+  const rawResults = await applyEnglishTitles(data.results || [], path, query, apiKey);
 
   // Fetch watch providers for each item using append_to_response
   const results: TmdbResult[] = await Promise.all(
@@ -582,10 +623,7 @@ export interface TmdbRowItem {
 
 export type RowKind = 'trending' | 'top_rated' | 'for_you' | 'origin';
 
-interface TmdbRowRaw {
-  id: number;
-  title?: string;
-  name?: string;
+interface TmdbRowRaw extends TitleFields {
   release_date?: string;
   first_air_date?: string;
   poster_path?: string | null;
@@ -612,8 +650,10 @@ export async function fetchTrendingRow(
   apiKey: string,
   language: string = DEFAULT_LANGUAGE,
 ): Promise<TmdbRowItem[]> {
-  const data = await fetchTmdb('/trending/movie/week', { language }, apiKey) as { results?: TmdbRowRaw[] };
-  return (data.results ?? []).map((item) => toRowItem(item, 'movie'));
+  const params = { language };
+  const data = await fetchTmdb('/trending/movie/week', params, apiKey) as { results?: TmdbRowRaw[] };
+  const raw = await applyEnglishTitles(data.results ?? [], '/trending/movie/week', params, apiKey);
+  return raw.map((item) => toRowItem(item, 'movie'));
 }
 
 /**
@@ -628,14 +668,16 @@ export async function fetchTopRatedRow(
   apiKey: string,
   language: string = DEFAULT_LANGUAGE,
 ): Promise<TmdbRowItem[]> {
-  const data = await fetchTmdb('/discover/movie', {
+  const params = {
     language,
     sort_by: 'vote_average.desc',
     'vote_count.gte': TOP_RATED_MIN_VOTES,
     include_adult: 'false',
     page: '1',
-  }, apiKey) as { results?: TmdbRowRaw[] };
-  return (data.results ?? []).map((item) => toRowItem(item, 'movie'));
+  };
+  const data = await fetchTmdb('/discover/movie', params, apiKey) as { results?: TmdbRowRaw[] };
+  const raw = await applyEnglishTitles(data.results ?? [], '/discover/movie', params, apiKey);
+  return raw.map((item) => toRowItem(item, 'movie'));
 }
 
 /**
@@ -675,11 +717,10 @@ export async function fetchRecommendationsForTitles(
   const merged = new Map<string, { item: TmdbRowItem; popularity: number }>();
   for (const seed of seeds) {
     try {
-      const data = await fetchTmdb(`/${seed.type}/${seed.id}/recommendations`, {
-        language,
-        page: '1',
-      }, apiKey) as { results?: TmdbRowRaw[] };
-      for (const raw of data.results ?? []) {
+      const path = `/${seed.type}/${seed.id}/recommendations`;
+      const params = { language, page: '1' };
+      const data = await fetchTmdb(path, params, apiKey) as { results?: TmdbRowRaw[] };
+      for (const raw of await applyEnglishTitles(data.results ?? [], path, params, apiKey)) {
         const item = toRowItem(raw, seed.type);
         const key = `${item.type}-${item.id}`;
         if (item.id === seed.id) continue;
@@ -720,7 +761,8 @@ export async function fetchOriginRow(
     include_adult: 'false',
   };
   const data = await fetchTmdb(`/discover/${mediaType}`, params, apiKey) as { results?: TmdbRowRaw[] };
-  return (data.results ?? []).slice(0, limit).map((item) => toRowItem(item, mediaType));
+  const raw = await applyEnglishTitles(data.results ?? [], `/discover/${mediaType}`, params, apiKey);
+  return raw.slice(0, limit).map((item) => toRowItem(item, mediaType));
 }
 
 /** Kids (10762) and Animation (16) — on iQIYI/Youku these pushed kids' cartoons to the top. */
@@ -757,15 +799,16 @@ export async function fetchNetworkRow(
   };
   const recentParams = { ...base, 'air_date.gte': yearAgo.toISOString().slice(0, 10) };
   // two pages each: the readable-title filter can drop half of a Chinese platform's page
-  const pages = await Promise.all([
-    fetchTmdb('/discover/tv', recentParams, apiKey),
-    fetchTmdb('/discover/tv', { ...recentParams, page: '2' }, apiKey),
-    fetchTmdb('/discover/tv', base, apiKey),
-    fetchTmdb('/discover/tv', { ...base, page: '2' }, apiKey),
-  ]) as { results?: TmdbRowRaw[] }[];
+  const pageParams = [recentParams, { ...recentParams, page: '2' }, base, { ...base, page: '2' }];
+  const pages = await Promise.all(
+    pageParams.map(async (params) => {
+      const data = await fetchTmdb('/discover/tv', params, apiKey) as { results?: TmdbRowRaw[] };
+      return applyEnglishTitles(data.results ?? [], '/discover/tv', params, apiKey);
+    }),
+  );
   const seen = new Set<number>();
   const rows: TmdbRowItem[] = [];
-  for (const raw of pages.flatMap((p) => p.results ?? [])) {
+  for (const raw of pages.flat()) {
     if (seen.has(raw.id)) continue;
     seen.add(raw.id);
     const item = toRowItem(raw, 'tv');

@@ -10,6 +10,7 @@ import CardSkeleton from '@/components/CardSkeleton';
 import MediaModal from '@/components/MediaModal';
 import ServicePicker from '@/components/ServicePicker';
 import SuggestionRow from '@/components/SuggestionRow';
+import ForYouInvite from '@/components/ForYouInvite';
 import LangSwitch from '@/components/LangSwitch';
 import ScrollRow from '@/components/ScrollRow';
 import Flag from '@/components/Flag';
@@ -91,6 +92,10 @@ export default function LandingPage() {
   const [trendingRow, setTrendingRow] = useState<TmdbRowItem[]>([]);
   const [topRatedRow, setTopRatedRow] = useState<TmdbRowItem[]>([]);
   const [forYouRow, setForYouRow] = useState<TmdbRowItem[]>([]);
+  // true = nothing personal to recommend (no saved titles, or none TMDb could match) → show ForYouInvite
+  const [forYouFallback, setForYouFallback] = useState(false);
+  // Session + saved list checked — until then the for-you row shows skeletons (avoids flashing the invite)
+  const [mediaChecked, setMediaChecked] = useState(false);
   const [rowsLoading, setRowsLoading] = useState(true);
   // Item 7 — Thai / Asian section
   const [originRegion, setOriginRegion] = useState('TH');
@@ -187,7 +192,8 @@ export default function LandingPage() {
         setSavedMap(map);
         setSavedTitles(titles.slice(0, 3));
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setMediaChecked(true));
   }, []);
 
   // ---------------------------------------------------------------------
@@ -294,22 +300,30 @@ export default function LandingPage() {
     };
   }, [language]);
 
-  // แนะนำสำหรับคุณ — based on the saved watchlist; falls back to trending server-side.
+  // แนะนำสำหรับคุณ — based on the saved watchlist. The API falls back to trending when nothing
+  // matches; we show ForYouInvite instead so the row doesn't duplicate "กำลังมาแรง".
   useEffect(() => {
+    if (!mediaChecked) return;
+    if (savedTitles.length === 0) {
+      setForYouFallback(true);
+      return;
+    }
     let cancelled = false;
-    const query =
-      savedTitles.length > 0 ? `&titles=${encodeURIComponent(savedTitles.join('|'))}` : '';
-    fetch(`/api/tmdb/rows?kind=for_you&language=${language}${query}`)
+    fetch(`/api/tmdb/rows?kind=for_you&language=${language}&titles=${encodeURIComponent(savedTitles.join('|'))}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { items?: TmdbRowItem[]; source?: string } | null) => {
-        if (cancelled || !data) return;
-        setForYouRow(data.items ?? []);
+        if (cancelled) return;
+        const fallback = !data?.items?.length || (data.source ?? '').includes('fallback');
+        setForYouFallback(fallback);
+        setForYouRow(fallback ? [] : data!.items!);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setForYouFallback(true);
+      });
     return () => {
       cancelled = true;
     };
-  }, [savedTitles, language]);
+  }, [mediaChecked, savedTitles, language]);
 
   // ---------------------------------------------------------------------
   // Item 7 — Thai / Asian row
@@ -543,18 +557,18 @@ export default function LandingPage() {
           loading={rowsLoading}
           onSelect={(item) => setModalResult(toResult(item))}
         />
-        <SuggestionRow
-          title={t('row_for_you')}
-          icon="✨"
-          items={forYouRow}
-          loading={rowsLoading}
-          hint={
-            savedTitles.length > 0
-              ? t('row_for_you_hint', { count: savedTitles.length })
-              : t('row_for_you_empty_hint')
-          }
-          onSelect={(item) => setModalResult(toResult(item))}
-        />
+        {forYouFallback ? (
+          <ForYouInvite isLoggedIn={isLoggedIn} savedCount={savedTitles.length} />
+        ) : (
+          <SuggestionRow
+            title={t('row_for_you')}
+            icon="✨"
+            items={forYouRow}
+            loading={rowsLoading || !mediaChecked || forYouRow.length === 0}
+            hint={savedTitles.length > 0 ? t('row_for_you_hint', { count: savedTitles.length }) : undefined}
+            onSelect={(item) => setModalResult(toResult(item))}
+          />
+        )}
       </section>
 
       {/* Item 7 — Thai + Asian content */}
