@@ -21,11 +21,13 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createClient(url, key, { auth: { persistSession: false } });
-  const { error } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
+  // a plain 1-row select (a HEAD count returns no error body, so failures had no message)
+  const { error, status } = await supabase.from('profiles').select('id').limit(1);
 
   if (error) {
-    console.error('keepalive query failed:', error.message);
-    return NextResponse.json({ ok: false, error: error.message }, { status: 502 });
+    const detail = { status, code: error.code, message: error.message, hint: error.hint };
+    console.error('keepalive query failed:', JSON.stringify(detail));
+    return NextResponse.json({ ok: false, error: detail }, { status: 502 });
   }
   return NextResponse.json({ ok: true, checked_at: new Date().toISOString() });
 }
