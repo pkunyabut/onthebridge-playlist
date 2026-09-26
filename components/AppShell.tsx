@@ -18,6 +18,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     { href: '/dashboard/add', label: t('nav_add'), icon: '➕' },
     { href: '/search', label: t('nav_search'), icon: '🔍' },
     { href: '/watchlist', label: t('nav_watchlist'), icon: '🔖' },
+    { href: '/collections', label: t('nav_collections'), icon: '🗂️' },
   ];
 
   const handleLogout = async () => {
@@ -147,14 +148,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-all min-h-[44px] justify-center ${
+              // 5 tabs share the width equally: at 360px each is 72px; longest labels (คอลเลกชัน,
+              // เพิ่มรายการ, Collections) measure ≤ 68px at 0.8rem
+              className={`flex-1 min-w-0 flex flex-col items-center gap-1 px-0 py-2 rounded-xl text-[0.8rem] font-medium transition-all min-h-[44px] justify-center ${
                 isActive(item.href)
                   ? 'text-brand-400'
                   : 'text-cinema-text-muted'
               }`}
             >
               <span className="text-lg">{item.icon}</span>
-              {item.label}
+              <span className="max-w-full truncate leading-tight">{item.label}</span>
             </Link>
           ))}
         </div>

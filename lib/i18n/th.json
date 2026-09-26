@@ -277,5 +277,22 @@
   "progress_error": "บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง",
   "sched_today": "ตอนใหม่วันนี้",
   "sched_next": "ตอนใหม่ {date}",
-  "sched_unwatched": "ยังไม่ได้ดู {n} ตอน"
+  "sched_unwatched": "ยังไม่ได้ดู {n} ตอน",
+  "nav_collections": "คอลเลกชัน",
+  "collections_intro": "จัดกลุ่มเรื่องที่บันทึกไว้ตามใจคุณ เช่น \"ละครดูกับแม่\" หรือ \"เพลงขับรถ\"",
+  "collections_new": "สร้างคอลเลกชันใหม่",
+  "collections_create": "สร้าง",
+  "collections_name_placeholder": "ชื่อคอลเลกชัน เช่น ละครดูกับแม่",
+  "collections_none": "ยังไม่มีคอลเลกชัน",
+  "collections_empty_hint": "ลองจัดกลุ่มเรื่องที่ชอบ เช่น \"หนังดูกับครอบครัว\" — เปิดรายการใน \"รอดู\" แล้วกด \"เพิ่มลงคอลเลกชัน\"",
+  "collections_count": "{n} รายการ",
+  "collections_all": "คอลเลกชันทั้งหมด",
+  "collections_rename": "เปลี่ยนชื่อ",
+  "collections_rename_prompt": "ตั้งชื่อคอลเลกชันใหม่",
+  "collections_delete": "ลบคอลเลกชัน",
+  "collections_delete_confirm": "ลบคอลเลกชัน \"{name}\" ?\nรายการในคอลเลกชันจะยังอยู่ใน \"รอดู\" ตามเดิม",
+  "collections_items_empty": "คอลเลกชันนี้ยังไม่มีรายการ — เปิดรายการใน \"รอดู\" แล้วกด \"เพิ่มลงคอลเลกชัน\"",
+  "collections_remove_item": "เอาออกจากคอลเลกชันนี้",
+  "collections_add_title": "เพิ่มลงคอลเลกชัน",
+  "collections_manage": "ดูคอลเลกชันทั้งหมด"
 }

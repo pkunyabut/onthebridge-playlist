@@ -45,6 +45,7 @@ export default function WatchlistPage() {
     setMediaItems((items) => items.map((m) => (m.id === id ? { ...m, ...data.media } : m)));
   };
   const [song, setSong] = useState<MusicTrack | null>(null);
+  const [songItemId, setSongItemId] = useState<string | null>(null);
 
   const FILTER_TABS: { key: FilterType; label: string; icon: string }[] = [
     { key: 'all', label: t('filter_all'), icon: '🎯' },
@@ -205,6 +206,7 @@ export default function WatchlistPage() {
                       onClick={() => {
                         if (item.type === 'music') {
                           setSong(savedItemToTrack(item));
+                          setSongItemId(item.id);
                           return;
                         }
                         const match = matches[item.id];
@@ -279,6 +281,7 @@ export default function WatchlistPage() {
           saving={false}
           onClose={() => setSong(null)}
           onToggleSave={() => setSong(null)}
+          savedItemId={songItemId ?? undefined}
         />
       )}
 

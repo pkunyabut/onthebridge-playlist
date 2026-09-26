@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import type { MusicTrack } from '@/lib/itunes';
+import CollectionPicker from '@/components/CollectionPicker';
 
 interface MusicModalProps {
   track: MusicTrack;
@@ -12,10 +13,12 @@ interface MusicModalProps {
   saving: boolean;
   onClose: () => void;
   onToggleSave: (track: MusicTrack) => void;
+  /** media_items id when the song is already saved — shows the collections box */
+  savedItemId?: string;
 }
 
 /** Song preview: cover, details, a 30-second preview clip and a link to Apple Music. */
-export default function MusicModal({ track, isLoggedIn, saved, saving, onClose, onToggleSave }: MusicModalProps) {
+export default function MusicModal({ track, isLoggedIn, saved, saving, onClose, onToggleSave, savedItemId }: MusicModalProps) {
   const router = useRouter();
   const { t, lang } = useLanguage();
 
@@ -100,6 +103,8 @@ export default function MusicModal({ track, isLoggedIn, saved, saving, onClose, 
             )}
             <p className="mt-2 text-sm text-cinema-text-muted/80">{t('music_preview_courtesy')}</p>
           </div>
+
+          {savedItemId && <CollectionPicker mediaItemId={savedItemId} />}
 
           <div className="flex flex-col gap-2">
             {/* Apple requires previews to sit next to its official store badge */}

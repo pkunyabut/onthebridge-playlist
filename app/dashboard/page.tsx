@@ -56,6 +56,7 @@ export default function DashboardPage() {
     setMediaItems((items) => items.map((m) => (m.id === id ? { ...m, ...data.media } : m)));
   };
   const [song, setSong] = useState<MusicTrack | null>(null);
+  const [songItemId, setSongItemId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMedia();
@@ -301,6 +302,7 @@ export default function DashboardPage() {
               onClick={() => {
                 if (item.type === 'music') {
                   setSong(savedItemToTrack(item));
+                  setSongItemId(item.id);
                   return;
                 }
                 const match = matches[item.id];
@@ -381,6 +383,7 @@ export default function DashboardPage() {
           saving={false}
           onClose={() => setSong(null)}
           onToggleSave={() => setSong(null)}
+          savedItemId={songItemId ?? undefined}
         />
       )}
 

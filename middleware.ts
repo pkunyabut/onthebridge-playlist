@@ -13,7 +13,8 @@ export async function middleware(req: NextRequest) {
   if (
     req.nextUrl.pathname.startsWith('/dashboard') ||
     req.nextUrl.pathname.startsWith('/search') ||
-    req.nextUrl.pathname.startsWith('/watchlist')
+    req.nextUrl.pathname.startsWith('/watchlist') ||
+    req.nextUrl.pathname.startsWith('/collections')
   ) {
     if (!session) {
       const redirectUrl = req.nextUrl.clone();
@@ -34,5 +35,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/search', '/watchlist'],
+  matcher: ['/dashboard/:path*', '/login', '/search', '/watchlist', '/collections'],
 };

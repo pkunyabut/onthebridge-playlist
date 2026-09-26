@@ -277,5 +277,22 @@
   "progress_error": "Could not save, please try again",
   "sched_today": "New episode today",
   "sched_next": "New episode {date}",
-  "sched_unwatched": "{n} to watch"
+  "sched_unwatched": "{n} to watch",
+  "nav_collections": "Collections",
+  "collections_intro": "Group your saved titles your way, e.g. \"Drama with Mum\" or \"Driving songs\"",
+  "collections_new": "New collection",
+  "collections_create": "Create",
+  "collections_name_placeholder": "Collection name, e.g. Drama with Mum",
+  "collections_none": "No collections yet",
+  "collections_empty_hint": "Try grouping titles you like, e.g. \"Family movie night\" — open an item in your watchlist and add it to a collection",
+  "collections_count": "{n} items",
+  "collections_all": "All collections",
+  "collections_rename": "Rename",
+  "collections_rename_prompt": "New collection name",
+  "collections_delete": "Delete collection",
+  "collections_delete_confirm": "Delete the collection \"{name}\"?\nIts items stay in your watchlist.",
+  "collections_items_empty": "This collection is empty — open an item in your watchlist and add it here",
+  "collections_remove_item": "Remove from this collection",
+  "collections_add_title": "Add to collection",
+  "collections_manage": "All collections"
 }

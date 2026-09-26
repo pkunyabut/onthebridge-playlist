@@ -9,6 +9,7 @@ import type { TmdbDetails } from '@/app/api/tmdb/details/route';
 import { networkForTmdbId } from '@/lib/networks';
 import type { MediaItem } from '@/lib/types';
 import ProgressPanel, { type ProgressPatch } from '@/components/ProgressPanel';
+import CollectionPicker from '@/components/CollectionPicker';
 
 interface MediaModalProps {
   result: TmdbResult;
@@ -235,6 +236,7 @@ export default function MediaModal({
               onChange={onUpdateSaved}
             />
           )}
+          {savedItem && <CollectionPicker mediaItemId={savedItem.id} />}
 
           {/* Trailer button */}
           {details?.trailer && (
