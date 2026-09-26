@@ -12,7 +12,8 @@ import MediaModal from '@/components/MediaModal';
 import StatusBadge from '@/components/StatusBadge';
 import type { ProgressPatch } from '@/components/ProgressPanel';
 import MusicModal from '@/components/MusicModal';
-import { useTmdbMatches, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
+import { useTmdbMatches, useSeriesSchedules, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
+import ScheduleBadge from '@/components/ScheduleBadge';
 import type { MusicTrack } from '@/lib/itunes';
 import type { TmdbResult } from '@/lib/tmdb';
 
@@ -27,6 +28,7 @@ export default function WatchlistPage() {
 
   // Poster + preview for saved items
   const matches = useTmdbMatches(mediaItems);
+  const schedules = useSeriesSchedules(mediaItems, matches);
   const [preview, setPreview] = useState<TmdbResult | null>(null);
   const [previewItemId, setPreviewItemId] = useState<string | null>(null);
   const previewItem = mediaItems.find((m) => m.id === previewItemId);
@@ -224,6 +226,9 @@ export default function WatchlistPage() {
                         )}
                         <div className="poster-overlay" />
                         <StatusBadge item={item} />
+                        {matches[item.id]?.media === 'tv' && (
+                          <ScheduleBadge item={item} schedule={schedules[matches[item.id]!.tmdb_id]} />
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

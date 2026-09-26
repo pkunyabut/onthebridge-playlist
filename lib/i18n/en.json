@@ -274,5 +274,8 @@
   "notes_placeholder": "e.g. watching with mum / a friend recommended it",
   "notes_save": "Save note",
   "notes_saved": "Saved ✓",
-  "progress_error": "Could not save, please try again"
+  "progress_error": "Could not save, please try again",
+  "sched_today": "New episode today",
+  "sched_next": "New episode {date}",
+  "sched_unwatched": "{n} to watch"
 }

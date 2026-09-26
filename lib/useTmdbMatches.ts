@@ -5,6 +5,7 @@ import type { MediaItem } from '@/lib/types';
 import type { TmdbResult } from '@/lib/tmdb';
 import type { TmdbMatch } from '@/app/api/tmdb/match/route';
 import type { MusicTrack } from '@/lib/itunes';
+import type { SeriesSchedule } from '@/app/api/tmdb/schedule/route';
 
 /**
  * Looks up each saved item on TMDb (by title + year) so watchlist cards can show a
@@ -79,4 +80,47 @@ export function savedItemToTrack(item: MediaItem): MusicTrack {
     previewUrl: null,
     url: item.external_url ?? null,
   };
+}
+
+/**
+ * Air schedule (next / last episode) for saved series that aren't marked watched, fetched in
+ * one request. Returns schedules keyed by TMDB id — used for the "📅 new episode" card badge.
+ */
+export function useSeriesSchedules(
+  items: MediaItem[],
+  matches: Record<string, TmdbMatch | null>,
+): Record<number, SeriesSchedule | null> {
+  const [schedules, setSchedules] = useState<Record<number, SeriesSchedule | null>>({});
+  const ids = Array.from(
+    new Set(
+      items
+        .filter((i) => i.status !== 'watched')
+        .map((i) => matches[i.id])
+        .filter((m): m is TmdbMatch => !!m && m.media === 'tv')
+        .map((m) => m.tmdb_id),
+    ),
+  ).sort((a, b) => a - b);
+  const signature = ids.join(',');
+
+  useEffect(() => {
+    const missing = ids.filter((id) => !(id in schedules));
+    if (missing.length === 0) return;
+    let cancelled = false;
+    fetch('/api/tmdb/schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: missing }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { schedules?: Record<number, SeriesSchedule | null> } | null) => {
+        if (!cancelled && data?.schedules) setSchedules((prev) => ({ ...prev, ...data.schedules }));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature]);
+
+  return schedules;
 }
