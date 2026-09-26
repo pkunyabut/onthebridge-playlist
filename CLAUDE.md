@@ -181,7 +181,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - เมนู 🗂️ คอลเลกชัน ใน AppShell · เมนูล่างมือถือ 5 ปุ่มแบ่งความกว้างเท่ากัน ตัวอักษร 0.8rem (คำยาวสุด 68px ≤ ปุ่ม 72px ที่จอ 360px)
 - เช็กจากภายนอก: API ทั้งสองตอบ 401 เมื่อไม่ล็อกอิน · /collections redirect ไป /login
 
-## ➕ ต่อยอด + ความปลอดภัย (26 ก.ย. 69) — ✅ deploy แล้ว (commit `5b0be92`) · ⏳ รอพี่แอ้ทดสอบ
+## ➕ ต่อยอด + ความปลอดภัย (26 ก.ย. 69) — ✅ deploy แล้ว (commit `5b0be92`) · ✅ พี่แอ้ทดสอบผ่าน (ยังไม่ได้ดู 42 ตอน, ✓ ฟังแล้ว, ตัวกรองสถานะ)
 - `components/StatusFilter.tsx` ชิป ทุกสถานะ/รอดู/กำลังดู/ดูแล้ว ใน Dashboard + รอดู
 - นับตอนที่ยังไม่ได้ดูข้ามซีซัน: `lib/episodes.ts` `countUnwatched` + `season_episodes` ใน `/api/tmdb/details` และ `/api/tmdb/schedule` (เดอะ วอยซ์ S7E3 → 42 ตอน: 12+15+15)
 - เพลงที่บันทึก: ปุ่ม อยากฟัง/ฟังแล้ว ในหน้าต่างเพลง (`MusicModal` props `savedStatus`, `onUpdateStatus`) ใช้ status want/watched เดิม · ป้าย "✓ ฟังแล้ว"
