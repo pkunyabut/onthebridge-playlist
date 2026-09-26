@@ -15,14 +15,14 @@ export default function CollectionPicker({ mediaItemId }: { mediaItemId: string 
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | false>(false);
 
   const toggle = async (collectionId: string, member: boolean) => {
     setError(false);
     try {
       await setMembership(collectionId, mediaItemId, member);
-    } catch {
-      setError(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '');
     }
   };
 
@@ -36,8 +36,8 @@ export default function CollectionPicker({ mediaItemId }: { mediaItemId: string 
       await setMembership(created.id, mediaItemId, true);
       setName('');
       setCreating(false);
-    } catch {
-      setError(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '');
     } finally {
       setBusy(false);
     }
@@ -119,7 +119,12 @@ export default function CollectionPicker({ mediaItemId }: { mediaItemId: string 
       {!loading && collections.length === 0 && !creating && (
         <p className="mt-2 text-sm text-cinema-text-muted">{t('collections_empty_hint')}</p>
       )}
-      {error && <p className="mt-2 text-base text-red-400">{t('progress_error')}</p>}
+      {error !== false && (
+        <p className="mt-2 text-base text-red-400">
+          {t('progress_error')}
+          {error && <span className="block text-sm text-red-300/80">({error})</span>}
+        </p>
+      )}
     </div>
   );
 }

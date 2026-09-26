@@ -81,8 +81,9 @@ export default function CollectionsPage() {
       setNewName('');
       setCreating(false);
       setSelectedId(created.id);
-    } catch {
-      alert(t('progress_error'));
+    } catch (err) {
+      alert(`${t('progress_error')}
+(${err instanceof Error ? err.message : ''})`);
     } finally {
       setBusy(false);
     }

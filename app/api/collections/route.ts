@@ -67,7 +67,10 @@ export async function GET() {
     .eq('user_id', session.user.id)
     .order('created_at', { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('collections API error:', JSON.stringify({ code: error.code, message: error.message, details: error.details, hint: error.hint }));
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
+  }
   return NextResponse.json({ collections: (data as RawCollection[]).map(toCollection) });
 }
 
@@ -86,7 +89,10 @@ export async function POST(request: NextRequest) {
     .select(SELECT)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('collections API error:', JSON.stringify({ code: error.code, message: error.message, details: error.details, hint: error.hint }));
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
+  }
   return NextResponse.json({ collection: toCollection(data as RawCollection) }, { status: 201 });
 }
 
@@ -118,7 +124,10 @@ export async function PATCH(request: NextRequest) {
     .select(SELECT)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('collections API error:', JSON.stringify({ code: error.code, message: error.message, details: error.details, hint: error.hint }));
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
+  }
   return NextResponse.json({ collection: toCollection(data as RawCollection) });
 }
 
@@ -134,6 +143,9 @@ export async function DELETE(request: NextRequest) {
   await supabase.from('playlist_items').delete().eq('playlist_id', id);
   const { error } = await supabase.from('playlists').delete().eq('id', id).eq('user_id', session.user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('collections API error:', JSON.stringify({ code: error.code, message: error.message, details: error.details, hint: error.hint }));
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
 }

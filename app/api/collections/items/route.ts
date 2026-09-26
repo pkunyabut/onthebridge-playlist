@@ -43,7 +43,8 @@ export async function POST(request: NextRequest) {
 
   // 23505 = already in this collection (UNIQUE playlist_id + media_item_id) — treat as success
   if (error && error.code !== '23505') {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('collections items API error:', JSON.stringify({ code: error.code, message: error.message, details: error.details, hint: error.hint }));
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
   }
   return NextResponse.json({ success: true }, { status: 201 });
 }
@@ -66,6 +67,9 @@ export async function DELETE(request: NextRequest) {
     .eq('playlist_id', collectionId)
     .eq('media_item_id', mediaItemId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('collections API error:', JSON.stringify({ code: error.code, message: error.message, details: error.details, hint: error.hint }));
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
 }
