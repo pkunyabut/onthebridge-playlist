@@ -257,5 +257,22 @@
   "ended_label": "Finished airing",
   "episodes_total": "{n} episodes in total",
   "last_ep_label": "Last aired",
-  "schedule_note": "Air dates from TMDB may change"
+  "schedule_note": "Air dates from TMDB may change",
+  "my_progress": "My progress",
+  "status_want": "Want to watch",
+  "status_watching": "Watching",
+  "status_watched": "Watched",
+  "progress_season_label": "Season",
+  "progress_episode_label": "Watched up to ep.",
+  "progress_minus": "Decrease",
+  "progress_plus": "Increase",
+  "progress_latest": "Aired up to episode {ep}",
+  "progress_unwatched": "{n} episodes not watched yet",
+  "progress_caught_up": "All caught up 🎉",
+  "badge_watching_ep": "Up to ep. {ep}",
+  "notes_label": "My note",
+  "notes_placeholder": "e.g. watching with mum / a friend recommended it",
+  "notes_save": "Save note",
+  "notes_saved": "Saved ✓",
+  "progress_error": "Could not save, please try again"
 }

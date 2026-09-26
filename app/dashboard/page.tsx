@@ -7,8 +7,10 @@ import type { MediaItem } from '@/lib/types';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import type { PlatformType } from '@/lib/types';
-import { PLATFORM_ICONS } from '@/lib/types';
+import { PLATFORM_ICONS, PLATFORM_LABELS } from '@/lib/types';
 import MediaModal from '@/components/MediaModal';
+import StatusBadge from '@/components/StatusBadge';
+import type { ProgressPatch } from '@/components/ProgressPanel';
 import MusicModal from '@/components/MusicModal';
 import { useTmdbMatches, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
 import type { MusicTrack } from '@/lib/itunes';
@@ -37,6 +39,20 @@ export default function DashboardPage() {
   // Poster + preview for saved items
   const matches = useTmdbMatches(mediaItems);
   const [preview, setPreview] = useState<TmdbResult | null>(null);
+  const [previewItemId, setPreviewItemId] = useState<string | null>(null);
+  const previewItem = mediaItems.find((m) => m.id === previewItemId);
+
+  // status / episode / note from the preview's "My progress" panel
+  const updateSaved = async (id: string, patch: ProgressPatch) => {
+    const res = await fetch('/api/media', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...patch }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.media) throw new Error(data.error || 'update failed');
+    setMediaItems((items) => items.map((m) => (m.id === id ? { ...m, ...data.media } : m)));
+  };
   const [song, setSong] = useState<MusicTrack | null>(null);
 
   useEffect(() => {
@@ -286,7 +302,10 @@ export default function DashboardPage() {
                   return;
                 }
                 const match = matches[item.id];
-                if (match) setPreview(savedItemToResult(item, match));
+                if (match) {
+                  setPreview(savedItemToResult(item, match));
+                  setPreviewItemId(item.id);
+                }
               }}
             >
               {/* Poster placeholder for saved items */}
@@ -302,6 +321,7 @@ export default function DashboardPage() {
                   <span className="text-4xl">{typeIcons[item.type]}</span>
                 )}
                 <div className="poster-overlay" />
+                <StatusBadge item={item} />
                 {/* Delete button */}
                 <button
                   onClick={(e) => {
@@ -337,7 +357,7 @@ export default function DashboardPage() {
                 {item.platform && (
                   <div className="mt-1.5">
                     <span className="platform-badge">
-                      {PLATFORM_ICONS[item.platform as PlatformType]} {item.platform}
+                      {PLATFORM_ICONS[item.platform as PlatformType]} {PLATFORM_LABELS[item.platform as PlatformType] ?? item.platform}
                     </span>
                   </div>
                 )}
@@ -368,6 +388,8 @@ export default function DashboardPage() {
           saving={false}
           onClose={() => setPreview(null)}
           onToggleSave={() => setPreview(null)}
+          savedItem={previewItem}
+          onUpdateSaved={previewItem ? (patch) => updateSaved(previewItem.id, patch) : undefined}
         />
       )}
 

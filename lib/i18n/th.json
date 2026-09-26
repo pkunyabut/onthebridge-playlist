@@ -257,5 +257,22 @@
   "ended_label": "ออกอากาศจบแล้ว",
   "episodes_total": "ทั้งหมด {n} ตอน",
   "last_ep_label": "ออกอากาศล่าสุด",
-  "schedule_note": "วันออกอากาศจาก TMDB อาจเปลี่ยนแปลงได้"
+  "schedule_note": "วันออกอากาศจาก TMDB อาจเปลี่ยนแปลงได้",
+  "my_progress": "ความคืบหน้าของฉัน",
+  "status_want": "รอดู",
+  "status_watching": "กำลังดู",
+  "status_watched": "ดูแล้ว",
+  "progress_season_label": "ซีซัน",
+  "progress_episode_label": "ดูถึงตอนที่",
+  "progress_minus": "ลด",
+  "progress_plus": "เพิ่ม",
+  "progress_latest": "ออกอากาศแล้วถึงตอนที่ {ep}",
+  "progress_unwatched": "ยังไม่ได้ดู {n} ตอน",
+  "progress_caught_up": "ดูทันแล้ว 🎉",
+  "badge_watching_ep": "ดูถึงตอนที่ {ep}",
+  "notes_label": "โน้ตของฉัน",
+  "notes_placeholder": "เช่น ดูกับแม่ / เพื่อนแนะนำ / ค้างไว้นาทีที่ 20",
+  "notes_save": "บันทึกโน้ต",
+  "notes_saved": "บันทึกแล้ว ✓",
+  "progress_error": "บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"
 }

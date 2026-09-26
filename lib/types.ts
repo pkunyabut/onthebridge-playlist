@@ -56,7 +56,14 @@ export interface MediaItem {
   external_url?: string | null;
   tmdb_id?: number | null;
   tmdb_media?: 'movie' | 'tv' | null;
+  // Migration 0009 — watch status + episode progress
+  status?: WatchStatus;
+  progress_season?: number | null;
+  progress_episode?: number | null;
 }
+
+export type WatchStatus = 'want' | 'watching' | 'watched';
+export const WATCH_STATUSES: WatchStatus[] = ['want', 'watching', 'watched'];
 
 export interface Playlist {
   id: string;

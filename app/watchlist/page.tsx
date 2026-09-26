@@ -9,6 +9,8 @@ import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, MediaType, PlatformType } from '@/lib/types';
 import { PLATFORM_ICONS } from '@/lib/types';
 import MediaModal from '@/components/MediaModal';
+import StatusBadge from '@/components/StatusBadge';
+import type { ProgressPatch } from '@/components/ProgressPanel';
 import MusicModal from '@/components/MusicModal';
 import { useTmdbMatches, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
 import type { MusicTrack } from '@/lib/itunes';
@@ -26,6 +28,20 @@ export default function WatchlistPage() {
   // Poster + preview for saved items
   const matches = useTmdbMatches(mediaItems);
   const [preview, setPreview] = useState<TmdbResult | null>(null);
+  const [previewItemId, setPreviewItemId] = useState<string | null>(null);
+  const previewItem = mediaItems.find((m) => m.id === previewItemId);
+
+  // status / episode / note from the preview's "My progress" panel
+  const updateSaved = async (id: string, patch: ProgressPatch) => {
+    const res = await fetch('/api/media', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...patch }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.media) throw new Error(data.error || 'update failed');
+    setMediaItems((items) => items.map((m) => (m.id === id ? { ...m, ...data.media } : m)));
+  };
   const [song, setSong] = useState<MusicTrack | null>(null);
 
   const FILTER_TABS: { key: FilterType; label: string; icon: string }[] = [
@@ -190,7 +206,10 @@ export default function WatchlistPage() {
                           return;
                         }
                         const match = matches[item.id];
-                        if (match) setPreview(savedItemToResult(item, match));
+                        if (match) {
+                          setPreview(savedItemToResult(item, match));
+                          setPreviewItemId(item.id);
+                        }
                       }}>
                       <div className="poster-container flex items-center justify-center bg-cinema-800">
                         {(item.type === 'music' ? item.cover_url : matches[item.id]?.poster) ? (
@@ -204,6 +223,7 @@ export default function WatchlistPage() {
                           <span className="text-4xl">{typeIcons[item.type]}</span>
                         )}
                         <div className="poster-overlay" />
+                        <StatusBadge item={item} />
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -266,6 +286,8 @@ export default function WatchlistPage() {
           saving={false}
           onClose={() => setPreview(null)}
           onToggleSave={() => setPreview(null)}
+          savedItem={previewItem}
+          onUpdateSaved={previewItem ? (patch) => updateSaved(previewItem.id, patch) : undefined}
         />
       )}
     </AppShell>

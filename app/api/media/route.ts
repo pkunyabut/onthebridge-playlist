@@ -1,7 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { isValidMediaType, isValidPlatform, PLATFORM_TYPES } from '@/lib/types';
+import { isValidMediaType, isValidPlatform, PLATFORM_TYPES, WATCH_STATUSES, type WatchStatus } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -205,5 +205,69 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  return NextResponse.json({ media: data });
+}
+
+// PATCH /api/media — { id, status?, progress_season?, progress_episode?, notes? }
+// Updates only what is sent: watch status (want / watching / watched), the episode the
+// user watched up to, and the personal note.
+export async function PATCH(request: NextRequest) {
+  const cookieStore = cookies();
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+
+  const { data: { session }, error: authError } = await supabase.auth.getSession();
+  if (authError || !session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+  if (typeof body.id !== 'string' || !body.id) {
+    return NextResponse.json({ error: 'ต้องระบุ ID' }, { status: 400 });
+  }
+
+  const update: Record<string, string | number | null> = {};
+  if ('status' in body) {
+    if (!WATCH_STATUSES.includes(body.status as WatchStatus)) {
+      return NextResponse.json({ error: `สถานะไม่ถูกต้อง (รองรับ: ${WATCH_STATUSES.join(', ')})` }, { status: 400 });
+    }
+    update.status = body.status as WatchStatus;
+  }
+  for (const [key, min] of [['progress_season', 1], ['progress_episode', 0]] as const) {
+    if (key in body) {
+      const v = body[key];
+      if (v !== null && !(typeof v === 'number' && Number.isInteger(v) && v >= min && v <= 100000)) {
+        return NextResponse.json({ error: `${key} ไม่ถูกต้อง` }, { status: 400 });
+      }
+      update[key] = v as number | null;
+    }
+  }
+  if ('notes' in body) {
+    const v = body.notes;
+    if (v !== null && typeof v !== 'string') {
+      return NextResponse.json({ error: 'โน้ตไม่ถูกต้อง' }, { status: 400 });
+    }
+    update.notes = typeof v === 'string' && v.trim() ? v.trim().slice(0, 2000) : null;
+  }
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: 'ไม่มีข้อมูลให้แก้ไข' }, { status: 400 });
+  }
+
+  const { data, error } = await supabase
+    .from('media_items')
+    .update(update)
+    .eq('id', body.id)
+    .eq('user_id', session.user.id)
+    .select()
+    .single();
+
+  if (isMissingColumn(error)) {
+    return NextResponse.json(
+      { error: 'ฐานข้อมูลยังไม่รองรับสถานะการดู (ต้องรัน SQL 0009)' },
+      { status: 503 },
+    );
+  }
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ media: data });
 }
