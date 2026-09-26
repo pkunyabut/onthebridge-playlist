@@ -59,6 +59,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 | **0006_fix_save_permissions** | ✅ รันแล้ว 25 ก.ย. 69 — GRANT สิทธิ์ให้ role `authenticated` + trigger สร้าง `profiles` อัตโนมัติ (ผล: users 2 = profiles 2) |
 | **0007_media_items_music_and_tmdb** | ✅ พี่แอ้รันแล้ว 26 ก.ย. 69 + **ยืนยันด้วย information_schema: มี `artist`, `album`, `cover_url`, `itunes_track_id`, `external_url`, `tmdb_id`, `tmdb_media` ครบ** (รอบแรกที่แจ้งว่ารันแล้วไม่เข้า เพราะในแท็บ SQL Editor มีโค้ดเก่า 0002/0004/0005 ค้าง — ลบแท็บนั้นแล้ว) · `/api/media` ยังมีทางสำรอง: ถ้าเจอ PGRST204 (คอลัมน์ไม่มี) จะบันทึกซ้ำเฉพาะคอลัมน์เดิม |
 | **0008_thai_platforms** | ✅ พี่แอ้รันแล้ว 26 ก.ย. 69 (Success) + **ยืนยันด้วย `pg_get_constraintdef`: มี ch3plus…trueid ครบ** — เพิ่มค่า platform: `ch3plus`, `ch7`, `oned`, `gmm25`, `workpoint`, `vipa`, `amarin`, `monomax`, `ais_play`, `trueid` · โค้ดจาก branch `thai-platforms` merge เข้า main แล้ว · ⚠️ ครั้งแรกพี่แอ้เผลอรันโค้ด 0002 ค้างใน SQL Editor (error policy already exists) — ให้กด New query ทุกครั้ง |
+| **0009_watch_status** | ✅ พี่แอ้รันแล้ว 26 ก.ย. 69 + ยืนยันด้วย information_schema — `status` (want/watching/watched, ค่าเริ่มต้น 'want'), `progress_season`, `progress_episode` · โน้ตใช้คอลัมน์ `notes` เดิม |
 
 `tmdb_music` (0003) เป็น cache "หนังแนวดนตรี" ของ TMDb ไม่ใช่เพลงจริง — เพลงจริงมาจาก iTunes และเก็บใน `media_items` (type `music`)
 
@@ -154,13 +155,20 @@ Next.js 14 (App Router) + TypeScript + Tailwind · Supabase (Postgres + Auth แ
 - ทดสอบ: "รักสุดใจนายแฟนบอย" (one31) → ตอนที่ 5 ออกอากาศวันนี้ · "นอต" → จบแล้ว 12 ตอน · ข้อมูลตารางละครไทยใน TMDB มีจริงแต่บางเรื่องอัปเดตช้า (เช่น next_episode เป็นวันที่ผ่านไปแล้ว) → ตกไปแสดง "ออกอากาศล่าสุด" แทน
 - ต่อยอดได้: ป้าย "ตอนใหม่ ศ. 2 ต.ค." บนการ์ดซีรีส์ใน Dashboard/รอดู
 
+## 📝 สถานะดูแล้ว / ดูถึงตอนที่ / โน้ต (26 ก.ย. 69) — ✅ deploy แล้ว (branch `watch-progress` → main)
+- `components/ProgressPanel.tsx` ในหน้าต่าง Preview ของรายการที่บันทึก (Dashboard + รอดู เท่านั้น — ส่ง `savedItem` + `onUpdateSaved` ให้ `MediaModal`): ปุ่ม รอดู/กำลังดู/ดูแล้ว, ตัวนับ ซีซัน/ตอน (+/−, บันทึกทันที; กด + จาก "รอดู" → เปลี่ยนเป็น "กำลังดู"), "ออกอากาศแล้วถึงตอนที่ N · ยังไม่ได้ดู M ตอน" (เทียบกับ `last_episode` ของ TMDB ในซีซันเดียวกัน), โน้ต (ปุ่มบันทึกโน้ต)
+- `components/StatusBadge.tsx` ป้ายบนโปสเตอร์: "▶ ดูถึงตอนที่ 8" / "✓ ดูแล้ว" (สถานะ รอดู ไม่มีป้าย)
+- `PATCH /api/media` `{ id, status?, progress_season?, progress_episode?, notes? }` แก้เฉพาะที่ส่ง · ถ้าคอลัมน์ไม่มี ตอบ 503 "ต้องรัน SQL 0009"
+- ป้ายแพลตฟอร์มใน Dashboard ใช้ `PLATFORM_LABELS` (CH3Plus, Prime Video) แทนค่าระบบ
+- ยังไม่มี: สถานะสำหรับเพลง, ตัวกรองตามสถานะ (เช่น ดูเฉพาะ "กำลังดู")
+
 ## 📋 งานค้าง (เรียงตามความสำคัญ)
 > ✅ 26 ก.ย. 69 พี่แอ้ทดสอบหลัง 0007 + 0008 ผ่านครบ: บันทึกเพลง (การ์ดมีปก + ศิลปิน + ฟังตัวอย่างได้), บันทึกละครจากแถวตามช่อง (โปสเตอร์ + ป้าย ch3plus), บันทึกหนังจากหน้าแรก (โปสเตอร์ตรง + Preview)
 > สถานะ git (25 ก.ย. 69): ทุกอย่าง commit + push ขึ้น `main` แล้ว เหลือ `FIXES_ROUND1.md`, `RLS_FIX.md` ที่ไม่ได้ track (ของรอบ Hermes ล้าสมัย — ตั้งใจไม่ commit)
 > Deploy: Vercel **ไม่ deploy อัตโนมัติ** เมื่อ push → ต้องสั่ง `vercel deploy --prod --yes` เองทุกครั้ง · ⚠️ อย่าซ่อนผลลัพธ์ของคำสั่ง deploy (เคยล้มเหลวเงียบๆ 26 ก.ย. 69) — เช็กด้วย `vercel ls onthebridge-playlist` ว่าแถวบนสุดอายุไม่กี่วินาทีและเป็น Ready ก่อนทดสอบ
 
 1. **ระบบเพลย์ลิสต์** — มีตาราง playlists/playlist_items แล้ว แต่ยังไม่มีหน้าเว็บ/API
-2. **สถานะ "ดูแล้ว / กำลังดู"** — ตอนนี้บันทึกได้แค่ "รอดู" ยังให้คะแนน/จดโน้ตไม่ได้
+2. ~~สถานะ "ดูแล้ว / กำลังดู"~~ ✅ ทำแล้ว 26 ก.ย. 69 — — ตอนนี้บันทึกได้แค่ "รอดู" ยังให้คะแนน/จดโน้ตไม่ได้
 3. **จำกัด `/api/sync`** — ตอนนี้ผู้ใช้ที่ล็อกอินคนไหนก็สั่ง sync ได้ ควรจำกัดเฉพาะแอดมิน
 4. **หน้า `/search` โหมด EN** — ผลค้นหายังดึงจาก TMDb เป็นภาษาไทยเสมอ
 5. **ระบบล็อกอิน** — `@supabase/auth-helpers-nextjs` เลิกพัฒนาแล้ว ควรย้ายไป `@supabase/ssr` (ต้องขออนุญาตพี่แอ้ก่อนเพราะเพิ่ม dependency)
