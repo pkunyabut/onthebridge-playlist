@@ -745,6 +745,13 @@ export async function fetchRecommendationsForTitles(
  * sort_by=popularity.desc, language=th-TH. TMDb has no watch_region requirement for
  * this filter, so a title does not need a Thai streaming listing to be surfaced.
  */
+const ORIGIN_MOVIE_MIN_VOTES = '100';
+
+/** TMDb keywords softcore (155477), pink film (159551), erotic (256466), erotic comedy (302868),
+ *  erotic romance (298666) — ids checked on themoviedb.org 26 ก.ย. 69. Tagging is patchy, so the
+ *  vote threshold above does most of the work. */
+const ADULT_KEYWORD_IDS = '155477,159551,256466,302868,298666';
+
 export async function fetchOriginRow(
   apiKey: string,
   countries: string[],
@@ -757,7 +764,11 @@ export async function fetchOriginRow(
     with_origin_country: countries.join('|'),
     language,
     page: '1',
-    'vote_count.gte': '5',
+    // Movies: old Japanese pink/softcore films (not flagged adult on TMDb) topped the Japan row
+    // on popularity with a handful of votes — well-known films clear 100 votes easily. Series
+    // keep 5: Thai lakorn rarely get more than a few dozen votes.
+    'vote_count.gte': mediaType === 'movie' ? ORIGIN_MOVIE_MIN_VOTES : '5',
+    without_keywords: ADULT_KEYWORD_IDS,
     include_adult: 'false',
   };
   const data = await fetchTmdb(`/discover/${mediaType}`, params, apiKey) as { results?: TmdbRowRaw[] };
