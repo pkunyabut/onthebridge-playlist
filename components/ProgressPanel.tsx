@@ -44,6 +44,12 @@ export default function ProgressPanel({ item, isSeries, seasons, lastAired, onCh
     setNotes(item.notes ?? '');
   }, [item.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // No progress saved yet → start at the latest aired season (The Voice: season 10, not 1).
+  // TMDB details arrive after the panel mounts, so this runs when they do.
+  useEffect(() => {
+    if (item.progress_season == null && lastAired?.season) setSeason(lastAired.season);
+  }, [item.progress_season, lastAired?.season]);
+
   const save = async (patch: ProgressPatch) => {
     setError(false);
     try {
