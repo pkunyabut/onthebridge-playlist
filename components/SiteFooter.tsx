@@ -6,7 +6,7 @@ import { useLanguage } from '@/context/LanguageContext';
 export const CONTACT_EMAIL = 'thonglorproduction@gmail.com';
 
 /** Sister site: the OnTheBridge magazine (static site on Cloudflare Pages). Change here when the domain changes. */
-export const MAGAZINE_URL = 'https://onthebridge.pages.dev/';
+export const MAGAZINE_URL = 'https://onthebridge.in.th/';
 
 /** Official TMDB logo (themoviedb.org/about/logos-attribution) — must stay smaller than our own logo. */
 export const TMDB_LOGO =
