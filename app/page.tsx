@@ -479,7 +479,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 glass-strong border-b border-cinema-border">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-2xl" aria-hidden="true">🌉</span>
+            <img src="/logo.png" alt="" aria-hidden="true" className="w-7 h-7 rounded-full flex-shrink-0" />
             <span className="text-lg font-bold text-gold-gradient truncate">
               {t('app_name')}
             </span>

@@ -37,7 +37,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 glass-strong border-b border-cinema-border safe-top">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl">🌉</span>
+            <img src="/logo.png" alt="" aria-hidden="true" className="w-6 h-6 rounded-full flex-shrink-0" />
             <span className="text-base font-bold text-gold-gradient">
               OnTheBridge
             </span>
@@ -96,7 +96,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col w-64 min-h-screen bg-cinema-900/50 border-r border-cinema-border p-4 sticky top-0 h-screen backdrop-blur-sm">
           <Link href="/" className="flex items-center gap-2 px-4 py-3 mb-6">
-            <span className="text-2xl">🌉</span>
+            <img src="/logo.png" alt="" aria-hidden="true" className="w-8 h-8 rounded-full flex-shrink-0" />
             <span className="text-lg font-bold text-gold-gradient">
               OnTheBridge
             </span>
