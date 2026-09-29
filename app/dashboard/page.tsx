@@ -414,7 +414,7 @@ export default function DashboardPage() {
         <div className="imdb-modal-backdrop" onClick={() => setShowAiModal(false)}>
           <div className="ai-recommend-modal" onClick={(e) => e.stopPropagation()}>
             {/* Modal header */}
-            <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-white/5 bg-[#1a1f2e]">
+            <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-white/5 bg-[#081726]">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <span>✨</span>
                 {t('ai_recommendations_title')}

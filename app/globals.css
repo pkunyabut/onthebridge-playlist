@@ -3,19 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --cinema-bg: #0a0e1a;
-  --cinema-surface: #0f1525;
-  --cinema-card: rgba(17, 24, 39, 0.85);
-  --cinema-card-hover: rgba(30, 41, 59, 0.9);
-  --cinema-border: rgba(245, 158, 11, 0.12);
-  --cinema-gold: #f59e0b;
-  --cinema-gold-light: #fbbf24;
-  --cinema-gold-dark: #b45309;
-  --cinema-text: #f1f5f9;
-  --cinema-text-muted: #cbd5e1;
-  --cinema-glow: rgba(245, 158, 11, 0.15);
-  --cinema-rating: #f5c518;
-  --imdb-yellow: #f5c518;
+  /* T5 (29 ก.ย. 69): เฉดเดียวกับแบรนด์ OnTheBridge (navy #0E2439 · ทอง #C9A227 · ครีม #FAF6EE)
+     ปรับให้เข้มพอเป็นพื้นหลัง/สว่างพอเป็นตัวหนังสือของธีมมืด — ทุกจุดในไฟล์นี้อ้างจากตัวแปรชุดนี้ที่เดียว */
+  --navy-rgb: 8, 23, 38;        /* navy เข้ม ใช้เป็นพื้นการ์ด/overlay */
+  --navy-dark-rgb: 5, 14, 23;   /* navy เข้มสุด ใช้เป็นพื้นหลังหน้า */
+  --gold-rgb: 201, 162, 39;     /* = #C9A227 สีทองแบรนด์ */
+  --cinema-bg: #050e17;
+  --cinema-surface: #081726;
+  --cinema-card: rgba(var(--navy-rgb), 0.85);
+  --cinema-card-hover: rgba(13, 36, 58, 0.9);
+  --cinema-border: rgba(var(--gold-rgb), 0.12);
+  --cinema-gold: #c9a227;
+  --cinema-gold-light: #e4ca76;
+  --cinema-gold-dark: #896e1b;
+  --cinema-text: #faf6ee;
+  --cinema-text-muted: #c9c2b0;
+  --cinema-glow: rgba(var(--gold-rgb), 0.15);
+  --cinema-rating: #c9a227;
+  --imdb-yellow: #c9a227;
 }
 
 * {
@@ -45,22 +50,22 @@ button, a, input, select, textarea {
 
 /* === IMDb-style Glassmorphism === */
 .glass {
-  background: rgba(17, 24, 39, 0.75);
+  background: rgba(var(--navy-rgb), 0.75);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(var(--gold-rgb), 0.1);
 }
 
 .glass-strong {
-  background: rgba(10, 14, 26, 0.92);
+  background: rgba(var(--navy-dark-rgb), 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(var(--gold-rgb), 0.15);
 }
 
 /* === Gold gradient text === */
 .text-gold-gradient {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  background: linear-gradient(135deg, #e4ca76 0%, #c9a227 50%, #896e1b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -91,7 +96,7 @@ button, a, input, select, textarea {
   position: relative;
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(17, 24, 39, 0.85);
+  background: rgba(var(--navy-rgb), 0.85);
   border: 1px solid rgba(255, 255, 255, 0.06);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
@@ -99,15 +104,15 @@ button, a, input, select, textarea {
 
 .imdb-card:hover {
   transform: translateY(-4px) scale(1.02);
-  border-color: rgba(245, 197, 24, 0.4);
-  box-shadow: 0 12px 40px -8px rgba(245, 197, 24, 0.15), 0 0 0 1px rgba(245, 197, 24, 0.2);
+  border-color: rgba(var(--gold-rgb), 0.4);
+  box-shadow: 0 12px 40px -8px rgba(var(--gold-rgb), 0.15), 0 0 0 1px rgba(var(--gold-rgb), 0.2);
 }
 
 .imdb-card .poster-container {
   position: relative;
   aspect-ratio: 2/3;
   overflow: hidden;
-  background: #1a1f2e;
+  background: #081726;
 }
 
 .imdb-card .poster-container img {
@@ -195,13 +200,13 @@ button, a, input, select, textarea {
 }
 
 .imdb-card .save-btn:hover {
-  background: rgba(245, 158, 11, 0.3);
+  background: rgba(var(--gold-rgb), 0.3);
   border-color: var(--cinema-gold);
   transform: scale(1.1);
 }
 
 .imdb-card .save-btn.saved {
-  background: rgba(245, 158, 11, 0.25);
+  background: rgba(var(--gold-rgb), 0.25);
   border-color: var(--cinema-gold);
 }
 
@@ -299,14 +304,14 @@ button, a, input, select, textarea {
   border-radius: 5px;
   font-size: 0.875rem; /* 15px — was 0.7rem */
   font-weight: 600;
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(var(--gold-rgb), 0.1);
   color: var(--cinema-gold-light);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(var(--gold-rgb), 0.2);
 }
 
 /* === Shimmer skeleton === */
 .shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(245, 158, 11, 0.06) 50%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(var(--gold-rgb), 0.06) 50%, rgba(255,255,255,0) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.8s linear infinite;
 }
@@ -327,7 +332,7 @@ button, a, input, select, textarea {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(245, 158, 11, 0.25);
+  background: rgba(var(--gold-rgb), 0.25);
   border-radius: 3px;
 }
 
@@ -371,7 +376,7 @@ button, a, input, select, textarea {
 }
 
 .imdb-modal {
-  background: #1a1f2e;
+  background: #081726;
   border-radius: 12px;
   max-width: 420px;
   width: 100%;
@@ -422,7 +427,7 @@ button, a, input, select, textarea {
 
 /* === AI Recommend Modal === */
 .ai-recommend-modal {
-  background: #1a1f2e;
+  background: #081726;
   border-radius: 16px;
   max-width: 640px;
   width: 100%;
@@ -487,9 +492,9 @@ button, a, input, select, textarea {
 }
 
 .platform-badge:hover {
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(var(--gold-rgb), 0.1);
   color: var(--cinema-gold-light);
-  border-color: rgba(245, 158, 11, 0.2);
+  border-color: rgba(var(--gold-rgb), 0.2);
 }
 
 .platform-badge.link {
@@ -526,9 +531,9 @@ button, a, input, select, textarea {
 }
 
 .segmented button.active {
-  background: var(--cinema-gold, #f59e0b);
-  color: #1a1f2e;
-  box-shadow: 0 4px 20px -2px rgba(245, 158, 11, 0.25);
+  background: var(--cinema-gold, #c9a227);
+  color: #081726;
+  box-shadow: 0 4px 20px -2px rgba(var(--gold-rgb), 0.25);
 }
 
 /* 360px phones: the two segmented options must share the row without clipping, so they
@@ -583,7 +588,7 @@ button, a, input, select, textarea {
 }
 
 .chip.active {
-  background: rgba(245, 158, 11, 0.18);
+  background: rgba(var(--gold-rgb), 0.18);
   border-color: var(--cinema-gold);
   color: var(--cinema-gold-light);
 }
@@ -659,7 +664,7 @@ button, a, input, select, textarea {
   scroll-snap-align: start;
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(17, 24, 39, 0.85);
+  background: rgba(var(--navy-rgb), 0.85);
   border: 1px solid rgba(255,255,255,0.06);
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease;
@@ -671,13 +676,13 @@ button, a, input, select, textarea {
 
 .suggest-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(245, 197, 24, 0.4);
+  border-color: rgba(var(--gold-rgb), 0.4);
 }
 
 .suggest-card .poster {
   position: relative;
   aspect-ratio: 2/3;
-  background: #1a1f2e;
+  background: #081726;
   overflow: hidden;
 }
 
@@ -713,7 +718,7 @@ button, a, input, select, textarea {
 
 /* Panel used by the service picker */
 .panel {
-  background: #1a1f2e;
+  background: #081726;
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,0.08);
   box-shadow: 0 24px 80px rgba(0,0,0,0.5);
