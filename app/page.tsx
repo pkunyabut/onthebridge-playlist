@@ -16,7 +16,6 @@ import ScrollRow from '@/components/ScrollRow';
 import Flag from '@/components/Flag';
 import SiteFooter from '@/components/SiteFooter';
 import NetworkRow from '@/components/NetworkRow';
-import { NETWORKS } from '@/lib/networks';
 import MusicBrowser from '@/components/MusicBrowser';
 import MusicModal from '@/components/MusicModal';
 import type { MusicTrack } from '@/lib/itunes';
@@ -874,9 +873,10 @@ export default function LandingPage() {
               { name: 'Prime Video', url: 'https://www.primevideo.com' },
               { name: 'Apple TV+', url: 'https://tv.apple.com' },
               { name: 'YouTube Premium', url: 'https://www.youtube.com/premium' },
-              // Thai channels + Asian platforms — same list as the "by channel" row, so a new
-              // channel added to lib/networks.ts shows up here too.
-              ...NETWORKS.map((n) => n.app),
+              { name: 'WeTV', url: 'https://wetv.vip' },
+              { name: 'VIU', url: 'https://www.viu.com' },
+              { name: 'iQIYI', url: 'https://www.iq.com' },
+              { name: 'Youku', url: 'https://youku.tv/' },
               { name: 'Spotify', url: 'https://open.spotify.com' },
               { name: 'Apple Music', url: 'https://music.apple.com' },
             ].map((platform) => (
