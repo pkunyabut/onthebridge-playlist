@@ -14,7 +14,7 @@ import StatusFilter from '@/components/StatusFilter';
 import type { WatchStatus } from '@/lib/types';
 import type { ProgressPatch } from '@/components/ProgressPanel';
 import MusicModal from '@/components/MusicModal';
-import { useTmdbMatches, useSeriesSchedules, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
+import { useTmdbMatches, useLocalizedTitles, useSeriesSchedules, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
 import type { MusicTrack } from '@/lib/itunes';
 import type { TmdbResult } from '@/lib/tmdb';
 
@@ -31,6 +31,7 @@ export default function WatchlistPage() {
   // Poster + preview for saved items
   const matches = useTmdbMatches(mediaItems);
   const schedules = useSeriesSchedules(mediaItems, matches);
+  const titles = useLocalizedTitles(mediaItems, matches);
   const [preview, setPreview] = useState<TmdbResult | null>(null);
   const [previewItemId, setPreviewItemId] = useState<string | null>(null);
   const previewItem = mediaItems.find((m) => m.id === previewItemId);
@@ -199,6 +200,7 @@ export default function WatchlistPage() {
                 <div className="imdb-grid stagger-grid">
                   {items.map((item) => (
                     <SavedItemCard
+                      title={titles[item.id]}
                       key={item.id}
                       item={item}
                       match={matches[item.id]}
@@ -213,7 +215,7 @@ export default function WatchlistPage() {
                         }
                         const match = matches[item.id];
                         if (match) {
-                          setPreview(savedItemToResult(item, match));
+                          setPreview(savedItemToResult({ ...item, title: titles[item.id] ?? item.title }, match));
                           setPreviewItemId(item.id);
                         }
                       }}

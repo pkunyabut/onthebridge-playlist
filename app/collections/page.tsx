@@ -14,7 +14,7 @@ import type { MediaItem } from '@/lib/types';
 import type { TmdbResult } from '@/lib/tmdb';
 import type { MusicTrack } from '@/lib/itunes';
 import { useCollections } from '@/lib/useCollections';
-import { useTmdbMatches, useSeriesSchedules, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
+import { useTmdbMatches, useLocalizedTitles, useSeriesSchedules, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
 
 /** คอลเลกชัน — user-named groups of saved items ("ละครดูกับแม่", "เพลงขับรถ"). */
 export default function CollectionsPage() {
@@ -41,6 +41,7 @@ export default function CollectionsPage() {
 
   const matches = useTmdbMatches(mediaItems);
   const schedules = useSeriesSchedules(mediaItems, matches);
+  const titles = useLocalizedTitles(mediaItems, matches);
   const byId = new Map(mediaItems.map((m) => [m.id, m]));
   const selected = collections.find((c) => c.id === selectedId) ?? null;
   const previewItem = mediaItems.find((m) => m.id === previewItemId);
@@ -56,7 +57,7 @@ export default function CollectionsPage() {
     }
     const match = matches[item.id];
     if (match) {
-      setPreview(savedItemToResult(item, match));
+      setPreview(savedItemToResult({ ...item, title: titles[item.id] ?? item.title }, match));
       setPreviewItemId(item.id);
     }
   };
@@ -240,6 +241,7 @@ export default function CollectionsPage() {
                   const match = matches[item.id];
                   return (
                     <SavedItemCard
+                      title={titles[item.id]}
                       key={id}
                       item={item}
                       match={match}

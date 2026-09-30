@@ -6,6 +6,49 @@ import type { TmdbResult } from '@/lib/tmdb';
 import type { TmdbMatch } from '@/app/api/tmdb/match/route';
 import type { MusicTrack } from '@/lib/itunes';
 import type { SeriesSchedule } from '@/app/api/tmdb/schedule/route';
+import { useLanguage } from '@/context/LanguageContext';
+
+/**
+ * Titles of saved items in the language of the ไทย | EN switch (media_items.title keeps the
+ * title it was saved with, usually Thai). Only items with a TMDb match; songs keep their title.
+ * Returns item.id → title; an item missing from the map shows its saved title.
+ */
+export function useLocalizedTitles(items: MediaItem[], matches: Record<string, TmdbMatch | null>): Record<string, string> {
+  const { lang } = useLanguage();
+  const [titles, setTitles] = useState<Record<string, Record<string, string>>>({});
+  const language = lang === 'en' ? 'en-US' : 'th-TH';
+  const wanted = items
+    .filter((i) => i.type !== 'music' && matches[i.id])
+    .map((i) => ({ key: i.id, tmdb_id: matches[i.id]!.tmdb_id, media: matches[i.id]!.media }));
+  const signature = `${language}|${wanted.map((w) => `${w.key}:${w.tmdb_id}`).join(',')}`;
+
+  useEffect(() => {
+    const have = titles[language] ?? {};
+    const missing = wanted.filter((w) => !(w.key in have));
+    if (missing.length === 0) return;
+    let cancelled = false;
+    fetch('/api/tmdb/titles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language, items: missing }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { titles?: Record<string, string> } | null) => {
+        if (cancelled || !data?.titles) return;
+        // remember "asked" items too (value '' = keep the saved title) so they aren't refetched
+        const got: Record<string, string> = Object.fromEntries(missing.map((m) => [m.key, data.titles![m.key] ?? '']));
+        setTitles((prev) => ({ ...prev, [language]: { ...(prev[language] ?? {}), ...got } }));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature]);
+
+  const current = titles[language] ?? {};
+  return Object.fromEntries(Object.entries(current).filter(([, t]) => t));
+}
 
 /**
  * Looks up each saved item on TMDb (by title + year) so watchlist cards can show a

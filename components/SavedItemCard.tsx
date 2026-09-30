@@ -26,6 +26,8 @@ interface SavedItemCardProps {
   match?: TmdbMatch | null;
   schedule?: SeriesSchedule | null;
   onOpen: () => void;
+  /** title in the current ไทย | EN language (useLocalizedTitles) — falls back to the saved title */
+  title?: string;
   /** top-right button, e.g. "remove from this collection" or delete */
   action?: { label: string; icon: React.ReactNode; onClick: () => void; busy?: boolean };
   /** line with the saved genre text (Dashboard, รอดู) */
@@ -39,8 +41,9 @@ interface SavedItemCardProps {
  * Used by Dashboard, รอดู and คอลเลกชัน — change the saved-item card here only.
  */
 export default function SavedItemCard({
-  item, match, schedule, onOpen, action, showGenre = false, showPlatform = true,
+  item, match, schedule, onOpen, action, showGenre = false, showPlatform = true, title,
 }: SavedItemCardProps) {
+  const shownTitle = title ?? item.title;
   const { t } = useLanguage();
   const cover = item.type === 'music' ? item.cover_url : match?.poster ?? item.cover_url;
   const canOpen = item.type === 'music' || !!match;
@@ -49,7 +52,7 @@ export default function SavedItemCard({
     <div className={`imdb-card ${canOpen ? 'cursor-pointer' : '!cursor-default'}`} onClick={() => canOpen && onOpen()}>
       <div className="poster-container flex items-center justify-center bg-cinema-800">
         {cover ? (
-          <img src={cover} alt={item.title} loading="lazy" className="w-full h-full object-cover" />
+          <img src={cover} alt={shownTitle} loading="lazy" className="w-full h-full object-cover" />
         ) : (
           <span className="text-4xl">{TYPE_ICONS[item.type] ?? '🎬'}</span>
         )}
@@ -77,7 +80,7 @@ export default function SavedItemCard({
         )}
       </div>
       <div className="card-info">
-        <h3 className="card-title">{item.title}</h3>
+        <h3 className="card-title">{shownTitle}</h3>
         {item.type === 'music' && item.artist && (
           <p className="text-base text-cinema-text-muted line-clamp-1">{item.artist}</p>
         )}
