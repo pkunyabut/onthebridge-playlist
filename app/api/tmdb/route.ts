@@ -9,6 +9,7 @@ import {
   WATCH_REGIONS,
   collectProvidersFromRegions,
   collectStreamingProviderIds,
+  applyEnglishTitles,
   type WatchRegion,
   type TmdbMediaType,
   type TmdbResult,
@@ -27,6 +28,8 @@ interface TmdbSearchItem {
   first_air_date?: string;
   poster_path?: string | null;
   vote_average?: number;
+  original_title?: string;
+  original_name?: string;
   original_language?: string;
   origin_country?: string[];
   production_countries?: { iso_3166_1: string; name: string }[];
@@ -118,15 +121,18 @@ export async function GET(request: NextRequest) {
   try {
     // TMDb has no free-text search on the discover endpoints, so always search and then
     // narrow by the selected country's original language when a country filter is on.
-    const searchUrl = `/search/${type}?query=${encodeURIComponent(q)}&page=${page}&include_adult=false&language=${language}`;
+    const searchPath = `/search/${type}`;
+    const searchParams = { query: q, page: String(page), include_adult: 'false', language };
 
-    const searchData = await fetchTmdb(searchUrl, {}, apiKey) as { results?: TmdbSearchItem[]; total_pages?: number; page?: number };
+    const searchData = await fetchTmdb(searchPath, searchParams, apiKey) as { results?: TmdbSearchItem[]; total_pages?: number; page?: number };
     let rawResults = searchData.results || [];
 
     const countryLanguage = country !== DEFAULT_COUNTRY ? LANGUAGE_BY_COUNTRY[country] : undefined;
     if (countryLanguage) {
       rawResults = rawResults.filter((item) => item.original_language === countryLanguage);
     }
+    // No Thai title on TMDb → English instead of the original-language one (same as the home page)
+    rawResults = await applyEnglishTitles(rawResults, searchPath, searchParams, apiKey);
 
     const results: TmdbResult[] = await Promise.all(
       rawResults.map(async (item) => {

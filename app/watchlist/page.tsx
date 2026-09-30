@@ -9,13 +9,12 @@ import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, MediaType, PlatformType } from '@/lib/types';
 import { PLATFORM_ICONS } from '@/lib/types';
 import MediaModal from '@/components/MediaModal';
-import StatusBadge from '@/components/StatusBadge';
+import SavedItemCard, { TrashIcon } from '@/components/SavedItemCard';
 import StatusFilter from '@/components/StatusFilter';
 import type { WatchStatus } from '@/lib/types';
 import type { ProgressPatch } from '@/components/ProgressPanel';
 import MusicModal from '@/components/MusicModal';
 import { useTmdbMatches, useSeriesSchedules, savedItemToResult, savedItemToTrack } from '@/lib/useTmdbMatches';
-import ScheduleBadge from '@/components/ScheduleBadge';
 import type { MusicTrack } from '@/lib/itunes';
 import type { TmdbResult } from '@/lib/tmdb';
 
@@ -110,15 +109,6 @@ export default function WatchlistPage() {
     return mediaItems.filter((item) => item.type === filter).length;
   };
 
-  const typeIcons: Record<string, string> = {
-    movie: '🎬',
-    series: '📺',
-    documentary: '📹',
-    talkshow: '🎤',
-    music: '🎵',
-    news: '📰',
-  };
-
   if (loading) {
     return (
       <AppShell>
@@ -208,8 +198,14 @@ export default function WatchlistPage() {
                 </h2>
                 <div className="imdb-grid stagger-grid">
                   {items.map((item) => (
-                    <div key={item.id} className={`imdb-card ${matches[item.id] || item.type === 'music' ? 'cursor-pointer' : '!cursor-default'}`}
-                      onClick={() => {
+                    <SavedItemCard
+                      key={item.id}
+                      item={item}
+                      match={matches[item.id]}
+                      schedule={matches[item.id]?.media === 'tv' ? schedules[matches[item.id]!.tmdb_id] : null}
+                      showGenre
+                      showPlatform={false}
+                      onOpen={() => {
                         if (item.type === 'music') {
                           setSong(savedItemToTrack(item));
                           setSongItemId(item.id);
@@ -220,56 +216,9 @@ export default function WatchlistPage() {
                           setPreview(savedItemToResult(item, match));
                           setPreviewItemId(item.id);
                         }
-                      }}>
-                      <div className="poster-container flex items-center justify-center bg-cinema-800">
-                        {(item.type === 'music' ? item.cover_url : matches[item.id]?.poster) ? (
-                          <img
-                            src={(item.type === 'music' ? item.cover_url : matches[item.id]?.poster)!}
-                            alt={item.title}
-                            loading="lazy"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-4xl">{typeIcons[item.type]}</span>
-                        )}
-                        <div className="poster-overlay" />
-                        <StatusBadge item={item} />
-                        {matches[item.id]?.media === 'tv' && (
-                          <ScheduleBadge item={item} schedule={schedules[matches[item.id]!.tmdb_id]} />
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(item.id);
-                          }}
-                          disabled={deleting === item.id}
-                          className="save-btn"
-                          aria-label={t('delete')}
-                        >
-                          {deleting === item.id ? (
-                            <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <svg className="w-4 h-4 text-white/60 hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          )}
-                        </button>
-                      </div>
-                      <div className="card-info">
-                        <h3 className="card-title">{item.title}</h3>
-                        {item.type === 'music' && item.artist && (
-                          <p className="text-base text-cinema-text-muted line-clamp-1">{item.artist}</p>
-                        )}
-                        <div className="card-metadata">
-                          {item.year && <span className="year">{item.year}</span>}
-                          {item.year && <span className="text-white/20">·</span>}
-                          <span className="genre-tag">{t(`type_${item.type}`)}</span>
-                        </div>
-                        {item.genre && (
-                          <p className="text-sm text-cinema-text-muted mt-0.5 line-clamp-1">{item.genre}</p>
-                        )}
-                      </div>
-                    </div>
+                      }}
+                      action={{ label: t('delete'), icon: <TrashIcon />, onClick: () => handleDelete(item.id), busy: deleting === item.id }}
+                    />
                   ))}
                 </div>
               </div>

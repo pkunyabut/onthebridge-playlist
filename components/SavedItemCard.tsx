@@ -8,6 +8,15 @@ import type { SeriesSchedule } from '@/app/api/tmdb/schedule/route';
 import StatusBadge from '@/components/StatusBadge';
 import ScheduleBadge from '@/components/ScheduleBadge';
 
+/** Bin icon for the card's delete action (Dashboard, รอดู). */
+export function TrashIcon() {
+  return (
+    <svg className="w-4 h-4 text-white/60 hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+  );
+}
+
 const TYPE_ICONS: Record<string, string> = {
   movie: '🎬', series: '📺', documentary: '📹', talkshow: '🎤', music: '🎵', news: '📰',
 };
@@ -17,12 +26,21 @@ interface SavedItemCardProps {
   match?: TmdbMatch | null;
   schedule?: SeriesSchedule | null;
   onOpen: () => void;
-  /** top-right button, e.g. "remove from this collection" */
+  /** top-right button, e.g. "remove from this collection" or delete */
   action?: { label: string; icon: React.ReactNode; onClick: () => void; busy?: boolean };
+  /** line with the saved genre text (Dashboard, รอดู) */
+  showGenre?: boolean;
+  /** platform badge — off on รอดู, where cards are already grouped under a platform heading */
+  showPlatform?: boolean;
 }
 
-/** Card for a saved item (poster / album cover, status + new-episode badges, platform). */
-export default function SavedItemCard({ item, match, schedule, onOpen, action }: SavedItemCardProps) {
+/**
+ * Card for a saved item (poster / album cover, status + new-episode badges, platform).
+ * Used by Dashboard, รอดู and คอลเลกชัน — change the saved-item card here only.
+ */
+export default function SavedItemCard({
+  item, match, schedule, onOpen, action, showGenre = false, showPlatform = true,
+}: SavedItemCardProps) {
   const { t } = useLanguage();
   const cover = item.type === 'music' ? item.cover_url : match?.poster ?? item.cover_url;
   const canOpen = item.type === 'music' || !!match;
@@ -68,7 +86,10 @@ export default function SavedItemCard({ item, match, schedule, onOpen, action }:
           {item.year && <span className="text-white/20">·</span>}
           <span className="genre-tag">{t(`type_${item.type}`)}</span>
         </div>
-        {item.platform && (
+        {showGenre && item.genre && (
+          <p className="text-sm text-cinema-text-muted mt-0.5 line-clamp-1">{item.genre}</p>
+        )}
+        {showPlatform && item.platform && (
           <div className="mt-1.5">
             <span className="platform-badge">
               {PLATFORM_ICONS[item.platform as PlatformType]} {PLATFORM_LABELS[item.platform as PlatformType] ?? item.platform}

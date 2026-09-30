@@ -252,7 +252,7 @@ interface TitleFields {
  * Thai/English and title still equal to the original), re-fetch the same list in en-US — one
  * extra call, only when needed — and use the English title. Mutates `results` in place.
  */
-async function applyEnglishTitles<T extends TitleFields>(
+export async function applyEnglishTitles<T extends TitleFields>(
   results: T[],
   path: string,
   params: Record<string, string>,

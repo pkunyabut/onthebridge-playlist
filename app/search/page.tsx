@@ -12,7 +12,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import type { MediaItem, PlatformType } from '@/lib/types';
 import { toMediaType } from '@/lib/types';
 import type { TmdbMediaType, TmdbResult } from '@/lib/tmdb';
-import { WATCH_REGIONS, DEFAULT_WATCH_REGION, DEFAULT_LANGUAGE, DEFAULT_COUNTRY, COUNTRY_OPTIONS, type WatchRegion } from '@/lib/tmdb';
+import { WATCH_REGIONS, DEFAULT_WATCH_REGION, DEFAULT_COUNTRY, COUNTRY_OPTIONS, type WatchRegion } from '@/lib/tmdb';
 
 function savedKey(title: string, year: number | null) {
   return `${title.trim().toLowerCase()}|${year ?? ''}`;
@@ -26,16 +26,10 @@ const REGION_LABELS: Record<WatchRegion, string> = {
   JP: '🇯🇵 ญี่ปุ่น',
 };
 
-const LANGUAGE_OPTIONS = [
-  { value: 'th-TH', label: '🇹🇭 ไทย' },
-  { value: 'en-US', label: '🇺🇸 อังกฤษ' },
-  { value: 'ko-KR', label: '🇰🇷 เกาหลี' },
-  { value: 'zh-CN', label: '🇨🇳 จีน' },
-  { value: 'ja-JP', label: '🇯🇵 ญี่ปุ่น' },
-];
-
 export default function SearchPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  // TMDb titles follow the ไทย | EN switch, same as the home page
+  const language = lang === 'en' ? 'en-US' : 'th-TH';
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -46,7 +40,6 @@ export default function SearchPage() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [typeTab, setTypeTab] = useState<TmdbMediaType>('movie');
   const [providerFilter, setProviderFilter] = useState<Set<PlatformType>>(new Set());
-  const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
   const [watchRegion, setWatchRegion] = useState<WatchRegion>(DEFAULT_WATCH_REGION);
   const [country, setCountry] = useState<string>(DEFAULT_COUNTRY);
 
