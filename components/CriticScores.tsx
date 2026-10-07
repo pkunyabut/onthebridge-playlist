@@ -13,7 +13,7 @@ interface CriticScoresProps {
  * the title has no scores, or when OMDB_API_KEY is not set — the preview never shows a gap.
  */
 export default function CriticScores({ imdbId }: CriticScoresProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [scores, setScores] = useState<Scores | null>(null);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function CriticScores({ imdbId }: CriticScoresProps) {
           </div>
         ))}
       </div>
-      <p className="text-sm text-cinema-text-muted/80 mt-2">{t('critic_scores_credit')}</p>
+      <p className="text-sm text-cinema-text-muted/80 mt-2">{t('critic_scores_credit', { sources: items.map((i) => i.label).join(lang === 'th' ? ' และ ' : ' and ') })}</p>
     </div>
   );
 }
