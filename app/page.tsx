@@ -91,6 +91,8 @@ export default function LandingPage() {
   // Item 6 — curated rows
   const [trendingRow, setTrendingRow] = useState<TmdbRowItem[]>([]);
   const [topRatedRow, setTopRatedRow] = useState<TmdbRowItem[]>([]);
+  const [newSeriesRow, setNewSeriesRow] = useState<TmdbRowItem[]>([]);
+  const [trendingTvRow, setTrendingTvRow] = useState<TmdbRowItem[]>([]);
   const [forYouRow, setForYouRow] = useState<TmdbRowItem[]>([]);
   // true = nothing personal to recommend (no saved titles, or none TMDb could match) → show ForYouInvite
   const [forYouFallback, setForYouFallback] = useState(false);
@@ -285,11 +287,13 @@ export default function LandingPage() {
       if (!res.ok) return null;
       return res.json() as Promise<{ items?: TmdbRowItem[]; source?: string }>;
     };
-    Promise.all([load('trending'), load('top_rated')])
-      .then(([trending, topRated]) => {
+    Promise.all([load('trending'), load('top_rated'), load('new_series'), load('trending_tv')])
+      .then(([trending, topRated, newSeries, trendingTv]) => {
         if (cancelled) return;
         setTrendingRow(trending?.items ?? []);
         setTopRatedRow(topRated?.items ?? []);
+        setNewSeriesRow(newSeries?.items ?? []);
+        setTrendingTvRow(trendingTv?.items ?? []);
       })
       .catch(() => {})
       .finally(() => {
@@ -547,6 +551,20 @@ export default function LandingPage() {
           title={t('row_trending')}
           icon="🔥"
           items={trendingRow}
+          loading={rowsLoading}
+          onSelect={(item) => setModalResult(toResult(item))}
+        />
+        <SuggestionRow
+          title={t('row_new_series')}
+          icon="🆕"
+          items={newSeriesRow}
+          loading={rowsLoading}
+          onSelect={(item) => setModalResult(toResult(item))}
+        />
+        <SuggestionRow
+          title={t('row_trending_tv')}
+          icon="📺"
+          items={trendingTvRow}
           loading={rowsLoading}
           onSelect={(item) => setModalResult(toResult(item))}
         />

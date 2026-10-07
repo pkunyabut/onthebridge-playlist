@@ -144,6 +144,8 @@
   "hours_unit": "ชม.",
   "minutes_unit": "นาที",
   "row_trending": "กำลังมาแรง",
+  "row_new_series": "ซีรีส์ออกใหม่",
+  "row_trending_tv": "ซีรีส์มาแรงสัปดาห์นี้",
   "row_top_rated": "คะแนนสูงสุด",
   "row_for_you": "แนะนำสำหรับคุณ",
   "row_for_you_hint": "จากรอดูของคุณ {count} เรื่อง",

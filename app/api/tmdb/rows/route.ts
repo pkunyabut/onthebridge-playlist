@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   fetchTrendingRow,
+  fetchTrendingTvRow,
+  fetchNewSeriesRow,
   fetchTopRatedRow,
   fetchRecommendationsForTitles,
   fetchOriginRow,
@@ -18,6 +20,8 @@ export const dynamic = 'force-dynamic';
 // GET /api/tmdb/rows — curated suggestion rows for the landing page.
 //
 // kind=trending                     → กำลังมาแรง   (/trending/movie/week)
+// kind=trending_tv                → ซีรีส์มาแรง   (/trending/tv/week)
+// kind=new_series                  → ซีรีส์ออกใหม่ (/discover/tv, first_air_date ใน 60 วัน)
 // kind=top_rated                    → คะแนนสูงสุด   (/movie/top_rated)
 // kind=for_you&titles=A,B,C         → แนะนำสำหรับคุณ (/search/multi → /movie|tv/{id}/recommendations,
 //                                                       falls back to trending when the watchlist is empty)
@@ -57,6 +61,12 @@ export async function GET(request: NextRequest) {
     if (kind === 'trending') {
       items = await fetchTrendingRow(apiKey, language);
       source = 'trending/movie/week';
+    } else if (kind === 'trending_tv') {
+      items = await fetchTrendingTvRow(apiKey, language);
+      source = 'trending/tv/week';
+    } else if (kind === 'new_series') {
+      items = await fetchNewSeriesRow(apiKey, language);
+      source = 'discover/tv first_air_date last 60 days';
     } else if (kind === 'top_rated') {
       items = await fetchTopRatedRow(apiKey, language);
       source = 'discover/movie top rated (vote_count>=1000)';

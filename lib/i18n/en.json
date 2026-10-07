@@ -144,6 +144,8 @@
   "hours_unit": "h",
   "minutes_unit": "min",
   "row_trending": "Trending",
+  "row_new_series": "New series",
+  "row_trending_tv": "Trending series",
   "row_top_rated": "Top rated",
   "row_for_you": "Recommended for you",
   "row_for_you_hint": "Based on {count} titles in your watchlist",

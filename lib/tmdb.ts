@@ -656,6 +656,49 @@ export async function fetchTrendingRow(
   return raw.map((item) => toRowItem(item, 'movie'));
 }
 
+/** กำลังมาแรง (ซีรีส์) — /trending/tv/week, the movie-only trending row never shows series. */
+export async function fetchTrendingTvRow(
+  apiKey: string,
+  language: string = DEFAULT_LANGUAGE,
+): Promise<TmdbRowItem[]> {
+  const params = { language };
+  const data = await fetchTmdb('/trending/tv/week', params, apiKey) as { results?: TmdbRowRaw[] };
+  const raw = await applyEnglishTitles(data.results ?? [], '/trending/tv/week', params, apiKey);
+  return raw.map((item) => toRowItem(item, 'tv'));
+}
+
+/** Kids (10762), News (10763) and Talk (10767) — not "series to watch". */
+const NEW_SERIES_WITHOUT_GENRES = '10762,10763,10767';
+const NEW_SERIES_WINDOW_DAYS = 60;
+
+/**
+ * ซีรีส์ออกใหม่ — series whose first episode aired in the last 60 days, most popular first.
+ * No vote_count / watch_region filter on purpose: a show that premiered last week has almost
+ * no votes and no JustWatch data yet, which is exactly why the browse grid never shows it.
+ */
+export async function fetchNewSeriesRow(
+  apiKey: string,
+  language: string = DEFAULT_LANGUAGE,
+  limit: number = 20,
+): Promise<TmdbRowItem[]> {
+  const today = new Date();
+  const since = new Date(today.getTime() - NEW_SERIES_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const params: Record<string, string> = {
+    sort_by: 'popularity.desc',
+    'first_air_date.gte': since.toISOString().slice(0, 10),
+    'first_air_date.lte': today.toISOString().slice(0, 10),
+    without_genres: NEW_SERIES_WITHOUT_GENRES,
+    language,
+    page: '1',
+    include_adult: 'false',
+  };
+  const data = await fetchTmdb('/discover/tv', params, apiKey) as { results?: TmdbRowRaw[] };
+  // Same rule as the channel rows: a show with no Thai/English title is not distributed here.
+  const readable = (data.results ?? []).filter((r) => READABLE_TITLE.test(r.name ?? r.title ?? ''));
+  const raw = await applyEnglishTitles(readable, '/discover/tv', params, apiKey);
+  return raw.slice(0, limit).map((item) => toRowItem(item, 'tv'));
+}
+
 /**
  * คะแนนสูงสุด — highest-rated movies that at least TOP_RATED_MIN_VOTES people rated,
  * so brand-new titles with a handful of votes (e.g. a 9.2 from 20 votes) stay out.
@@ -809,8 +852,12 @@ export async function fetchNetworkRow(
     include_adult: 'false',
   };
   const recentParams = { ...base, 'air_date.gte': yearAgo.toISOString().slice(0, 10) };
+  // premiered in the last 60 days — new shows go first, otherwise popularity.desc buries them
+  // under the channel's older hits
+  const since = new Date(today.getTime() - NEW_SERIES_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const newParams = { ...base, 'first_air_date.gte': since.toISOString().slice(0, 10) };
   // two pages each: the readable-title filter can drop half of a Chinese platform's page
-  const pageParams = [recentParams, { ...recentParams, page: '2' }, base, { ...base, page: '2' }];
+  const pageParams = [newParams, recentParams, { ...recentParams, page: '2' }, base, { ...base, page: '2' }];
   const pages = await Promise.all(
     pageParams.map(async (params) => {
       const data = await fetchTmdb('/discover/tv', params, apiKey) as { results?: TmdbRowRaw[] };
