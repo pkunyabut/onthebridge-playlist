@@ -200,7 +200,7 @@
   "footer_tmdb_notice": "This website uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
   "footer_justwatch": "Streaming availability data by",
   "critic_scores_title": "Critic scores",
-  "critic_scores_credit": "Critic scores from Rotten Tomatoes and Metacritic, via OMDb",
+  "critic_scores_credit": "Critic scores from {sources}, via OMDb",
   "footer_omdb": "Critic scores (Rotten Tomatoes, Metacritic) via",
   "terms_source_omdb": "Critic scores (Rotten Tomatoes and Metacritic) come from the OMDb API. Only the title\u0027s IMDb id is sent to look up scores; no user data is sent.",
   "footer_apple": "Music data, album art and 30-second previews from",

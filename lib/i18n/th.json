@@ -200,7 +200,7 @@
   "footer_tmdb_notice": "เว็บนี้ใช้ข้อมูลจาก TMDB และ TMDB API แต่ไม่ได้รับการรับรองหรืออนุมัติจาก TMDB",
   "footer_justwatch": "ข้อมูลช่องทางรับชม (ดูได้ที่ไหน) โดย",
   "critic_scores_title": "คะแนนจากนักวิจารณ์",
-  "critic_scores_credit": "คะแนนนักวิจารณ์โดย Rotten Tomatoes และ Metacritic ผ่าน OMDb",
+  "critic_scores_credit": "คะแนนนักวิจารณ์โดย {sources} ผ่าน OMDb",
   "footer_omdb": "คะแนนนักวิจารณ์ (Rotten Tomatoes, Metacritic) ผ่าน",
   "terms_source_omdb": "คะแนนจากนักวิจารณ์ (Rotten Tomatoes และ Metacritic) มาจาก OMDb API เว็บนี้ส่งเฉพาะรหัส IMDb ของเรื่องไปขอคะแนน ไม่ส่งข้อมูลของผู้ใช้",
   "footer_apple": "ข้อมูลเพลง ปกอัลบั้ม และเสียงตัวอย่าง 30 วินาที จาก",
