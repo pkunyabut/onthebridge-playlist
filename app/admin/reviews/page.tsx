@@ -158,6 +158,18 @@ export default function AdminReviewsPage() {
 
         {status === 'ok' && (
           <>
+            {/* selection rules — the supply of real critic reviews is thin, quality matters more than count */}
+            <section className="mb-6 p-3 rounded-xl border border-brand-500/40 bg-brand-600/10">
+              <h2 className="text-base font-semibold text-white mb-1">{t('admin_reviews_rules_title')}</h2>
+              <ol className="list-decimal pl-5 text-base text-white/90 space-y-0.5">
+                <li>{t('admin_reviews_rule_1')}</li>
+                <li>{t('admin_reviews_rule_2')}</li>
+                <li>{t('admin_reviews_rule_3')}</li>
+                <li>{t('admin_reviews_rule_4')}</li>
+              </ol>
+              <p className="text-sm text-cinema-text-muted mt-2">{t('admin_reviews_rules_note')}</p>
+            </section>
+
             {/* 1. pick a title */}
             <section className="mb-6">
               <h2 className="text-lg font-semibold text-white mb-2">{t('admin_reviews_pick')}</h2>
