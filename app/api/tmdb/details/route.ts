@@ -37,6 +37,8 @@ export interface TmdbDetails {
   watch_link: string | null;
   /** Series only: channels/platforms it first aired on (TMDB networks). */
   networks: { id: number; name: string; logo: string | null }[];
+  /** IMDb id (tt…) — the key OMDb needs for critic scores. */
+  imdb_id: string | null;
 }
 
 interface RawProvider { provider_id: number; provider_name: string; logo_path: string | null }
@@ -74,6 +76,8 @@ interface RawDetails {
   genres?: { name: string }[];
   created_by?: { id: number; name: string }[];
   networks?: { id: number; name: string; logo_path?: string | null }[];
+  imdb_id?: string | null;
+  external_ids?: { imdb_id?: string | null };
   credits?: {
     cast?: { id: number; name: string; order?: number }[];
     crew?: { id: number; name: string; job?: string }[];
@@ -140,7 +144,7 @@ export async function GET(request: NextRequest) {
       `/${endpoint}/${id}`,
       {
         language,
-        append_to_response: 'credits,videos,watch/providers',
+        append_to_response: 'credits,videos,watch/providers,external_ids',
         include_video_language: 'th,en,null',
       },
       apiKey,
@@ -199,6 +203,7 @@ export async function GET(request: NextRequest) {
       trailer: pickTrailer(data.videos?.results ?? []),
       providers: { stream, rent, buy },
       watch_link: region?.link ?? null,
+      imdb_id: (endpoint === 'tv' ? data.external_ids?.imdb_id : data.imdb_id) || null,
       networks: (data.networks ?? []).map((n) => ({
         id: n.id,
         name: n.name,
