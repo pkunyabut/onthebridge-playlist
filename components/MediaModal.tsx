@@ -8,6 +8,7 @@ import { PLATFORM_URLS } from '@/lib/tmdb';
 import type { TmdbDetails } from '@/app/api/tmdb/details/route';
 import { networkForTmdbId } from '@/lib/networks';
 import CriticScores from '@/components/CriticScores';
+import CriticReviews from '@/components/CriticReviews';
 import type { MediaItem } from '@/lib/types';
 import ProgressPanel, { type ProgressPatch } from '@/components/ProgressPanel';
 import CollectionPicker from '@/components/CollectionPicker';
@@ -214,6 +215,10 @@ export default function MediaModal({
 
           {/* Critic scores (Rotten Tomatoes / Metacritic via OMDb) */}
           <CriticScores imdbId={details?.imdb_id} />
+          {/* Critic quotes picked by the site owner */}
+          {(result.type === 'movie' || result.type === 'tv' || result.type === 'documentary') && (
+            <CriticReviews tmdbId={result.id} media={result.type === 'tv' ? 'tv' : 'movie'} />
+          )}
 
           {/* Episode schedule (series) */}
           {schedule && (
