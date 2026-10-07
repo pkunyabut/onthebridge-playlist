@@ -52,6 +52,10 @@ export default function TermsPage() {
               <p>{t('terms_source_justwatch')}</p>
             </li>
             <li className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <p className="font-semibold text-white">OMDb</p>
+              <p>{t('terms_source_omdb')}</p>
+            </li>
+            <li className="p-4 rounded-xl bg-white/5 border border-white/10">
               <p className="font-semibold text-white">Apple Music / iTunes</p>
               <p>{t('terms_source_apple')}</p>
             </li>

@@ -7,6 +7,7 @@ import type { TmdbResult } from '@/lib/tmdb';
 import { PLATFORM_URLS } from '@/lib/tmdb';
 import type { TmdbDetails } from '@/app/api/tmdb/details/route';
 import { networkForTmdbId } from '@/lib/networks';
+import CriticScores from '@/components/CriticScores';
 import type { MediaItem } from '@/lib/types';
 import ProgressPanel, { type ProgressPatch } from '@/components/ProgressPanel';
 import CollectionPicker from '@/components/CollectionPicker';
@@ -210,6 +211,9 @@ export default function MediaModal({
               {[lengthLabel, details?.genres.slice(0, 3).join(' · ')].filter(Boolean).join('  |  ')}
             </p>
           )}
+
+          {/* Critic scores (Rotten Tomatoes / Metacritic via OMDb) */}
+          <CriticScores imdbId={details?.imdb_id} />
 
           {/* Episode schedule (series) */}
           {schedule && (

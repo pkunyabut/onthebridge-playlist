@@ -45,6 +45,12 @@ export default function SiteFooter({ className = '' }: { className?: string }) {
             </a>
           </li>
           <li>
+            {t('footer_omdb')}{' '}
+            <a href="https://www.omdbapi.com/" target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:text-brand-300 underline underline-offset-2">
+              OMDb
+            </a>
+          </li>
+          <li>
             {t('footer_apple')}{' '}
             <a href="https://music.apple.com/th/" target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:text-brand-300 underline underline-offset-2">
               Apple Music
